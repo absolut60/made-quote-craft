@@ -48,6 +48,7 @@ function PreventivoEditorPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [addBloccoOpen, setAddBloccoOpen] = useState(false);
+  const [outputOpen, setOutputOpen] = useState(false);
 
   const { data: prev, isLoading } = useQuery({
     queryKey: ["preventivo", id],
