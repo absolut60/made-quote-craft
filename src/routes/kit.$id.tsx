@@ -33,13 +33,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  ArrowLeft,
-  Copy,
-  Plus,
-  Save,
-  Trash2,
-} from "lucide-react";
+import { ArrowLeft, Copy, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   calcolaRigaKit,
