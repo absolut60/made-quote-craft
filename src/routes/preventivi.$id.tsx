@@ -24,7 +24,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  ArrowLeft, GripVertical, Plus, Save, Trash2,
+  ArrowLeft, FileDown, GripVertical, Plus, Save, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -36,6 +36,7 @@ import { FASCE, type FasciaListino } from "@/lib/articoli-api";
 import { round2 } from "@/lib/pricing";
 import { AggiungiBloccoDialog } from "@/components/preventivi/AggiungiBloccoDialog";
 import { RigheTable } from "@/components/preventivi/RigheTable";
+import { GeneraDocumentoDialog } from "@/components/preventivi/GeneraDocumentoDialog";
 
 export const Route = createFileRoute("/preventivi/$id")({
   head: () => ({ meta: [{ title: "Editor Preventivo — Sistema MADE" }] }),
@@ -47,6 +48,7 @@ function PreventivoEditorPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [addBloccoOpen, setAddBloccoOpen] = useState(false);
+  const [outputOpen, setOutputOpen] = useState(false);
 
   const { data: prev, isLoading } = useQuery({
     queryKey: ["preventivo", id],
@@ -131,6 +133,9 @@ function PreventivoEditorPage() {
             </Badge>
           </div>
           <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => setOutputOpen(true)}>
+              <FileDown className="mr-1 h-4 w-4" /> Genera documento
+            </Button>
             <Button
               size="sm"
               variant="outline"
@@ -289,6 +294,8 @@ function PreventivoEditorPage() {
         fascia={(prev.fascia_listino ?? "A") as FasciaListino}
         lastOrdine={lastOrdine}
       />
+
+      <GeneraDocumentoDialog open={outputOpen} onOpenChange={setOutputOpen} prev={prev} />
     </AppShell>
   );
 }
