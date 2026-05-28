@@ -24,7 +24,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  ArrowLeft, GripVertical, Plus, Save, Trash2,
+  ArrowLeft, FileDown, GripVertical, Plus, Save, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -36,6 +36,7 @@ import { FASCE, type FasciaListino } from "@/lib/articoli-api";
 import { round2 } from "@/lib/pricing";
 import { AggiungiBloccoDialog } from "@/components/preventivi/AggiungiBloccoDialog";
 import { RigheTable } from "@/components/preventivi/RigheTable";
+import { GeneraDocumentoDialog } from "@/components/preventivi/GeneraDocumentoDialog";
 
 export const Route = createFileRoute("/preventivi/$id")({
   head: () => ({ meta: [{ title: "Editor Preventivo — Sistema MADE" }] }),
