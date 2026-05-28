@@ -16,6 +16,7 @@ import { Route as KitRouteImport } from './routes/kit'
 import { Route as ClientiRouteImport } from './routes/clienti'
 import { Route as ArticoliRouteImport } from './routes/articoli'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ArticoliIdRouteImport } from './routes/articoli.$id'
 
 const UtentiRoute = UtentiRouteImport.update({
   id: '/utenti',
@@ -52,34 +53,42 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ArticoliIdRoute = ArticoliIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ArticoliRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/articoli': typeof ArticoliRoute
+  '/articoli': typeof ArticoliRouteWithChildren
   '/clienti': typeof ClientiRoute
   '/kit': typeof KitRoute
   '/listini': typeof ListiniRoute
   '/preventivi': typeof PreventiviRoute
   '/utenti': typeof UtentiRoute
+  '/articoli/$id': typeof ArticoliIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/articoli': typeof ArticoliRoute
+  '/articoli': typeof ArticoliRouteWithChildren
   '/clienti': typeof ClientiRoute
   '/kit': typeof KitRoute
   '/listini': typeof ListiniRoute
   '/preventivi': typeof PreventiviRoute
   '/utenti': typeof UtentiRoute
+  '/articoli/$id': typeof ArticoliIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/articoli': typeof ArticoliRoute
+  '/articoli': typeof ArticoliRouteWithChildren
   '/clienti': typeof ClientiRoute
   '/kit': typeof KitRoute
   '/listini': typeof ListiniRoute
   '/preventivi': typeof PreventiviRoute
   '/utenti': typeof UtentiRoute
+  '/articoli/$id': typeof ArticoliIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/listini'
     | '/preventivi'
     | '/utenti'
+    | '/articoli/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/listini'
     | '/preventivi'
     | '/utenti'
+    | '/articoli/$id'
   id:
     | '__root__'
     | '/'
@@ -109,11 +120,12 @@ export interface FileRouteTypes {
     | '/listini'
     | '/preventivi'
     | '/utenti'
+    | '/articoli/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ArticoliRoute: typeof ArticoliRoute
+  ArticoliRoute: typeof ArticoliRouteWithChildren
   ClientiRoute: typeof ClientiRoute
   KitRoute: typeof KitRoute
   ListiniRoute: typeof ListiniRoute
@@ -172,12 +184,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/articoli/$id': {
+      id: '/articoli/$id'
+      path: '/$id'
+      fullPath: '/articoli/$id'
+      preLoaderRoute: typeof ArticoliIdRouteImport
+      parentRoute: typeof ArticoliRoute
+    }
   }
 }
 
+interface ArticoliRouteChildren {
+  ArticoliIdRoute: typeof ArticoliIdRoute
+}
+
+const ArticoliRouteChildren: ArticoliRouteChildren = {
+  ArticoliIdRoute: ArticoliIdRoute,
+}
+
+const ArticoliRouteWithChildren = ArticoliRoute._addFileChildren(
+  ArticoliRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ArticoliRoute: ArticoliRoute,
+  ArticoliRoute: ArticoliRouteWithChildren,
   ClientiRoute: ClientiRoute,
   KitRoute: KitRoute,
   ListiniRoute: ListiniRoute,
