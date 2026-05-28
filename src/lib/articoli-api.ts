@@ -127,14 +127,32 @@ export async function fetchListiniVendita(articolo_id: string): Promise<ListinoV
 }
 
 export async function upsertListinoVendita(row: ListinoVenditaInsert) {
+  // No unique constraint guaranteed: emulate upsert
+  const { data: existing } = await supabase
+    .from("listini_vendita")
+    .select("id")
+    .eq("articolo_id", row.articolo_id)
+    .eq("fascia", row.fascia)
+    .maybeSingle();
+  if (existing) {
+    const { data, error } = await supabase
+      .from("listini_vendita")
+      .update(row)
+      .eq("id", existing.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
   const { data, error } = await supabase
     .from("listini_vendita")
-    .upsert(row, { onConflict: "articolo_id,fascia" })
+    .insert(row)
     .select()
     .single();
   if (error) throw error;
   return data;
 }
+
 
 /**
  * Catena costo:
