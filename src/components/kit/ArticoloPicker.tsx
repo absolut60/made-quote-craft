@@ -21,7 +21,10 @@ export function ArticoloPicker({
 
   const { data: items = [] } = useQuery({
     queryKey: ["articoli-picker", q],
-    queryFn: () => fetchArticoli({ search: q, stato: "attivo" }, 50),
+    queryFn: async () => {
+      const res = await fetchArticoli({ search: q, stato: "attivo" }, { pageSize: 50 });
+      return res.rows;
+    },
   });
 
   const { data: selected } = useQuery({
