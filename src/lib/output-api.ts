@@ -1,6 +1,53 @@
+import { supabase } from "@/integrations/supabase/client";
 import type { BloccoConRighe, PreventivoConDettagli } from "./preventivi-api";
 import { calcolaBlocco } from "./preventivi-api";
 import { round2 } from "./pricing";
+
+/**
+ * Recupera per ogni articolo_id la qta_fornitore (minimo di vendita) + fornitore.
+ * Le righe del preventivo embeddano solo i campi base dell'articolo: questa funzione
+ * arricchisce i risultati di aggregaMateriali con i dati di ordine.
+ */
+export async function fetchArticoliPerOrdine(
+  articoloIds: string[],
+): Promise<Map<string, { qta_fornitore: number; fornitore_id: string | null; fornitore_nome: string | null }>> {
+  const out = new Map<string, { qta_fornitore: number; fornitore_id: string | null; fornitore_nome: string | null }>();
+  if (!articoloIds.length) return out;
+  const { data, error } = await supabase
+    .from("articoli")
+    .select("id, qta_fornitore, fornitore_id, fornitore:fornitori(id, ragione_sociale)")
+    .in("id", articoloIds);
+  if (error) throw error;
+  for (const a of (data ?? []) as unknown as Array<{
+    id: string;
+    qta_fornitore: number | null;
+    fornitore_id: string | null;
+    fornitore: { id: string; ragione_sociale: string } | null;
+  }>) {
+    out.set(a.id, {
+      qta_fornitore: Number(a.qta_fornitore ?? 0),
+      fornitore_id: a.fornitore_id,
+      fornitore_nome: a.fornitore?.ragione_sociale ?? null,
+    });
+  }
+  return out;
+}
+
+export function arricchisciMateriali(
+  materiali: MaterialeAggregato[],
+  info: Map<string, { qta_fornitore: number; fornitore_id: string | null; fornitore_nome: string | null }>,
+): MaterialeAggregato[] {
+  return materiali.map((m) => {
+    const i = info.get(m.articolo_id);
+    if (!i) return m;
+    return {
+      ...m,
+      qta_confezione: i.qta_fornitore,
+      fornitore_id: i.fornitore_id,
+      fornitore_nome: i.fornitore_nome,
+    };
+  });
+}
 
 // =========================================================================
 // Aggregazione materiali per Lista Materiali e Lista Mat. Fornitore
