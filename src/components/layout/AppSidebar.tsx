@@ -1,20 +1,16 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
-  FileText,
-  Package,
-  Tags,
-  Wrench,
-  Users,
-  UserCog,
+  LayoutDashboard, FileText, Package, Tags, Wrench, Users, UserCog,
 } from "lucide-react";
 import logo from "@/assets/logo-made.png";
+import { useAuth } from "@/hooks/use-auth";
 
 type NavItem = {
   to: string;
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
+  adminOnly?: boolean;
 };
 
 const nav: NavItem[] = [
@@ -24,11 +20,13 @@ const nav: NavItem[] = [
   { to: "/listini", label: "Listini", icon: Tags },
   { to: "/kit", label: "Kit / Lavorazioni", icon: Wrench },
   { to: "/clienti", label: "Clienti", icon: Users },
-  { to: "/utenti", label: "Utenti", icon: UserCog },
+  { to: "/utenti", label: "Utenti", icon: UserCog, adminOnly: true },
 ];
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { isAdmin } = useAuth();
+  const visible = nav.filter((i) => !i.adminOnly || isAdmin);
 
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
@@ -41,7 +39,7 @@ export function AppSidebar() {
       </div>
 
       <nav className="flex-1 px-2 py-2 space-y-0.5">
-        {nav.map((item) => {
+        {visible.map((item) => {
           const active = item.exact
             ? pathname === item.to
             : pathname === item.to || pathname.startsWith(item.to + "/");
