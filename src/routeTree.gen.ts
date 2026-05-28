@@ -9,8 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UtentiRouteImport } from './routes/utenti'
+import { Route as PreventiviRouteImport } from './routes/preventivi'
+import { Route as ListiniRouteImport } from './routes/listini'
+import { Route as KitRouteImport } from './routes/kit'
+import { Route as ClientiRouteImport } from './routes/clienti'
+import { Route as ArticoliRouteImport } from './routes/articoli'
 import { Route as IndexRouteImport } from './routes/index'
 
+const UtentiRoute = UtentiRouteImport.update({
+  id: '/utenti',
+  path: '/utenti',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreventiviRoute = PreventiviRouteImport.update({
+  id: '/preventivi',
+  path: '/preventivi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListiniRoute = ListiniRouteImport.update({
+  id: '/listini',
+  path: '/listini',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KitRoute = KitRouteImport.update({
+  id: '/kit',
+  path: '/kit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientiRoute = ClientiRouteImport.update({
+  id: '/clienti',
+  path: '/clienti',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArticoliRoute = ArticoliRouteImport.update({
+  id: '/articoli',
+  path: '/articoli',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +55,116 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/articoli': typeof ArticoliRoute
+  '/clienti': typeof ClientiRoute
+  '/kit': typeof KitRoute
+  '/listini': typeof ListiniRoute
+  '/preventivi': typeof PreventiviRoute
+  '/utenti': typeof UtentiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/articoli': typeof ArticoliRoute
+  '/clienti': typeof ClientiRoute
+  '/kit': typeof KitRoute
+  '/listini': typeof ListiniRoute
+  '/preventivi': typeof PreventiviRoute
+  '/utenti': typeof UtentiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/articoli': typeof ArticoliRoute
+  '/clienti': typeof ClientiRoute
+  '/kit': typeof KitRoute
+  '/listini': typeof ListiniRoute
+  '/preventivi': typeof PreventiviRoute
+  '/utenti': typeof UtentiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/articoli'
+    | '/clienti'
+    | '/kit'
+    | '/listini'
+    | '/preventivi'
+    | '/utenti'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/articoli'
+    | '/clienti'
+    | '/kit'
+    | '/listini'
+    | '/preventivi'
+    | '/utenti'
+  id:
+    | '__root__'
+    | '/'
+    | '/articoli'
+    | '/clienti'
+    | '/kit'
+    | '/listini'
+    | '/preventivi'
+    | '/utenti'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ArticoliRoute: typeof ArticoliRoute
+  ClientiRoute: typeof ClientiRoute
+  KitRoute: typeof KitRoute
+  ListiniRoute: typeof ListiniRoute
+  PreventiviRoute: typeof PreventiviRoute
+  UtentiRoute: typeof UtentiRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/utenti': {
+      id: '/utenti'
+      path: '/utenti'
+      fullPath: '/utenti'
+      preLoaderRoute: typeof UtentiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preventivi': {
+      id: '/preventivi'
+      path: '/preventivi'
+      fullPath: '/preventivi'
+      preLoaderRoute: typeof PreventiviRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/listini': {
+      id: '/listini'
+      path: '/listini'
+      fullPath: '/listini'
+      preLoaderRoute: typeof ListiniRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kit': {
+      id: '/kit'
+      path: '/kit'
+      fullPath: '/kit'
+      preLoaderRoute: typeof KitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clienti': {
+      id: '/clienti'
+      path: '/clienti'
+      fullPath: '/clienti'
+      preLoaderRoute: typeof ClientiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/articoli': {
+      id: '/articoli'
+      path: '/articoli'
+      fullPath: '/articoli'
+      preLoaderRoute: typeof ArticoliRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +177,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ArticoliRoute: ArticoliRoute,
+  ClientiRoute: ClientiRoute,
+  KitRoute: KitRoute,
+  ListiniRoute: ListiniRoute,
+  PreventiviRoute: PreventiviRoute,
+  UtentiRoute: UtentiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
