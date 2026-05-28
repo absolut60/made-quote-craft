@@ -274,6 +274,36 @@ function ArticoliListPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between border-t bg-card px-6 py-3 text-xs">
+          <div className="text-muted-foreground">
+            {total > 0
+              ? `Mostro ${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} di ${total.toLocaleString("it-IT")}`
+              : "0 risultati"}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1 || isLoading}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              ← Precedente
+            </Button>
+            <span className="font-mono">
+              {page} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages || isLoading}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Successiva →
+            </Button>
+          </div>
+        </div>
       </div>
 
       <ImportArticoliDialog open={importOpen} onOpenChange={setImportOpen} onDone={refetch} />
