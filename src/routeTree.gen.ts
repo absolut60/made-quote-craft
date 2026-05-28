@@ -16,6 +16,7 @@ import { Route as KitRouteImport } from './routes/kit'
 import { Route as ClientiRouteImport } from './routes/clienti'
 import { Route as ArticoliRouteImport } from './routes/articoli'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PreventiviIdRouteImport } from './routes/preventivi.$id'
 import { Route as KitIdRouteImport } from './routes/kit.$id'
 import { Route as ArticoliIdRouteImport } from './routes/articoli.$id'
 
@@ -54,6 +55,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PreventiviIdRoute = PreventiviIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => PreventiviRoute,
+} as any)
 const KitIdRoute = KitIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -71,10 +77,11 @@ export interface FileRoutesByFullPath {
   '/clienti': typeof ClientiRoute
   '/kit': typeof KitRouteWithChildren
   '/listini': typeof ListiniRoute
-  '/preventivi': typeof PreventiviRoute
+  '/preventivi': typeof PreventiviRouteWithChildren
   '/utenti': typeof UtentiRoute
   '/articoli/$id': typeof ArticoliIdRoute
   '/kit/$id': typeof KitIdRoute
+  '/preventivi/$id': typeof PreventiviIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -82,10 +89,11 @@ export interface FileRoutesByTo {
   '/clienti': typeof ClientiRoute
   '/kit': typeof KitRouteWithChildren
   '/listini': typeof ListiniRoute
-  '/preventivi': typeof PreventiviRoute
+  '/preventivi': typeof PreventiviRouteWithChildren
   '/utenti': typeof UtentiRoute
   '/articoli/$id': typeof ArticoliIdRoute
   '/kit/$id': typeof KitIdRoute
+  '/preventivi/$id': typeof PreventiviIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -94,10 +102,11 @@ export interface FileRoutesById {
   '/clienti': typeof ClientiRoute
   '/kit': typeof KitRouteWithChildren
   '/listini': typeof ListiniRoute
-  '/preventivi': typeof PreventiviRoute
+  '/preventivi': typeof PreventiviRouteWithChildren
   '/utenti': typeof UtentiRoute
   '/articoli/$id': typeof ArticoliIdRoute
   '/kit/$id': typeof KitIdRoute
+  '/preventivi/$id': typeof PreventiviIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/utenti'
     | '/articoli/$id'
     | '/kit/$id'
+    | '/preventivi/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/utenti'
     | '/articoli/$id'
     | '/kit/$id'
+    | '/preventivi/$id'
   id:
     | '__root__'
     | '/'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/utenti'
     | '/articoli/$id'
     | '/kit/$id'
+    | '/preventivi/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -141,7 +153,7 @@ export interface RootRouteChildren {
   ClientiRoute: typeof ClientiRoute
   KitRoute: typeof KitRouteWithChildren
   ListiniRoute: typeof ListiniRoute
-  PreventiviRoute: typeof PreventiviRoute
+  PreventiviRoute: typeof PreventiviRouteWithChildren
   UtentiRoute: typeof UtentiRoute
 }
 
@@ -196,6 +208,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/preventivi/$id': {
+      id: '/preventivi/$id'
+      path: '/$id'
+      fullPath: '/preventivi/$id'
+      preLoaderRoute: typeof PreventiviIdRouteImport
+      parentRoute: typeof PreventiviRoute
+    }
     '/kit/$id': {
       id: '/kit/$id'
       path: '/$id'
@@ -235,15 +254,37 @@ const KitRouteChildren: KitRouteChildren = {
 
 const KitRouteWithChildren = KitRoute._addFileChildren(KitRouteChildren)
 
+interface PreventiviRouteChildren {
+  PreventiviIdRoute: typeof PreventiviIdRoute
+}
+
+const PreventiviRouteChildren: PreventiviRouteChildren = {
+  PreventiviIdRoute: PreventiviIdRoute,
+}
+
+const PreventiviRouteWithChildren = PreventiviRoute._addFileChildren(
+  PreventiviRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ArticoliRoute: ArticoliRouteWithChildren,
   ClientiRoute: ClientiRoute,
   KitRoute: KitRouteWithChildren,
   ListiniRoute: ListiniRoute,
-  PreventiviRoute: PreventiviRoute,
+  PreventiviRoute: PreventiviRouteWithChildren,
   UtentiRoute: UtentiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
