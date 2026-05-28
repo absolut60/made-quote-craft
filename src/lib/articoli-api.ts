@@ -152,37 +152,18 @@ export async function upsertListinoVendita(row: ListinoVenditaInsert) {
   if (error) throw error;
   return data;
 }
+// === Motore di calcolo (re-export dal modulo centrale src/lib/pricing.ts) ===
+export {
+  calcCosto,
+  round2,
+  prezzoFromRicarico,
+  ricaricoFromPrezzo,
+  margineFromPrezzo,
+} from "./pricing";
 
-
-/**
- * Catena costo:
- *   costo → sconti SC1..SC5 in cascata → costo_parziale
- *   costo_parziale + trasporto_eur, poi maggiorazione trasporto_perc → costo_netto
- */
+// Wrapper retro-compatibile usato dai componenti articoli/listini.
+import { calcCosto as _calcCosto } from "./pricing";
 export function calcCostoNetto(l: Partial<ListinoAcquisto>) {
-  const costo = Number(l.costo ?? 0);
-  if (!costo) return { costo_parziale: 0, costo_netto: 0 };
-  const scs = [l.sc1, l.sc2, l.sc3, l.sc4, l.sc5].map((v) => Number(v ?? 0));
-  let parziale = costo;
-  for (const sc of scs) parziale = parziale * (1 - sc / 100);
-  const trasportoEur = Number(l.trasporto_eur ?? 0);
-  const trasportoPerc = Number(l.trasporto_perc ?? 0);
-  const netto = (parziale + trasportoEur) * (1 + trasportoPerc / 100);
-  return { costo_parziale: round2(parziale), costo_netto: round2(netto) };
+  return _calcCosto(l);
 }
 
-export function round2(n: number) {
-  return Math.round(n * 100) / 100;
-}
-
-export function prezzoFromRicarico(costoNetto: number, ricarico: number) {
-  return round2(costoNetto * (1 + ricarico / 100));
-}
-export function ricaricoFromPrezzo(costoNetto: number, prezzo: number) {
-  if (!costoNetto) return 0;
-  return round2(((prezzo - costoNetto) / costoNetto) * 100);
-}
-export function margineFromPrezzo(costoNetto: number, prezzo: number) {
-  if (!prezzo) return 0;
-  return round2(((prezzo - costoNetto) / prezzo) * 100);
-}
