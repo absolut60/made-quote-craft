@@ -22,12 +22,20 @@ export interface ArticoliFilters {
   stato?: StatoArticolo | null;
 }
 
-export async function fetchArticoli(filters: ArticoliFilters, limit = 500) {
+export async function fetchArticoli(
+  filters: ArticoliFilters,
+  opts: { page?: number; pageSize?: number } = {},
+) {
+  const page = Math.max(1, opts.page ?? 1);
+  const pageSize = opts.pageSize ?? 100;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
   let q = supabase
     .from("articoli")
-    .select("*, fornitore:fornitori(id, ragione_sociale)")
+    .select("*, fornitore:fornitori(id, ragione_sociale)", { count: "exact" })
     .order("cod_gamma", { ascending: true, nullsFirst: false })
-    .limit(limit);
+    .range(from, to);
 
   if (filters.search && filters.search.trim()) {
     const s = filters.search.trim().replace(/[%,]/g, " ");
@@ -38,9 +46,9 @@ export async function fetchArticoli(filters: ArticoliFilters, limit = 500) {
   if (filters.fornitore_id) q = q.eq("fornitore_id", filters.fornitore_id);
   if (filters.stato) q = q.eq("stato", filters.stato);
 
-  const { data, error } = await q;
+  const { data, error, count } = await q;
   if (error) throw error;
-  return data ?? [];
+  return { rows: data ?? [], total: count ?? 0 };
 }
 
 export async function fetchArticolo(id: string) {

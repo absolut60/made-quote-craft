@@ -56,10 +56,22 @@ function ArticoliListPage() {
     [debouncedSearch, categoria, tipologia, fornitoreId, stato],
   );
 
-  const { data: articoli = [], isLoading, refetch } = useQuery({
-    queryKey: ["articoli", filters],
-    queryFn: () => fetchArticoli(filters, 1000),
+  const [page, setPage] = useState(1);
+  const pageSize = 100;
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, categoria, tipologia, fornitoreId, stato]);
+
+  const { data: result, isLoading, refetch } = useQuery({
+    queryKey: ["articoli", filters, page, pageSize],
+    queryFn: () => fetchArticoli(filters, { page, pageSize }),
   });
+
+  const articoli = result?.rows ?? [];
+  const total = result?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const { data: fornitori = [] } = useQuery({
     queryKey: ["fornitori"],
@@ -71,8 +83,12 @@ function ArticoliListPage() {
     queryFn: fetchArticoliFacets,
   });
 
-  function exportCsv(onlyPotenziali: boolean) {
-    const rows = articoli.filter((a) => (onlyPotenziali ? a.stato === "potenziale" : true));
+  async function exportCsv(onlyPotenziali: boolean) {
+    // Fetch ALL matching records for export, not just the current page
+    const exportFilters = onlyPotenziali
+      ? { ...filters, stato: "potenziale" as StatoArticolo }
+      : filters;
+    const { rows } = await fetchArticoli(exportFilters, { page: 1, pageSize: 10000 });
     if (!rows.length) {
       toast.error("Nessun articolo da esportare con i filtri correnti");
       return;
@@ -114,7 +130,9 @@ function ArticoliListPage() {
             <div>
               <h1 className="text-xl font-bold text-navy">Articoli</h1>
               <p className="text-xs text-muted-foreground">
-                {isLoading ? "Caricamento…" : `${articoli.length} record`}
+                {isLoading
+                  ? "Caricamento…"
+                  : `${total.toLocaleString("it-IT")} record totali · pagina ${page} di ${totalPages}`}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -255,6 +273,36 @@ function ArticoliListPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between border-t bg-card px-6 py-3 text-xs">
+          <div className="text-muted-foreground">
+            {total > 0
+              ? `Mostro ${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} di ${total.toLocaleString("it-IT")}`
+              : "0 risultati"}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1 || isLoading}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              ← Precedente
+            </Button>
+            <span className="font-mono">
+              {page} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages || isLoading}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Successiva →
+            </Button>
+          </div>
         </div>
       </div>
 
