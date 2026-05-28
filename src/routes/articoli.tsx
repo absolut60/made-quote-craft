@@ -56,10 +56,22 @@ function ArticoliListPage() {
     [debouncedSearch, categoria, tipologia, fornitoreId, stato],
   );
 
-  const { data: articoli = [], isLoading, refetch } = useQuery({
-    queryKey: ["articoli", filters],
-    queryFn: () => fetchArticoli(filters, 1000),
+  const [page, setPage] = useState(1);
+  const pageSize = 100;
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, categoria, tipologia, fornitoreId, stato]);
+
+  const { data: result, isLoading, refetch } = useQuery({
+    queryKey: ["articoli", filters, page, pageSize],
+    queryFn: () => fetchArticoli(filters, { page, pageSize }),
   });
+
+  const articoli = result?.rows ?? [];
+  const total = result?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const { data: fornitori = [] } = useQuery({
     queryKey: ["fornitori"],
@@ -71,8 +83,12 @@ function ArticoliListPage() {
     queryFn: fetchArticoliFacets,
   });
 
-  function exportCsv(onlyPotenziali: boolean) {
-    const rows = articoli.filter((a) => (onlyPotenziali ? a.stato === "potenziale" : true));
+  async function exportCsv(onlyPotenziali: boolean) {
+    // Fetch ALL matching records for export, not just the current page
+    const exportFilters = onlyPotenziali
+      ? { ...filters, stato: "potenziale" as StatoArticolo }
+      : filters;
+    const { rows } = await fetchArticoli(exportFilters, { page: 1, pageSize: 10000 });
     if (!rows.length) {
       toast.error("Nessun articolo da esportare con i filtri correnti");
       return;
