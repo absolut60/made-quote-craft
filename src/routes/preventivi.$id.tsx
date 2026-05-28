@@ -294,6 +294,8 @@ function PreventivoEditorPage() {
         fascia={(prev.fascia_listino ?? "A") as FasciaListino}
         lastOrdine={lastOrdine}
       />
+
+      <GeneraDocumentoDialog open={outputOpen} onOpenChange={setOutputOpen} prev={prev} />
     </AppShell>
   );
 }
