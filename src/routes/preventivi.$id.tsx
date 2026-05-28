@@ -133,6 +133,9 @@ function PreventivoEditorPage() {
             </Badge>
           </div>
           <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => setOutputOpen(true)}>
+              <FileDown className="mr-1 h-4 w-4" /> Genera documento
+            </Button>
             <Button
               size="sm"
               variant="outline"
