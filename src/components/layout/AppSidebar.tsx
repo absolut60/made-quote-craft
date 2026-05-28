@@ -10,7 +10,14 @@ import {
 } from "lucide-react";
 import logo from "@/assets/logo-made.png";
 
-const nav = [
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+};
+
+const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/preventivi", label: "Preventivi", icon: FileText },
   { to: "/articoli", label: "Articoli", icon: Package },
@@ -18,7 +25,7 @@ const nav = [
   { to: "/kit", label: "Kit / Lavorazioni", icon: Wrench },
   { to: "/clienti", label: "Clienti", icon: Users },
   { to: "/utenti", label: "Utenti", icon: UserCog },
-] as const;
+];
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
