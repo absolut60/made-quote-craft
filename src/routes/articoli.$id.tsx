@@ -17,7 +17,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   fetchArticolo,
   fetchFornitori,
+  fetchListiniAcquisto,
   updateArticolo,
+  calcCostoNetto,
   type Articolo,
   type ArticoloUpdate,
 } from "@/lib/articoli-api";
@@ -26,6 +28,7 @@ import { ListinoAcquistoSection } from "@/components/articoli/ListinoAcquistoSec
 import { ListinoVenditaSection } from "@/components/articoli/ListinoVenditaSection";
 import { ArrowLeft, Save, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/articoli/$id")({
   head: () => ({ meta: [{ title: "Scheda articolo — Sistema MADE" }] }),
@@ -47,12 +50,22 @@ function ArticoloDetailPage() {
     queryFn: fetchFornitori,
   });
 
+  const { data: listiniAcq = [] } = useQuery({
+    queryKey: ["listini_acquisto", id],
+    queryFn: () => fetchListiniAcquisto(id),
+  });
+
   const [form, setForm] = useState<Partial<Articolo>>({});
-  const [costoNetto, setCostoNetto] = useState(0);
+
+  const activeAcq = listiniAcq[0];
+  const costoNetto = activeAcq
+    ? Number(activeAcq.costo_netto ?? calcCostoNetto(activeAcq).costo_netto) || 0
+    : 0;
 
   useEffect(() => {
     if (articolo) setForm(articolo);
   }, [articolo]);
+
 
   const saveMut = useMutation({
     mutationFn: (patch: ArticoloUpdate) => updateArticolo(id, patch),
