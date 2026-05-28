@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UtentiRouteImport } from './routes/utenti'
 import { Route as PreventiviRouteImport } from './routes/preventivi'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ListiniRouteImport } from './routes/listini'
 import { Route as KitRouteImport } from './routes/kit'
 import { Route as ClientiRouteImport } from './routes/clienti'
@@ -28,6 +29,11 @@ const UtentiRoute = UtentiRouteImport.update({
 const PreventiviRoute = PreventiviRouteImport.update({
   id: '/preventivi',
   path: '/preventivi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ListiniRoute = ListiniRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/clienti': typeof ClientiRoute
   '/kit': typeof KitRouteWithChildren
   '/listini': typeof ListiniRoute
+  '/login': typeof LoginRoute
   '/preventivi': typeof PreventiviRouteWithChildren
   '/utenti': typeof UtentiRoute
   '/articoli/$id': typeof ArticoliIdRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/clienti': typeof ClientiRoute
   '/kit': typeof KitRouteWithChildren
   '/listini': typeof ListiniRoute
+  '/login': typeof LoginRoute
   '/preventivi': typeof PreventiviRouteWithChildren
   '/utenti': typeof UtentiRoute
   '/articoli/$id': typeof ArticoliIdRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/clienti': typeof ClientiRoute
   '/kit': typeof KitRouteWithChildren
   '/listini': typeof ListiniRoute
+  '/login': typeof LoginRoute
   '/preventivi': typeof PreventiviRouteWithChildren
   '/utenti': typeof UtentiRoute
   '/articoli/$id': typeof ArticoliIdRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/clienti'
     | '/kit'
     | '/listini'
+    | '/login'
     | '/preventivi'
     | '/utenti'
     | '/articoli/$id'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/clienti'
     | '/kit'
     | '/listini'
+    | '/login'
     | '/preventivi'
     | '/utenti'
     | '/articoli/$id'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/clienti'
     | '/kit'
     | '/listini'
+    | '/login'
     | '/preventivi'
     | '/utenti'
     | '/articoli/$id'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   ClientiRoute: typeof ClientiRoute
   KitRoute: typeof KitRouteWithChildren
   ListiniRoute: typeof ListiniRoute
+  LoginRoute: typeof LoginRoute
   PreventiviRoute: typeof PreventiviRouteWithChildren
   UtentiRoute: typeof UtentiRoute
 }
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       path: '/preventivi'
       fullPath: '/preventivi'
       preLoaderRoute: typeof PreventiviRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/listini': {
@@ -272,9 +292,20 @@ const rootRouteChildren: RootRouteChildren = {
   ClientiRoute: ClientiRoute,
   KitRoute: KitRouteWithChildren,
   ListiniRoute: ListiniRoute,
+  LoginRoute: LoginRoute,
   PreventiviRoute: PreventiviRouteWithChildren,
   UtentiRoute: UtentiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
