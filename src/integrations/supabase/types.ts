@@ -48,7 +48,6 @@ export type Database = {
           descrizione: string
           fornitore_id: string | null
           id: string
-          import_key: string | null
           note: string | null
           peso_unit: number | null
           qta_cliente: number | null
@@ -67,7 +66,6 @@ export type Database = {
           descrizione: string
           fornitore_id?: string | null
           id?: string
-          import_key?: string | null
           note?: string | null
           peso_unit?: number | null
           qta_cliente?: number | null
@@ -86,7 +84,6 @@ export type Database = {
           descrizione?: string
           fornitore_id?: string | null
           id?: string
-          import_key?: string | null
           note?: string | null
           peso_unit?: number | null
           qta_cliente?: number | null
@@ -344,7 +341,6 @@ export type Database = {
           famiglia: Database["public"]["Enums"]["kit_famiglia"]
           h_max: number | null
           id: string
-          import_kit_id: number | null
           isolante: string | null
           nome: string
           passo: number | null
@@ -360,7 +356,6 @@ export type Database = {
           famiglia?: Database["public"]["Enums"]["kit_famiglia"]
           h_max?: number | null
           id?: string
-          import_kit_id?: number | null
           isolante?: string | null
           nome: string
           passo?: number | null
@@ -376,7 +371,6 @@ export type Database = {
           famiglia?: Database["public"]["Enums"]["kit_famiglia"]
           h_max?: number | null
           id?: string
-          import_kit_id?: number | null
           isolante?: string | null
           nome?: string
           passo?: number | null
