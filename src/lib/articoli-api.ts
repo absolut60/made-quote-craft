@@ -12,7 +12,7 @@ export type ListinoVendita = Database["public"]["Tables"]["listini_vendita"]["Ro
 export type ListinoVenditaInsert = Database["public"]["Tables"]["listini_vendita"]["Insert"];
 export type Fornitore = Database["public"]["Tables"]["fornitori"]["Row"];
 
-export const FASCE: FasciaListino[] = ["A", "B", "C", "S", "SOCI"];
+export const FASCE: FasciaListino[] = ["A", "B", "C", "SOCI"];
 
 export interface ArticoliFilters {
   search?: string;
