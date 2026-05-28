@@ -130,7 +130,9 @@ function ArticoliListPage() {
             <div>
               <h1 className="text-xl font-bold text-navy">Articoli</h1>
               <p className="text-xs text-muted-foreground">
-                {isLoading ? "Caricamento…" : `${articoli.length} record`}
+                {isLoading
+                  ? "Caricamento…"
+                  : `${total.toLocaleString("it-IT")} record totali · pagina ${page} di ${totalPages}`}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
