@@ -48,6 +48,7 @@ export type Database = {
           descrizione: string
           fornitore_id: string | null
           id: string
+          import_key: string | null
           note: string | null
           peso_unit: number | null
           qta_cliente: number | null
@@ -66,6 +67,7 @@ export type Database = {
           descrizione: string
           fornitore_id?: string | null
           id?: string
+          import_key?: string | null
           note?: string | null
           peso_unit?: number | null
           qta_cliente?: number | null
@@ -84,6 +86,7 @@ export type Database = {
           descrizione?: string
           fornitore_id?: string | null
           id?: string
+          import_key?: string | null
           note?: string | null
           peso_unit?: number | null
           qta_cliente?: number | null
@@ -341,8 +344,11 @@ export type Database = {
           famiglia: Database["public"]["Enums"]["kit_famiglia"]
           h_max: number | null
           id: string
+          import_kit_id: number | null
           isolante: string | null
           nome: string
+          passo: number | null
+          passo_um: string | null
           spessore: number | null
           tipo_struttura: string | null
           um_base: string
@@ -354,8 +360,11 @@ export type Database = {
           famiglia?: Database["public"]["Enums"]["kit_famiglia"]
           h_max?: number | null
           id?: string
+          import_kit_id?: number | null
           isolante?: string | null
           nome: string
+          passo?: number | null
+          passo_um?: string | null
           spessore?: number | null
           tipo_struttura?: string | null
           um_base?: string
@@ -367,8 +376,11 @@ export type Database = {
           famiglia?: Database["public"]["Enums"]["kit_famiglia"]
           h_max?: number | null
           id?: string
+          import_kit_id?: number | null
           isolante?: string | null
           nome?: string
+          passo?: number | null
+          passo_um?: string | null
           spessore?: number | null
           tipo_struttura?: string | null
           um_base?: string
@@ -378,7 +390,7 @@ export type Database = {
       }
       kit_componenti: {
         Row: {
-          articolo_id: string
+          articolo_id: string | null
           created_at: string
           id: string
           incidenza: number | null
@@ -392,7 +404,7 @@ export type Database = {
           valore_driver: number | null
         }
         Insert: {
-          articolo_id: string
+          articolo_id?: string | null
           created_at?: string
           id?: string
           incidenza?: number | null
@@ -406,7 +418,7 @@ export type Database = {
           valore_driver?: number | null
         }
         Update: {
-          articolo_id?: string
+          articolo_id?: string | null
           created_at?: string
           id?: string
           incidenza?: number | null
@@ -782,7 +794,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "commerciale" | "lettura"
-      fascia_listino: "A" | "B" | "C" | "S" | "SOCI"
+      fascia_listino: "A" | "B" | "C" | "SOCI"
       kit_famiglia:
         | "PARETE"
         | "CONTROPARETE"
@@ -933,7 +945,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "commerciale", "lettura"],
-      fascia_listino: ["A", "B", "C", "S", "SOCI"],
+      fascia_listino: ["A", "B", "C", "SOCI"],
       kit_famiglia: [
         "PARETE",
         "CONTROPARETE",
