@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -36,10 +36,13 @@ export function ListinoAcquistoSection({
   const [draft, setDraft] = useState<Partial<ListinoAcquisto>>({});
 
   const active = rows[0];
-  if (active && onActiveCostoNetto) {
-    const cn = Number(active.costo_netto ?? calcCostoNetto(active).costo_netto);
-    if (cn) onActiveCostoNetto(cn);
-  }
+  useEffect(() => {
+    if (active && onActiveCostoNetto) {
+      const cn = Number(active.costo_netto ?? calcCostoNetto(active).costo_netto);
+      if (cn) onActiveCostoNetto(cn);
+    }
+  }, [active, onActiveCostoNetto]);
+
 
   const insertMut = useMutation({
     mutationFn: async () => {
