@@ -290,11 +290,9 @@ function ArticoloDetailPage() {
             </TabsContent>
 
             <TabsContent value="acquisto" className="mt-4">
-              <ListinoAcquistoSection
-                articoloId={id}
-                onActiveCostoNetto={setCostoNetto}
-              />
+              <ListinoAcquistoSection articoloId={id} />
             </TabsContent>
+
 
             <TabsContent value="vendita" className="mt-4">
               <ListinoVenditaSection articoloId={id} costoNetto={costoNetto} />
