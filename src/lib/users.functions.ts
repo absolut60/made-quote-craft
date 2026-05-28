@@ -23,7 +23,7 @@ export const inviteUser = createServerFn({ method: "POST" })
     }).parse(data),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    await assertAdmin(context.userId);
     const origin = process.env.SITE_URL ?? process.env.SUPABASE_URL ?? "";
     const { data: invited, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
       data: { full_name: data.display_name ?? data.email },
