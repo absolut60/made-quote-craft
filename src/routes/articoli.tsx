@@ -1,12 +1,296 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import * as XLSX from "xlsx";
 import { AppShell } from "@/components/layout/AppShell";
-import { Placeholder } from "@/components/layout/Placeholder";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  fetchArticoli,
+  fetchFornitori,
+  fetchArticoliFacets,
+  type StatoArticolo,
+} from "@/lib/articoli-api";
+import { StatoBadge } from "@/components/articoli/StatoBadge";
+import { ImportArticoliDialog } from "@/components/articoli/ImportDialog";
+import { Download, Upload, Eye, Search } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/articoli")({
   head: () => ({ meta: [{ title: "Articoli — Sistema MADE" }] }),
-  component: () => (
-    <AppShell>
-      <Placeholder title="Articoli" code="MOD-002" />
-    </AppShell>
-  ),
+  component: ArticoliListPage,
 });
+
+const ANY = "__any";
+
+function ArticoliListPage() {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [categoria, setCategoria] = useState<string | null>(null);
+  const [tipologia, setTipologia] = useState<string | null>(null);
+  const [fornitoreId, setFornitoreId] = useState<string | null>(null);
+  const [stato, setStato] = useState<StatoArticolo | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+
+  // Debounce search 300ms
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const filters = useMemo(
+    () => ({
+      search: debouncedSearch,
+      categoria,
+      tipologia,
+      fornitore_id: fornitoreId,
+      stato,
+    }),
+    [debouncedSearch, categoria, tipologia, fornitoreId, stato],
+  );
+
+  const { data: articoli = [], isLoading, refetch } = useQuery({
+    queryKey: ["articoli", filters],
+    queryFn: () => fetchArticoli(filters, 1000),
+  });
+
+  const { data: fornitori = [] } = useQuery({
+    queryKey: ["fornitori"],
+    queryFn: fetchFornitori,
+  });
+
+  const { data: facets } = useQuery({
+    queryKey: ["articoli-facets"],
+    queryFn: fetchArticoliFacets,
+  });
+
+  function exportCsv(onlyPotenziali: boolean) {
+    const rows = articoli.filter((a) => (onlyPotenziali ? a.stato === "potenziale" : true));
+    if (!rows.length) {
+      toast.error("Nessun articolo da esportare con i filtri correnti");
+      return;
+    }
+    const data = rows.map((a) => ({
+      cod_gamma: a.cod_gamma ?? "",
+      cod_fornitore: a.cod_fornitore ?? "",
+      descrizione: a.descrizione,
+      um: a.um ?? "",
+      categoria: a.categoria ?? "",
+      tipologia: a.tipologia ?? "",
+      componente: a.componente ?? "",
+      peso_unit: a.peso_unit ?? "",
+      qta_cliente: a.qta_cliente ?? "",
+      qta_fornitore: a.qta_fornitore ?? "",
+      stato: a.stato,
+      note: a.note ?? "",
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const csv = XLSX.utils.sheet_to_csv(ws, { FS: ";" });
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `articoli_gamma${onlyPotenziali ? "_potenziali" : ""}_${
+      new Date().toISOString().slice(0, 10)
+    }.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Esportati ${rows.length} articoli`);
+  }
+
+  return (
+    <AppShell>
+      <div className="flex h-full flex-col">
+        {/* Header */}
+        <div className="border-b bg-card px-6 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-xl font-bold text-navy">Articoli</h1>
+              <p className="text-xs text-muted-foreground">
+                {isLoading ? "Caricamento…" : `${articoli.length} record`}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => exportCsv(true)}>
+                <Download className="mr-1 h-4 w-4" /> Esporta potenziali
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => exportCsv(false)}>
+                <Download className="mr-1 h-4 w-4" /> Esporta tutti
+              </Button>
+              <Button size="sm" onClick={() => setImportOpen(true)}>
+                <Upload className="mr-1 h-4 w-4" /> Importa da GAMMA
+              </Button>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-12">
+            <div className="relative md:col-span-4">
+              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Cerca cod. GAMMA, cod. fornitore o descrizione…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-9 pl-8 font-mono text-sm"
+              />
+            </div>
+            <FacetSelect
+              label="Categoria"
+              value={categoria}
+              options={facets?.categorie ?? []}
+              onChange={setCategoria}
+              className="md:col-span-2"
+            />
+            <FacetSelect
+              label="Tipologia"
+              value={tipologia}
+              options={facets?.tipologie ?? []}
+              onChange={setTipologia}
+              className="md:col-span-2"
+            />
+            <div className="md:col-span-2">
+              <Select
+                value={fornitoreId ?? ANY}
+                onValueChange={(v) => setFornitoreId(v === ANY ? null : v)}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Fornitore" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ANY}>Tutti i fornitori</SelectItem>
+                  {fornitori.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      {f.ragione_sociale}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="md:col-span-2">
+              <Select
+                value={stato ?? ANY}
+                onValueChange={(v) => setStato(v === ANY ? null : (v as StatoArticolo))}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Stato" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ANY}>Tutti gli stati</SelectItem>
+                  <SelectItem value="attivo">Attivo</SelectItem>
+                  <SelectItem value="potenziale">Potenziale</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="flex-1 overflow-auto">
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 z-10 bg-navy text-navy-foreground">
+              <tr className="text-left text-[11px] uppercase tracking-wide">
+                <th className="px-3 py-2 font-semibold">Cod. GAMMA</th>
+                <th className="px-3 py-2 font-semibold">Cod. Fornitore</th>
+                <th className="px-3 py-2 font-semibold">Fornitore</th>
+                <th className="px-3 py-2 font-semibold">Descrizione</th>
+                <th className="px-3 py-2 font-semibold">U.M.</th>
+                <th className="px-3 py-2 font-semibold">Categoria</th>
+                <th className="px-3 py-2 font-semibold">Tipologia</th>
+                <th className="px-3 py-2 font-semibold">Stato</th>
+                <th className="px-3 py-2 text-right font-semibold">Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={9} className="px-3 py-12 text-center text-muted-foreground">
+                    Caricamento…
+                  </td>
+                </tr>
+              ) : articoli.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="px-3 py-12 text-center text-muted-foreground">
+                    Nessun articolo trovato.
+                  </td>
+                </tr>
+              ) : (
+                articoli.map((a) => {
+                  const forn = (
+                    a as typeof a & { fornitore?: { ragione_sociale: string } | null }
+                  ).fornitore;
+                  return (
+                    <tr
+                      key={a.id}
+                      className="border-b hover:bg-muted/50"
+                    >
+                      <td className="px-3 py-1.5 font-mono">{a.cod_gamma ?? "—"}</td>
+                      <td className="px-3 py-1.5 font-mono">{a.cod_fornitore ?? "—"}</td>
+                      <td className="px-3 py-1.5">{forn?.ragione_sociale ?? "—"}</td>
+                      <td className="px-3 py-1.5">{a.descrizione}</td>
+                      <td className="px-3 py-1.5 font-mono">{a.um ?? "—"}</td>
+                      <td className="px-3 py-1.5">{a.categoria ?? "—"}</td>
+                      <td className="px-3 py-1.5">{a.tipologia ?? "—"}</td>
+                      <td className="px-3 py-1.5">
+                        <StatoBadge stato={a.stato} />
+                      </td>
+                      <td className="px-3 py-1.5 text-right">
+                        <Link
+                          to="/articoli/$id"
+                          params={{ id: a.id }}
+                          className="inline-flex items-center gap-1 rounded px-2 py-1 text-navy hover:bg-muted"
+                        >
+                          <Eye className="h-3 w-3" /> Apri
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <ImportArticoliDialog open={importOpen} onOpenChange={setImportOpen} onDone={refetch} />
+    </AppShell>
+  );
+}
+
+function FacetSelect({
+  label,
+  value,
+  options,
+  onChange,
+  className,
+}: {
+  label: string;
+  value: string | null;
+  options: string[];
+  onChange: (v: string | null) => void;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <Select value={value ?? ANY} onValueChange={(v) => onChange(v === ANY ? null : v)}>
+        <SelectTrigger className="h-9">
+          <SelectValue placeholder={label} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ANY}>Tutte — {label}</SelectItem>
+          {options.map((o) => (
+            <SelectItem key={o} value={o}>
+              {o}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
