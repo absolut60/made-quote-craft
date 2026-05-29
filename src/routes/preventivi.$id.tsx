@@ -336,6 +336,13 @@ function BloccoCard({
     onError: (e: unknown) => toast.error((e as Error).message),
   });
 
+  const recalcQta = useMutation({
+    mutationFn: (v: number | null) =>
+      ricalcolaBloccoSuNuovaQuantita(blocco.id, v, blocco.righe),
+    onSuccess: invalidate,
+    onError: (e: unknown) => toast.error((e as Error).message),
+  });
+
   const del = useMutation({
     mutationFn: () => deleteBlocco(blocco.id),
     onSuccess: invalidate,
