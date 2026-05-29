@@ -237,11 +237,13 @@ function AddRowMenu({ onPick }: { onPick: (tipo: TipoRiga) => void }) {
 }
 
 function RigaRow({
-  row, idx, calc, fascia, onPatch, onDelete, onAddAbove, onAddBelow,
+  row, idx, calc, fascia, readOnly, onOpenArticolo, onPatch, onDelete, onAddAbove, onAddBelow,
 }: {
   row: Riga & { articolo: { id: string; descrizione: string; um: string | null; peso_unit: number | null } | null };
   idx: number;
   fascia: FasciaListino;
+  readOnly: boolean;
+  onOpenArticolo: (id: string) => void;
   calc: ReturnType<typeof calcolaBlocco>["righe"][number]["calc"];
   onPatch: (patch: Parameters<typeof updateRiga>[1]) => void;
   onDelete: () => void;
@@ -262,34 +264,19 @@ function RigaRow({
   const isText = tipo === "nota";
   const segno = (row.segno ?? 1) === -1 ? -1 : 1;
 
+  const articoloId = row.articolo_id;
+  const clickable = readOnly && !!articoloId;
+  const onRowClick = clickable ? () => onOpenArticolo(articoloId!) : undefined;
+
   const rowClass = cn(
     "border-b font-mono",
     isManual && "bg-amber-50/40 dark:bg-amber-950/10",
     isSubtotal && "bg-primary/5 font-semibold",
     tipo === "separatore" && "h-2 bg-muted/30",
     tipo === "nota" && "bg-muted/20 italic",
+    clickable && "cursor-pointer hover:bg-accent/40",
   );
 
-  const articoloId = row.articolo_id;
-  const openArticolo = () => {
-    if (articoloId) window.open(`/articoli/${articoloId}`, "_blank", "noopener");
-  };
-  const longPressTimer = { current: null as ReturnType<typeof setTimeout> | null };
-  const onContextMenu = (e: { preventDefault: () => void }) => {
-    if (!articoloId) return;
-    e.preventDefault();
-    openArticolo();
-  };
-  const onTouchStart = () => {
-    if (!articoloId) return;
-    longPressTimer.current = setTimeout(openArticolo, 550);
-  };
-  const cancelLongPress = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  };
 
   if (tipo === "separatore") {
     return (
