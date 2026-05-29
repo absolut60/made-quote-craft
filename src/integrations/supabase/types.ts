@@ -38,6 +38,47 @@ export type Database = {
         }
         Relationships: []
       }
+      allegati_preventivo: {
+        Row: {
+          categoria: Database["public"]["Enums"]["categoria_allegato"]
+          created_at: string
+          dimensione_bytes: number | null
+          id: string
+          mime_type: string | null
+          nome_file: string
+          preventivo_id: string
+          storage_path: string
+        }
+        Insert: {
+          categoria?: Database["public"]["Enums"]["categoria_allegato"]
+          created_at?: string
+          dimensione_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          nome_file: string
+          preventivo_id: string
+          storage_path: string
+        }
+        Update: {
+          categoria?: Database["public"]["Enums"]["categoria_allegato"]
+          created_at?: string
+          dimensione_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          nome_file?: string
+          preventivo_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "allegati_preventivo_preventivo_id_fkey"
+            columns: ["preventivo_id"]
+            isOneToOne: false
+            referencedRelation: "preventivi"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articoli: {
         Row: {
           categoria: string | null
@@ -794,6 +835,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "commerciale" | "lettura"
+      categoria_allegato:
+        | "capitolato"
+        | "disegni"
+        | "scheda_tecnica"
+        | "certificazioni"
+        | "foto_cantiere"
+        | "documenti_commerciali"
+        | "altro"
       fascia_listino: "A" | "B" | "C" | "SOCI"
       kit_famiglia:
         | "PARETE"
@@ -945,6 +994,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "commerciale", "lettura"],
+      categoria_allegato: [
+        "capitolato",
+        "disegni",
+        "scheda_tecnica",
+        "certificazioni",
+        "foto_cantiere",
+        "documenti_commerciali",
+        "altro",
+      ],
       fascia_listino: ["A", "B", "C", "SOCI"],
       kit_famiglia: [
         "PARETE",
