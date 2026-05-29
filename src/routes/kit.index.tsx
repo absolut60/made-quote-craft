@@ -62,8 +62,8 @@ function KitListPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col gap-4 p-6">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 p-3 md:p-4 lg:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h1 className="text-2xl font-semibold">Kit / Lavorazioni</h1>
             <p className="text-sm text-muted-foreground">

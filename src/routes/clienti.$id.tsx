@@ -107,12 +107,12 @@ function ClienteDetailPage() {
   });
 
   if (isLoading) {
-    return <AppShell><div className="p-6 text-sm text-muted-foreground">Caricamento…</div></AppShell>;
+    return <AppShell><div className="p-3 md:p-4 lg:p-6 text-sm text-muted-foreground">Caricamento…</div></AppShell>;
   }
   if (error || !cliente) {
     return (
       <AppShell>
-        <div className="p-6">
+        <div className="p-3 md:p-4 lg:p-6">
           <p className="text-sm text-destructive">
             {error ? (error as Error).message : "Cliente non trovato"}
           </p>
@@ -156,7 +156,7 @@ function ClienteDetailPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-3 md:p-4 lg:p-6">
           <div className="mx-auto max-w-5xl space-y-6">
             {/* Anagrafica */}
             <section className="rounded-lg border bg-card p-4">
