@@ -40,6 +40,8 @@ function PreventiviListPage() {
   const [stato, setStato] = useState<StatoPreventivo | null>(null);
   const [tipoDoc, setTipoDoc] = useState<TipoDoc | null>(null);
   const [openNew, setOpenNew] = useState(false);
+  const [mostraFiltri, setMostraFiltri] = useState(false);
+  const nFiltriAttivi = [clienteId, stato, tipoDoc].filter(Boolean).length;
 
   useEffect(() => {
     const t = setTimeout(() => setDSearch(search), 300);
