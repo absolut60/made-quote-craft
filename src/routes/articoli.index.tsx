@@ -21,7 +21,7 @@ import {
 import { StatoBadge } from "@/components/articoli/StatoBadge";
 import { ImportArticoliDialog } from "@/components/articoli/ImportDialog";
 import { Badge } from "@/components/ui/badge";
-import { Download, Upload, Eye, Search, SlidersHorizontal } from "lucide-react";
+import { Download, Upload, Search, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
