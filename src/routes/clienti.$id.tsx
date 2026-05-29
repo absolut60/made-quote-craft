@@ -44,7 +44,11 @@ import {
   type ClienteUpdate,
   type FasciaListino,
 } from "@/lib/clienti-api";
-import { ArrowLeft, Pencil, Plus, Save, Trash2 } from "lucide-react";
+import { STATI_LABEL, TIPI_DOC_LABEL, type StatoPreventivo, type TipoDoc } from "@/lib/preventivi-api";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, FileText, Pencil, Plus, Save, Trash2 } from "lucide-react";
+
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/clienti/$id")({
