@@ -13,7 +13,10 @@ import { fetchFornitori, type ListinoAcquisto } from "@/lib/articoli-api";
 import { calcCosto } from "@/lib/pricing";
 import { EditableNumberCell } from "./EditableNumberCell";
 import { toast } from "sonner";
-import { Search, Eye } from "lucide-react";
+import { Search, Eye, SlidersHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 
 interface ArticoloLite {
@@ -32,6 +35,8 @@ export function ListinoAcquistoView() {
   const [dSearch, setDSearch] = useState("");
   const [fornId, setFornId] = useState<string | null>(null);
   const [dataFrom, setDataFrom] = useState<string>("");
+  const [mostraFiltri, setMostraFiltri] = useState(false);
+  const nFiltriAttivi = [fornId, dataFrom].filter(Boolean).length;
 
   useEffect(() => {
     const t = setTimeout(() => setDSearch(search), 300);
@@ -151,9 +156,38 @@ export function ListinoAcquistoView() {
   return (
     <div className="flex h-full flex-col">
       {/* Filters */}
-      <div className="border-b bg-card px-6 py-3">
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-12">
-          <div className="relative md:col-span-5">
+      <div className="border-b bg-card px-3 py-2 lg:px-6 lg:py-3">
+        {/* Search + Filtri toggle (mobile) */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Cerca cod. o descrizione…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-9 pl-8 font-mono text-sm"
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            onClick={() => setMostraFiltri((v) => !v)}
+          >
+            <SlidersHorizontal className="mr-1 h-4 w-4" /> Filtri
+            {nFiltriAttivi > 0 && (
+              <Badge className="ml-1 h-4 px-1.5 text-[10px]">{nFiltriAttivi}</Badge>
+            )}
+          </Button>
+        </div>
+
+        <div
+          className={cn(
+            "mt-2 gap-2 lg:mt-0 lg:grid lg:grid-cols-12",
+            mostraFiltri ? "grid grid-cols-2" : "hidden",
+          )}
+        >
+          <div className="relative hidden lg:col-span-5 lg:block">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Cerca cod. GAMMA o descrizione…"
@@ -162,9 +196,9 @@ export function ListinoAcquistoView() {
               className="h-9 pl-8 font-mono text-sm"
             />
           </div>
-          <div className="md:col-span-3">
+          <div className="lg:col-span-3">
             <Select value={fornId ?? ANY} onValueChange={(v) => setFornId(v === ANY ? null : v)}>
-              <SelectTrigger className="h-9">
+              <SelectTrigger className="h-9 text-sm">
                 <SelectValue placeholder="Fornitore" />
               </SelectTrigger>
               <SelectContent>
@@ -177,7 +211,7 @@ export function ListinoAcquistoView() {
               </SelectContent>
             </Select>
           </div>
-          <div className="md:col-span-2">
+          <div className="lg:col-span-2">
             <Input
               type="date"
               value={dataFrom}
@@ -186,11 +220,12 @@ export function ListinoAcquistoView() {
               placeholder="Data da"
             />
           </div>
-          <div className="md:col-span-2 flex items-center text-xs text-muted-foreground">
+          <div className="hidden lg:col-span-2 lg:flex lg:items-center text-xs text-muted-foreground">
             {isLoading ? "Caricamento…" : `${articoli.length} articoli`}
           </div>
         </div>
       </div>
+
 
       {/* Table */}
       <div className="flex-1 overflow-auto">

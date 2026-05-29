@@ -34,7 +34,9 @@ import {
 } from "@/lib/pricing";
 import { EditableNumberCell } from "./EditableNumberCell";
 import { toast } from "sonner";
-import { Search, Wand2, Eye } from "lucide-react";
+import { Search, Wand2, Eye, SlidersHorizontal } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 
 interface ArticoloLite {
@@ -55,6 +57,9 @@ export function ListinoVenditaView() {
   const [dSearch, setDSearch] = useState("");
   const [categoria, setCategoria] = useState<string | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [mostraFiltri, setMostraFiltri] = useState(false);
+  const nFiltriAttivi = [categoria].filter(Boolean).length;
+
 
   useEffect(() => {
     const t = setTimeout(() => setDSearch(search), 300);
@@ -192,9 +197,48 @@ export function ListinoVenditaView() {
   return (
     <div className="flex h-full flex-col">
       {/* Filters */}
-      <div className="border-b bg-card px-6 py-3">
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-12">
-          <div className="md:col-span-2">
+      <div className="border-b bg-card px-3 py-2 lg:px-6 lg:py-3">
+        {/* Mobile: fascia + search + Filtri */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <Select value={fascia} onValueChange={(v) => setFascia(v as FasciaListino)}>
+            <SelectTrigger className="h-9 w-24 text-sm shrink-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {FASCE.map((f) => (
+                <SelectItem key={f} value={f}>Fascia {f}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Cerca…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-9 pl-8 font-mono text-sm"
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            onClick={() => setMostraFiltri((v) => !v)}
+          >
+            <SlidersHorizontal className="mr-1 h-4 w-4" /> Filtri
+            {nFiltriAttivi > 0 && (
+              <Badge className="ml-1 h-4 px-1.5 text-[10px]">{nFiltriAttivi}</Badge>
+            )}
+          </Button>
+        </div>
+
+        <div
+          className={cn(
+            "mt-2 gap-2 lg:mt-0 lg:grid lg:grid-cols-12",
+            mostraFiltri ? "grid grid-cols-1" : "hidden",
+          )}
+        >
+          <div className="hidden lg:col-span-2 lg:block">
             <Select value={fascia} onValueChange={(v) => setFascia(v as FasciaListino)}>
               <SelectTrigger className="h-9">
                 <SelectValue />
@@ -208,7 +252,7 @@ export function ListinoVenditaView() {
               </SelectContent>
             </Select>
           </div>
-          <div className="relative md:col-span-4">
+          <div className="relative hidden lg:col-span-4 lg:block">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Cerca cod. GAMMA o descrizione…"
@@ -217,12 +261,12 @@ export function ListinoVenditaView() {
               className="h-9 pl-8 font-mono text-sm"
             />
           </div>
-          <div className="md:col-span-3">
+          <div className="lg:col-span-3">
             <Select
               value={categoria ?? ANY}
               onValueChange={(v) => setCategoria(v === ANY ? null : v)}
             >
-              <SelectTrigger className="h-9">
+              <SelectTrigger className="h-9 text-sm">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>
@@ -235,8 +279,8 @@ export function ListinoVenditaView() {
               </SelectContent>
             </Select>
           </div>
-          <div className="md:col-span-3 flex items-center justify-end gap-2">
-            <span className="text-xs text-muted-foreground">
+          <div className="flex items-center justify-end gap-2 lg:col-span-3">
+            <span className="hidden text-xs text-muted-foreground lg:inline">
               {isLoading ? "Caricamento…" : `${articoli.length} articoli`}
             </span>
             <Button
@@ -244,12 +288,14 @@ export function ListinoVenditaView() {
               variant="outline"
               onClick={() => setBulkOpen(true)}
               disabled={!articoli.length}
+              className="w-full lg:w-auto"
             >
               <Wand2 className="mr-1 h-4 w-4" /> Modifica massiva
             </Button>
           </div>
         </div>
       </div>
+
 
       {/* Table */}
       <div className="flex-1 overflow-auto">
