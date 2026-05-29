@@ -480,31 +480,28 @@ function PreventivoEditorPage() {
                       step="0.01"
                       min="0"
                       max="100"
-                      disabled={!editMode}
+                      disabled={!editMode || applicaSconto.isPending}
                       defaultValue={Number(prev.sconto_piede_perc ?? 0)}
                       key={`scp-${prev.sconto_piede_perc ?? 0}`}
                       className="h-8 w-28 text-right font-mono"
                       onBlur={(e) => {
                         const v = Number(e.target.value);
                         if (Number.isFinite(v) && v !== Number(prev.sconto_piede_perc ?? 0)) {
-                          save.mutate({ sconto_piede_perc: v });
+                          applicaSconto.mutate(v);
                         }
                       }}
                     />
                   </div>
-                  {totali.sconto_perc > 0 && (
-                    <>
-                      <div className="flex items-center justify-between py-1 text-destructive">
-                        <span className="text-sm">
-                          Sconto −{totali.sconto_perc.toLocaleString("it-IT", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}%
-                        </span>
-                        <span className="font-mono text-base">− € {fmt(totali.importo_sconto)}</span>
-                      </div>
-                      <div className="flex items-center justify-between border-t py-1">
-                        <span className="text-sm font-medium text-muted-foreground">Imponibile netto</span>
-                        <span className="font-mono text-base font-semibold">€ {fmt(totali.imponibile_netto)}</span>
-                      </div>
-                    </>
+                  <p className="text-[11px] italic text-muted-foreground">
+                    Applicando lo sconto a piede, la percentuale verrà impostata su tutte le righe.
+                    {applicaSconto.isPending && " · Aggiornamento in corso…"}
+                  </p>
+                  {Number(prev.sconto_piede_perc ?? 0) > 0 && (
+                    <div className="flex items-center justify-between border-t py-1 text-destructive">
+                      <span className="text-sm">
+                        Sconto applicato: {Number(prev.sconto_piede_perc).toLocaleString("it-IT", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}% su tutte le righe
+                      </span>
+                    </div>
                   )}
                   <div className="flex items-center justify-between py-1">
                     <span className="text-sm text-muted-foreground">IVA {Number(prev.iva_perc ?? 22)}%</span>
