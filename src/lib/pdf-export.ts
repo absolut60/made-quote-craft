@@ -330,12 +330,12 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
     doc.line(14, y, w - 14, y);
     y += 6;
 
-    if (y > doc.internal.pageSize.getHeight() - 55) {
+    if (y > doc.internal.pageSize.getHeight() - 72) {
       doc.addPage(); y = 20;
     }
   }
 
-  if (y > doc.internal.pageSize.getHeight() - 60) { doc.addPage(); y = 20; }
+  if (y > doc.internal.pageSize.getHeight() - 75) { doc.addPage(); y = 20; }
   doc.setDrawColor(...GRIGIO_BD); doc.setLineWidth(0.2);
   doc.line(14, y, w - 14, y);
   y += 5;
