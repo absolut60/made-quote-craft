@@ -130,7 +130,7 @@ export function RigheTable({
               <th className="w-6"></th>
               <th className="w-8 text-center">Tipo</th>
               <th className="min-w-[280px] px-2 py-1.5 text-left">Articolo / Descrizione</th>
-              <th className="w-14 px-2 py-1.5 text-left">U.M.</th>
+              <th className="w-16 px-2 py-1.5 text-left">U.M.</th>
               <th className="w-20 px-1 py-1.5 text-right">Incidenza</th>
               <th className="w-20 px-1 py-1.5 text-right">Quantità</th>
               <th className="w-24 px-1 py-1.5 text-right">Prezzo unit.</th>
