@@ -251,6 +251,56 @@ export async function deleteBlocco(id: string) {
   if (error) throw error;
 }
 
+/**
+ * Applica lo sconto a piede impostando sconto_perc su TUTTE le righe valorizzate
+ * (articolo_singolo, da_kit, manuale) di tutti i blocchi del preventivo, e ricalcola
+ * importo di riga e totale di blocco. Costo, vendita lorda e peso restano invariati.
+ */
+export async function applicaScontoPiedeARighe(
+  preventivo_id: string,
+  perc: number,
+): Promise<void> {
+  const sc = Math.max(0, n(perc));
+  const { data: blocchi, error: errB } = await supabase
+    .from("blocchi_preventivo")
+    .select("id, righe:righe_preventivo(*)")
+    .eq("preventivo_id", preventivo_id);
+  if (errB) throw errB;
+
+  const updates: PromiseLike<unknown>[] = [];
+  for (const b of (blocchi ?? []) as unknown as { id: string; righe: Riga[] }[]) {
+    for (const r of b.righe ?? []) {
+      if (r.tipo_riga !== "articolo_singolo" && r.tipo_riga !== "da_kit" && r.tipo_riga !== "manuale") continue;
+      const q = n(r.quantita);
+      const p = n(r.prezzo_unit);
+      const segno = (r.segno ?? 1) === -1 ? -1 : 1;
+      const importo = round2(q * p * (1 - sc / 100) * segno);
+      updates.push(
+        supabase.from("righe_preventivo").update({ sconto_perc: sc, importo }).eq("id", r.id).then(),
+      );
+    }
+  }
+  await Promise.all(updates);
+
+  await Promise.all(
+    ((blocchi ?? []) as unknown as { id: string; righe: Riga[] }[]).map((b) => {
+      let totale = 0;
+      for (const r of b.righe ?? []) {
+        if (r.tipo_riga === "nota" || r.tipo_riga === "separatore" || r.tipo_riga === "sotto_totale") continue;
+        if (r.tipo_riga === "articolo_singolo" || r.tipo_riga === "da_kit" || r.tipo_riga === "manuale") {
+          const q = n(r.quantita);
+          const p = n(r.prezzo_unit);
+          const segno = (r.segno ?? 1) === -1 ? -1 : 1;
+          totale += q * p * (1 - sc / 100) * segno;
+        } else {
+          totale += n(r.importo);
+        }
+      }
+      return supabase.from("blocchi_preventivo").update({ importo: round2(totale) }).eq("id", b.id).then();
+    }),
+  );
+}
+
 /** Crea un blocco vuoto in fondo al preventivo. */
 export async function addBloccoVuoto(preventivo_id: string, ordineNext: number): Promise<Blocco> {
   return insertBlocco({
