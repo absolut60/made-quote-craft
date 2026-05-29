@@ -172,8 +172,8 @@ export async function fetchPreventivo(id: string): Promise<PreventivoConDettagli
     .from("preventivi")
     .select(
       `*,
-       cliente:clienti(*),
-       cantiere:cantieri(*),
+       cliente:clienti(*, comune:comuni(nome)),
+       cantiere:cantieri(*, comune:comuni(nome)),
        agente:agenti(*),
        blocchi:blocchi_preventivo(${BLOCCHI_SELECT})`,
     )
