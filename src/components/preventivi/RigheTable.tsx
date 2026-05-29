@@ -226,10 +226,11 @@ function AddRowMenu({ onPick }: { onPick: (tipo: TipoRiga) => void }) {
 }
 
 function RigaRow({
-  row, idx, calc, onPatch, onDelete, onAddAbove, onAddBelow,
+  row, idx, calc, fascia, onPatch, onDelete, onAddAbove, onAddBelow,
 }: {
   row: Riga & { articolo: { id: string; descrizione: string; um: string | null; peso_unit: number | null } | null };
   idx: number;
+  fascia: FasciaListino;
   calc: ReturnType<typeof calcolaBlocco>["righe"][number]["calc"];
   onPatch: (patch: Parameters<typeof updateRiga>[1]) => void;
   onDelete: () => void;
