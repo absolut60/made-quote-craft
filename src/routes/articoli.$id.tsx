@@ -152,7 +152,7 @@ function ArticoloDetailPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-3 md:p-4 lg:p-6">
           <Tabs defaultValue="anagrafica">
             <TabsList>
               <TabsTrigger value="anagrafica">Anagrafica</TabsTrigger>
