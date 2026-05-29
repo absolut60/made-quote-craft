@@ -276,7 +276,7 @@ export async function applicaScontoPiedeARighe(
       const segno = (r.segno ?? 1) === -1 ? -1 : 1;
       const importo = round2(q * p * (1 - sc / 100) * segno);
       updates.push(
-        supabase.from("righe_preventivo").update({ sconto_perc: sc, importo }).eq("id", r.id),
+        supabase.from("righe_preventivo").update({ sconto_perc: sc, importo }).eq("id", r.id).then(),
       );
     }
   }
