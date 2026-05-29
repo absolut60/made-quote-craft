@@ -311,14 +311,14 @@ export function ListinoVenditaView() {
             })}
             {error && (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-red-600 font-mono text-xs">
+                <td colSpan={8} className="px-3 py-6 text-center text-red-600 font-mono text-xs">
                   Errore caricamento: {error instanceof Error ? error.message : String(error)}
                 </td>
               </tr>
             )}
             {!isLoading && !error && !articoli.length && (
               <tr>
-                <td colSpan={7} className="px-3 py-12 text-center text-muted-foreground">
+                <td colSpan={8} className="px-3 py-12 text-center text-muted-foreground">
                   Nessun articolo
                 </td>
               </tr>
