@@ -45,6 +45,7 @@ import { ClientePicker } from "@/components/preventivi/ClientePicker";
 import { CantierePicker } from "@/components/preventivi/CantierePicker";
 import { AllegatiSection } from "@/components/preventivi/AllegatiSection";
 import { fetchAllegati } from "@/lib/allegati-api";
+import { ClienteDettaglioDialog } from "@/components/preventivi/ClienteDettaglioDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/preventivi/$id")({
@@ -60,6 +61,7 @@ function PreventivoEditorPage() {
   const [outputOpen, setOutputOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editModeInitialized, setEditModeInitialized] = useState(false);
+  const [clienteDialogOpen, setClienteDialogOpen] = useState(false);
 
   const { data: prev, isLoading } = useQuery({
     queryKey: ["preventivo", id],
@@ -292,9 +294,9 @@ function PreventivoEditorPage() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(`/clienti/${cliente.id}`, "_blank", "noopener");
+                            setClienteDialogOpen(true);
                           }}
-                          title="Apri scheda cliente"
+                          title="Apri dettaglio cliente"
                           className="cursor-pointer self-start bg-transparent p-0 text-left text-base font-bold leading-tight text-[#0d1f3c] hover:text-[#2b5ea7] hover:underline"
                         >
                           {cliente.ragione_sociale}
@@ -572,6 +574,11 @@ function PreventivoEditorPage() {
       />
 
       <GeneraDocumentoDialog open={outputOpen} onOpenChange={setOutputOpen} prev={prev} />
+      <ClienteDettaglioDialog
+        clienteId={prev?.cliente_id ?? null}
+        open={clienteDialogOpen}
+        onOpenChange={setClienteDialogOpen}
+      />
     </AppShell>
   );
 }
@@ -711,7 +718,7 @@ function BloccoCard({
             </div>
           )}
 
-          <RigheTable blocco={blocco} preventivoId={preventivoId} fascia={fascia} />
+          <RigheTable blocco={blocco} preventivoId={preventivoId} fascia={fascia} readOnly={readOnly} />
         </CardContent>
       </Card>
     </div>

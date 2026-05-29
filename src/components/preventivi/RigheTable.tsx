@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { ArticoloDettaglioDialog } from "@/components/preventivi/ArticoloDettaglioDialog";
 import {
   DndContext,
   closestCenter,
@@ -48,11 +49,14 @@ export function RigheTable({
   blocco,
   preventivoId,
   fascia,
+  readOnly = false,
 }: {
   blocco: BloccoConRighe;
   preventivoId: string;
   fascia: FasciaListino;
+  readOnly?: boolean;
 }) {
+  const [openArticoloId, setOpenArticoloId] = useState<string | null>(null);
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["preventivo", preventivoId] });
 
@@ -159,6 +163,8 @@ export function RigheTable({
                     row={r}
                     idx={idx}
                     fascia={fascia}
+                    readOnly={readOnly}
+                    onOpenArticolo={(aid) => setOpenArticoloId(aid)}
                     calc={calcMap.get(r.id)!}
                     onPatch={(patch) => upd.mutate({ id: r.id, patch })}
                     onDelete={() => del.mutate(r.id)}
@@ -200,6 +206,11 @@ export function RigheTable({
           </tfoot>
         </table>
       </DndContext>
+      <ArticoloDettaglioDialog
+        articoloId={openArticoloId}
+        open={!!openArticoloId}
+        onOpenChange={(b) => { if (!b) setOpenArticoloId(null); }}
+      />
     </div>
   );
 }
@@ -226,11 +237,13 @@ function AddRowMenu({ onPick }: { onPick: (tipo: TipoRiga) => void }) {
 }
 
 function RigaRow({
-  row, idx, calc, fascia, onPatch, onDelete, onAddAbove, onAddBelow,
+  row, idx, calc, fascia, readOnly, onOpenArticolo, onPatch, onDelete, onAddAbove, onAddBelow,
 }: {
   row: Riga & { articolo: { id: string; descrizione: string; um: string | null; peso_unit: number | null } | null };
   idx: number;
   fascia: FasciaListino;
+  readOnly: boolean;
+  onOpenArticolo: (id: string) => void;
   calc: ReturnType<typeof calcolaBlocco>["righe"][number]["calc"];
   onPatch: (patch: Parameters<typeof updateRiga>[1]) => void;
   onDelete: () => void;
@@ -251,45 +264,23 @@ function RigaRow({
   const isText = tipo === "nota";
   const segno = (row.segno ?? 1) === -1 ? -1 : 1;
 
+  const articoloId = row.articolo_id;
+  const clickable = readOnly && !!articoloId;
+  const onRowClick = clickable ? () => onOpenArticolo(articoloId!) : undefined;
+
   const rowClass = cn(
     "border-b font-mono",
     isManual && "bg-amber-50/40 dark:bg-amber-950/10",
     isSubtotal && "bg-primary/5 font-semibold",
     tipo === "separatore" && "h-2 bg-muted/30",
     tipo === "nota" && "bg-muted/20 italic",
+    clickable && "cursor-pointer hover:bg-accent/40",
   );
 
-  const articoloId = row.articolo_id;
-  const openArticolo = () => {
-    if (articoloId) window.open(`/articoli/${articoloId}`, "_blank", "noopener");
-  };
-  const longPressTimer = { current: null as ReturnType<typeof setTimeout> | null };
-  const onContextMenu = (e: { preventDefault: () => void }) => {
-    if (!articoloId) return;
-    e.preventDefault();
-    openArticolo();
-  };
-  const onTouchStart = () => {
-    if (!articoloId) return;
-    longPressTimer.current = setTimeout(openArticolo, 550);
-  };
-  const cancelLongPress = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  };
 
   if (tipo === "separatore") {
     return (
-      <tr ref={sortable.setNodeRef} style={style} className={rowClass}
-        onContextMenu={onContextMenu}
-        onTouchStart={onTouchStart}
-        onTouchEnd={cancelLongPress}
-        onTouchMove={cancelLongPress}
-        onTouchCancel={cancelLongPress}
-        title={articoloId ? "Tasto destro o pressione lunga per aprire la scheda articolo" : undefined}
-      >
+      <tr ref={sortable.setNodeRef} style={style} className={rowClass} onClick={onRowClick}>
         <td>
           <button {...sortable.attributes} {...sortable.listeners} className="cursor-grab px-1">
             <GripVertical className="h-3 w-3 text-muted-foreground" />
@@ -312,14 +303,7 @@ function RigaRow({
   }
 
   return (
-    <tr ref={sortable.setNodeRef} style={style} className={rowClass}
-      onContextMenu={onContextMenu}
-      onTouchStart={onTouchStart}
-      onTouchEnd={cancelLongPress}
-      onTouchMove={cancelLongPress}
-      onTouchCancel={cancelLongPress}
-      title={articoloId ? "Tasto destro o pressione lunga per aprire la scheda articolo" : undefined}
-    >
+    <tr ref={sortable.setNodeRef} style={style} className={rowClass} onClick={onRowClick}>
       <td className="w-6">
         <button {...sortable.attributes} {...sortable.listeners} className="cursor-grab px-1" title="Trascina">
           <GripVertical className="h-3 w-3 text-muted-foreground" />
