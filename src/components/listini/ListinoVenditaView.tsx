@@ -60,39 +60,61 @@ export function ListinoVenditaView() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["listini-vendita-view", fascia, dSearch, categoria],
     queryFn: async () => {
       let aq = supabase
         .from("articoli")
         .select("id, cod_gamma, descrizione, categoria, tipologia, fornitore_id")
-        .order("cod_gamma", { ascending: true, nullsFirst: false })
-        .limit(1500);
+        .order("cod_gamma", { ascending: true })
+        .limit(500);
       if (dSearch.trim()) {
         const s = dSearch.trim().replace(/[%,]/g, " ");
         aq = aq.or(`cod_gamma.ilike.%${s}%,descrizione.ilike.%${s}%`);
       }
       if (categoria) aq = aq.eq("categoria", categoria);
-      const { data: arts, error } = await aq;
-      if (error) throw error;
+      const { data: arts, error: aErr } = await aq;
+      if (aErr) {
+        console.error("ListinoVenditaView articoli error:", aErr);
+        throw aErr;
+      }
       const articoli = (arts ?? []) as ArticoloLite[];
-      if (!articoli.length) return { articoli: [], costoByArt: new Map(), vendByArt: new Map() };
+      if (!articoli.length)
+        return {
+          articoli: [],
+          costoByArt: new Map<string, number>(),
+          vendByArt: new Map<string, ListinoVendita>(),
+        };
 
       const ids = articoli.map((a) => a.id);
-      const [acqRes, vendRes] = await Promise.all([
-        supabase.from("listini_acquisto").select("*").in("articolo_id", ids),
-        supabase
-          .from("listini_vendita")
-          .select("*")
-          .eq("fascia", fascia)
-          .in("articolo_id", ids),
-      ]);
-      if (acqRes.error) throw acqRes.error;
-      if (vendRes.error) throw vendRes.error;
+      const CHUNK = 100;
+      const acqAll: ListinoAcquisto[] = [];
+      const vendAll: ListinoVendita[] = [];
+      for (let i = 0; i < ids.length; i += CHUNK) {
+        const chunk = ids.slice(i, i + CHUNK);
+        const [acqRes, vendRes] = await Promise.all([
+          supabase.from("listini_acquisto").select("*").in("articolo_id", chunk),
+          supabase
+            .from("listini_vendita")
+            .select("*")
+            .eq("fascia", fascia)
+            .in("articolo_id", chunk),
+        ]);
+        if (acqRes.error) {
+          console.error("ListinoVenditaView listini_acquisto chunk error:", acqRes.error);
+        } else if (Array.isArray(acqRes.data)) {
+          acqAll.push(...(acqRes.data as ListinoAcquisto[]));
+        }
+        if (vendRes.error) {
+          console.error("ListinoVenditaView listini_vendita chunk error:", vendRes.error);
+        } else if (Array.isArray(vendRes.data)) {
+          vendAll.push(...(vendRes.data as ListinoVendita[]));
+        }
+      }
 
       const costoByArt = new Map<string, number>();
       const latest = new Map<string, ListinoAcquisto>();
-      for (const r of (acqRes.data ?? []) as ListinoAcquisto[]) {
+      for (const r of acqAll) {
         const cur = latest.get(r.articolo_id);
         const ka = (r.data_validita ?? "") + r.created_at;
         const kb = cur ? (cur.data_validita ?? "") + cur.created_at : "";
@@ -104,7 +126,7 @@ export function ListinoVenditaView() {
       }
 
       const vendByArt = new Map<string, ListinoVendita>();
-      for (const v of (vendRes.data ?? []) as ListinoVendita[]) vendByArt.set(v.articolo_id, v);
+      for (const v of vendAll) vendByArt.set(v.articolo_id, v);
 
       return { articoli, costoByArt, vendByArt };
     },
@@ -276,7 +298,14 @@ export function ListinoVenditaView() {
                 </tr>
               );
             })}
-            {!isLoading && !articoli.length && (
+            {error && (
+              <tr>
+                <td colSpan={7} className="px-3 py-6 text-center text-red-600 font-mono text-xs">
+                  Errore caricamento: {error instanceof Error ? error.message : String(error)}
+                </td>
+              </tr>
+            )}
+            {!isLoading && !error && !articoli.length && (
               <tr>
                 <td colSpan={7} className="px-3 py-12 text-center text-muted-foreground">
                   Nessun articolo

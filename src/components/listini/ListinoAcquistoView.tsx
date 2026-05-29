@@ -50,7 +50,7 @@ export function ListinoAcquistoView() {
         .from("articoli")
         .select("id, cod_gamma, descrizione, fornitore_id")
         .order("cod_gamma", { ascending: true })
-        .limit(1500);
+        .limit(500);
       if (dSearch.trim()) {
         const s = dSearch.trim().replace(/[%,]/g, " ");
         aq = aq.or(`cod_gamma.ilike.%${s}%,descrizione.ilike.%${s}%`);
@@ -74,10 +74,11 @@ export function ListinoAcquistoView() {
         if (dataFrom) lq = lq.gte("data_validita", dataFrom);
         const { data: lists, error: lErr } = await lq;
         if (lErr) {
+          // Non bloccare la pagina: logga e continua con array vuoto per questo chunk
           console.error("ListinoAcquistoView listini chunk error:", lErr);
-          throw lErr;
+          continue;
         }
-        all.push(...((lists ?? []) as ListinoRow[]));
+        if (Array.isArray(lists)) all.push(...(lists as ListinoRow[]));
       }
 
       // 3. Mantieni solo la riga più recente per articolo
