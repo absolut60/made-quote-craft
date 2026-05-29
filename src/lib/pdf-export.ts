@@ -142,7 +142,7 @@ function drawFooter(doc: jsPDF) {
   const h = doc.internal.pageSize.getHeight();
   const pages = doc.getNumberOfPages();
   const FOOTER_H = 20;
-  const BAND_H = 23;
+  const BAND_H = 18.4;
   const BAND_GAP = 2; // spazio tra fascia blu e piede legale
 
   for (let i = 1; i <= pages; i++) {
@@ -150,7 +150,7 @@ function drawFooter(doc: jsPDF) {
     const isLast = i === pages;
 
     if (isLast) {
-      // Fascia blu cobalto a tutta larghezza
+      // Fascia blu cobalto a tutta larghezza, ancorata sopra il piede legale
       const bandY = h - FOOTER_H - BAND_GAP - BAND_H;
       doc.setFillColor(...COBALT);
       doc.rect(0, bandY, w, BAND_H, "F");
@@ -159,15 +159,15 @@ function drawFooter(doc: jsPDF) {
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
 
-      // Titolo (righe 1-2) — 12pt, interlinea ~5mm
-      doc.setFontSize(12);
-      doc.text("IL NUOVO MODO", 14, bandY + 6);
-      doc.text("DI COSTRUIRE.", 14, bandY + 11);
+      // Titolo (righe 1-2) — 10pt, interlinea ~4mm
+      doc.setFontSize(10);
+      doc.text("IL NUOVO MODO", 14, bandY + 5);
+      doc.text("DI COSTRUIRE.", 14, bandY + 9);
 
-      // Tagline (righe 3-4) — 6.5pt, ~metà del titolo
-      doc.setFontSize(6.5);
-      doc.text("Tecnologie leggere, risultati solidi", 14, bandY + 16.5);
-      doc.text("il sistema a secco che guarda al futuro.", 14, bandY + 20);
+      // Tagline (righe 3-4) — 5pt, ~metà del titolo
+      doc.setFontSize(5);
+      doc.text("Tecnologie leggere, risultati solidi", 14, bandY + 13.5);
+      doc.text("il sistema a secco che guarda al futuro.", 14, bandY + 16.3);
 
       doc.setFont("helvetica", "normal");
     }
@@ -324,12 +324,12 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
     doc.line(14, y, w - 14, y);
     y += 6;
 
-    if (y > doc.internal.pageSize.getHeight() - 50) {
+    if (y > doc.internal.pageSize.getHeight() - 70) {
       doc.addPage(); y = 20;
     }
   }
 
-  if (y > doc.internal.pageSize.getHeight() - 52) { doc.addPage(); y = 20; }
+  if (y > doc.internal.pageSize.getHeight() - 72) { doc.addPage(); y = 20; }
   doc.setDrawColor(...GRIGIO_BD); doc.setLineWidth(0.2);
   doc.line(14, y, w - 14, y);
   y += 5;
