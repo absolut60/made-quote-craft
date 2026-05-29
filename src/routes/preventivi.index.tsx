@@ -24,7 +24,7 @@ import { searchClienti } from "@/lib/preventivi-api";
 import { NuovoPreventivoDialog } from "@/components/preventivi/NuovoPreventivoDialog";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/preventivi")({
+export const Route = createFileRoute("/preventivi/")({
   head: () => ({ meta: [{ title: "Preventivi — Sistema MADE" }] }),
   component: PreventiviListPage,
 });
