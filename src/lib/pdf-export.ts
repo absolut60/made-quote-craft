@@ -184,7 +184,25 @@ function fileName(prev: PreventivoConDettagli, tipo: string, ext = "pdf") {
 // 1) PREVENTIVO
 // =========================================================================
 
-export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
+export interface ColonneRighePdf {
+  um: boolean;
+  quantita: boolean;
+  prezzo_unit: boolean;
+  sconto: boolean;
+  prezzo_scontato: boolean;
+  importo: boolean;
+}
+
+export const COLONNE_RIGHE_DEFAULT: ColonneRighePdf = {
+  um: true, quantita: true, prezzo_unit: true, sconto: true, prezzo_scontato: true, importo: true,
+};
+
+export interface PreventivoPdfOptions {
+  colonne?: Partial<ColonneRighePdf>;
+}
+
+export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: PreventivoPdfOptions = {}) {
+  const col: ColonneRighePdf = { ...COLONNE_RIGHE_DEFAULT, ...(opzioni.colonne ?? {}) };
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const w = doc.internal.pageSize.getWidth();
   drawHeader(doc, "Preventivo", prev);
@@ -225,27 +243,50 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
       y += 3 + lines.length * 3.2;
     }
 
+    // Definizione dinamica colonne (Cod. Gamma + Descrizione sempre presenti)
+    type ColDef = { head: string; width: number; halign?: "left" | "right" | "center"; font?: string; bold?: boolean };
+    const colDefs: ColDef[] = [
+      { head: "Cod. Gamma", width: 22, font: "courier" },
+      { head: "Descrizione", width: 0 },
+    ];
+    if (col.um) colDefs.push({ head: "U.M.", width: 12, halign: "center" });
+    if (col.quantita) colDefs.push({ head: "Quantità", width: 18, halign: "right", font: "courier" });
+    if (col.prezzo_unit) colDefs.push({ head: "Prezzo unit.", width: 22, halign: "right", font: "courier" });
+    if (col.sconto) colDefs.push({ head: "Sconto %", width: 16, halign: "right", font: "courier" });
+    if (col.prezzo_scontato) colDefs.push({ head: "Prezzo scontato", width: 24, halign: "right", font: "courier" });
+    if (col.importo) colDefs.push({ head: "Importo", width: 24, halign: "right", font: "courier", bold: true });
+
     const body: (string | number)[][] = [];
     for (const r of b.righe) {
       if (r.tipo_riga === "nota" || r.tipo_riga === "separatore" || r.tipo_riga === "sotto_totale") continue;
       const prezzo = Number(r.prezzo_unit ?? 0);
       const sc = Number(r.sconto_perc ?? 0);
       const prezzoScontato = prezzo * (1 - sc / 100);
-      body.push([
+      const row: (string | number)[] = [
         r.articolo?.cod_gamma ?? "",
         r.descrizione ?? r.articolo?.descrizione ?? "",
-        r.um ?? r.articolo?.um ?? "",
-        fmtNum(Number(r.quantita ?? 0), 2),
-        fmtEur(prezzo),
-        sc > 0 ? `${fmtNum(sc, 2)}%` : "—",
-        fmtEur(prezzoScontato),
-        fmtEur(Number(r.importo ?? 0)),
-      ]);
+      ];
+      if (col.um) row.push(r.um ?? r.articolo?.um ?? "");
+      if (col.quantita) row.push(fmtNum(Number(r.quantita ?? 0), 2));
+      if (col.prezzo_unit) row.push(fmtEur(prezzo));
+      if (col.sconto) row.push(sc > 0 ? `${fmtNum(sc, 2)}%` : "—");
+      if (col.prezzo_scontato) row.push(fmtEur(prezzoScontato));
+      if (col.importo) row.push(fmtEur(Number(r.importo ?? 0)));
+      body.push(row);
     }
     if (body.length) {
+      const columnStyles: Record<number, Record<string, unknown>> = {};
+      colDefs.forEach((c, i) => {
+        const s: Record<string, unknown> = {};
+        if (c.width > 0) s.cellWidth = c.width;
+        if (c.halign) s.halign = c.halign;
+        if (c.font) s.font = c.font;
+        if (c.bold) s.fontStyle = "bold";
+        columnStyles[i] = s;
+      });
       autoTable(doc, {
         startY: y,
-        head: [["Cod. Gamma", "Descrizione", "U.M.", "Quantità", "Prezzo unit.", "Sconto %", "Prezzo scontato", "Importo"]],
+        head: [colDefs.map((c) => c.head)],
         body,
         theme: "striped",
         headStyles: {
@@ -255,15 +296,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
         },
         bodyStyles: { fontSize: 7, textColor: [30, 35, 45] as [number, number, number], cellPadding: 1.4 },
         alternateRowStyles: { fillColor: GRIGIO_LT },
-        columnStyles: {
-          0: { cellWidth: 22, font: "courier" },
-          2: { cellWidth: 12, halign: "center" },
-          3: { cellWidth: 18, halign: "right", font: "courier" },
-          4: { cellWidth: 20, halign: "right", font: "courier" },
-          5: { cellWidth: 14, halign: "right", font: "courier" },
-          6: { cellWidth: 22, halign: "right", font: "courier" },
-          7: { cellWidth: 22, halign: "right", font: "courier", fontStyle: "bold" },
-        },
+        columnStyles,
         margin: { left: 14, right: 14 },
       });
       y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;

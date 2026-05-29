@@ -595,6 +595,24 @@ export type Database = {
           },
         ]
       }
+      preferenze_stampa: {
+        Row: {
+          colonne_righe: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          colonne_righe?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          colonne_righe?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       preventivi: {
         Row: {
           agente_id: string | null
