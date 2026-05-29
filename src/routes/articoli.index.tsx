@@ -23,7 +23,7 @@ import { ImportArticoliDialog } from "@/components/articoli/ImportDialog";
 import { Download, Upload, Eye, Search } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/articoli")({
+export const Route = createFileRoute("/articoli/")({
   head: () => ({ meta: [{ title: "Articoli — Sistema MADE" }] }),
   component: ArticoliListPage,
 });
