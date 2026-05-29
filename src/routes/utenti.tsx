@@ -116,8 +116,8 @@ function UtentiPage() {
         </Button>
       </div>
 
-      <div className="mt-6 bg-card border border-border rounded-md overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="mt-6 bg-card border border-border rounded-md overflow-x-auto">
+        <table className="w-full min-w-[720px] text-sm">
           <thead className="bg-muted/50 text-[11px] uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="text-left font-medium px-4 py-2">Nome</th>
