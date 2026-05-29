@@ -508,3 +508,138 @@ function CantiereDialog({
     </Dialog>
   );
 }
+
+// ----------------------------------------------------------------------------
+// Preventivi section
+// ----------------------------------------------------------------------------
+
+type PreventivoRow = {
+  id: string;
+  numero: string | null;
+  data: string;
+  validita: string | null;
+  stato: StatoPreventivo;
+  tipo_doc: TipoDoc;
+  totale: number | null;
+  cantiere: { nome: string } | null;
+};
+
+const fmtData = (s: string | null) => {
+  if (!s) return "—";
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("it-IT");
+};
+
+const fmtEuro = (v: number | null) =>
+  new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(Number(v ?? 0));
+
+function statoVariant(s: StatoPreventivo): "outline" | "secondary" | "default" {
+  if (s === "bozza") return "outline";
+  if (s === "inviato") return "secondary";
+  return "default";
+}
+
+function PreventiviSection({ clienteId }: { clienteId: string }) {
+  const navigate = useNavigate();
+
+  const { data: preventivi = [], isLoading, error } = useQuery({
+    queryKey: ["preventivi-cliente", clienteId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("preventivi")
+        .select("id, numero, data, validita, stato, tipo_doc, totale, cantiere:cantieri(nome)")
+        .eq("cliente_id", clienteId)
+        .order("data", { ascending: false })
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data as unknown as PreventivoRow[]) ?? [];
+    },
+  });
+
+  return (
+    <section className="rounded-lg border bg-card">
+      <div className="flex items-center justify-between border-b px-4 py-3">
+        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-navy">
+          <FileText className="h-4 w-4" />
+          Preventivi ({preventivi.length})
+        </h2>
+      </div>
+
+      {error ? (
+        <div className="px-3 py-6 text-center text-sm text-destructive">
+          {(error as Error).message}
+        </div>
+      ) : isLoading ? (
+        <div className="px-3 py-6 text-center text-sm text-muted-foreground">Caricamento…</div>
+      ) : preventivi.length === 0 ? (
+        <div className="px-3 py-6 text-center text-sm text-muted-foreground">
+          Nessun preventivo per questo cliente
+        </div>
+      ) : (
+        <>
+          {/* Tabella desktop */}
+          <div className="hidden overflow-auto md:block">
+            <table className="w-full text-xs">
+              <thead className="bg-muted/40">
+                <tr className="text-left text-[11px] uppercase tracking-wide text-muted-foreground">
+                  <th className="px-3 py-2 font-semibold">Numero</th>
+                  <th className="px-3 py-2 font-semibold">Data</th>
+                  <th className="px-3 py-2 font-semibold">Cantiere</th>
+                  <th className="px-3 py-2 font-semibold">Tipo doc</th>
+                  <th className="px-3 py-2 font-semibold">Stato</th>
+                  <th className="px-3 py-2 text-right font-semibold">Totale</th>
+                </tr>
+              </thead>
+              <tbody>
+                {preventivi.map((p) => (
+                  <tr
+                    key={p.id}
+                    onClick={() => navigate({ to: "/preventivi/$id", params: { id: p.id } })}
+                    className="cursor-pointer border-b hover:bg-muted/50"
+                  >
+                    <td className="px-3 py-1.5 font-mono">{p.numero ?? "—"}</td>
+                    <td className="px-3 py-1.5">{fmtData(p.data)}</td>
+                    <td className="px-3 py-1.5">{p.cantiere?.nome ?? "—"}</td>
+                    <td className="px-3 py-1.5">{TIPI_DOC_LABEL[p.tipo_doc]}</td>
+                    <td className="px-3 py-1.5">
+                      <Badge variant={statoVariant(p.stato)}>{STATI_LABEL[p.stato]}</Badge>
+                    </td>
+                    <td className="px-3 py-1.5 text-right font-mono">{fmtEuro(p.totale)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Lista mobile */}
+          <div className="divide-y md:hidden">
+            {preventivi.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => navigate({ to: "/preventivi/$id", params: { id: p.id } })}
+                className="flex w-full flex-col gap-1 px-3 py-2.5 text-left hover:bg-muted/50"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs">{p.numero ?? "—"}</span>
+                  <Badge variant={statoVariant(p.stato)} className="text-[10px]">
+                    {STATI_LABEL[p.stato]}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                  <span>{fmtData(p.data)} · {TIPI_DOC_LABEL[p.tipo_doc]}</span>
+                  <span className="font-mono text-foreground">{fmtEuro(p.totale)}</span>
+                </div>
+                {p.cantiere?.nome && (
+                  <div className="text-xs text-muted-foreground">{p.cantiere.nome}</div>
+                )}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
