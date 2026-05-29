@@ -213,7 +213,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
 
   const blocchi = buildBlocchiOutput(prev);
   const USABLE = w - 28;
-  let y = 60;
+  let y = 62;
 
   for (const b of blocchi) {
     autoTable(doc, {
