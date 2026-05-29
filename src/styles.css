@@ -111,3 +111,20 @@
     var(--tri-red) 66.666% 100%
   );
 }
+
+/* Read-only mode: keep disabled fields legible */
+.readonly-mode :disabled,
+.readonly-mode [aria-disabled="true"] {
+  opacity: 1 !important;
+  cursor: default !important;
+}
+.readonly-mode input:disabled,
+.readonly-mode textarea:disabled,
+.readonly-mode select:disabled {
+  background-color: color-mix(in oklab, var(--muted) 50%, transparent);
+  color: var(--foreground);
+  -webkit-text-fill-color: var(--foreground);
+}
+.readonly-mode button:disabled {
+  opacity: 0.85 !important;
+}
