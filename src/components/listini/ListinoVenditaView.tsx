@@ -57,6 +57,9 @@ export function ListinoVenditaView() {
   const [dSearch, setDSearch] = useState("");
   const [categoria, setCategoria] = useState<string | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [mostraFiltri, setMostraFiltri] = useState(false);
+  const nFiltriAttivi = [categoria].filter(Boolean).length;
+
 
   useEffect(() => {
     const t = setTimeout(() => setDSearch(search), 300);
