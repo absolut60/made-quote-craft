@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { ArticoloDettaglioDialog } from "@/components/preventivi/ArticoloDettaglioDialog";
 import {
   DndContext,
   closestCenter,
