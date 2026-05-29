@@ -28,11 +28,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, fetchPreventivo,
+  calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, fetchAgenti, fetchCliente, fetchPreventivo,
   reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
   updateBlocco, updatePreventivo,
   type BloccoConRighe, type StatoPreventivo, type TipoDoc,
 } from "@/lib/preventivi-api";
+
 import { FASCE, type FasciaListino } from "@/lib/articoli-api";
 import { round2 } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
