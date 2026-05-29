@@ -81,7 +81,7 @@ export function GeneraDocumentoDialog({
     if (!user) return;
     await supabase
       .from("preferenze_stampa")
-      .upsert({ user_id: user.id, colonne_righe: colonne }, { onConflict: "user_id" });
+      .upsert({ user_id: user.id, colonne_righe: colonne as unknown as Record<string, boolean> }, { onConflict: "user_id" });
   }
 
   async function run(formato: "pdf" | "xlsx") {
