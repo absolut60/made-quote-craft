@@ -574,6 +574,11 @@ function PreventivoEditorPage() {
       />
 
       <GeneraDocumentoDialog open={outputOpen} onOpenChange={setOutputOpen} prev={prev} />
+      <ClienteDettaglioDialog
+        clienteId={prev?.cliente_id ?? null}
+        open={clienteDialogOpen}
+        onOpenChange={setClienteDialogOpen}
+      />
     </AppShell>
   );
 }
