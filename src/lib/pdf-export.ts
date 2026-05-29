@@ -142,7 +142,7 @@ function drawFooter(doc: jsPDF) {
   const h = doc.internal.pageSize.getHeight();
   const pages = doc.getNumberOfPages();
   const FOOTER_H = 20;
-  const BAND_H = 46;
+  const BAND_H = 23;
   const BAND_GAP = 2; // spazio tra fascia blu e piede legale
 
   for (let i = 1; i <= pages; i++) {
@@ -159,15 +159,15 @@ function drawFooter(doc: jsPDF) {
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
 
-      // Titolo (righe 1-2) — 24pt, interlinea ~9mm
-      doc.setFontSize(24);
-      doc.text("IL NUOVO MODO", 14, bandY + 13);
-      doc.text("DI COSTRUIRE.", 14, bandY + 23);
-
-      // Tagline (righe 3-4) — 12pt, ~metà del titolo
+      // Titolo (righe 1-2) — 12pt, interlinea ~5mm
       doc.setFontSize(12);
-      doc.text("Tecnologie leggere, risultati solidi", 14, bandY + 34);
-      doc.text("il sistema a secco che guarda al futuro.", 14, bandY + 40);
+      doc.text("IL NUOVO MODO", 14, bandY + 6);
+      doc.text("DI COSTRUIRE.", 14, bandY + 11);
+
+      // Tagline (righe 3-4) — 6.5pt, ~metà del titolo
+      doc.setFontSize(6.5);
+      doc.text("Tecnologie leggere, risultati solidi", 14, bandY + 16.5);
+      doc.text("il sistema a secco che guarda al futuro.", 14, bandY + 20);
 
       doc.setFont("helvetica", "normal");
     }
@@ -324,12 +324,12 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
     doc.line(14, y, w - 14, y);
     y += 6;
 
-    if (y > doc.internal.pageSize.getHeight() - 72) {
+    if (y > doc.internal.pageSize.getHeight() - 50) {
       doc.addPage(); y = 20;
     }
   }
 
-  if (y > doc.internal.pageSize.getHeight() - 75) { doc.addPage(); y = 20; }
+  if (y > doc.internal.pageSize.getHeight() - 52) { doc.addPage(); y = 20; }
   doc.setDrawColor(...GRIGIO_BD); doc.setLineWidth(0.2);
   doc.line(14, y, w - 14, y);
   y += 5;
