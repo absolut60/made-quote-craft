@@ -307,8 +307,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
 
     // Subtotale del blocco in fondo, allineato a destra, in grassetto
     doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(...NAVY);
-    const totDescr = `Totale ${b.descrizione}:`.slice(0, 80);
-    doc.text(`${totDescr} ${fmtEur(b.importo)}`, w - 14, y + 5, { align: "right" });
+    doc.text(`Totale ${fmtEur(b.importo)}`, w - 14, y + 5, { align: "right" });
     doc.setFont("helvetica", "normal");
     y += 8;
 
