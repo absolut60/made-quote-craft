@@ -128,8 +128,8 @@ export function ArticoloDettaglioDialog({
                       <tr>
                         <th className="px-2 py-1.5">Validità</th>
                         <th className="px-2 py-1.5 text-right">Costo netto</th>
-                        <th className="px-2 py-1.5 text-right">Listino</th>
-                        <th className="px-2 py-1.5 text-right">Sconto%</th>
+                        <th className="px-2 py-1.5 text-right">Costo lordo</th>
+                        <th className="px-2 py-1.5">Condizioni</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -144,12 +144,10 @@ export function ArticoloDettaglioDialog({
                             {l.costo_netto != null ? `€ ${Number(l.costo_netto).toFixed(2)}` : "—"}
                           </td>
                           <td className="px-2 py-1.5 text-right font-mono">
-                            {l.prezzo_listino != null
-                              ? `€ ${Number(l.prezzo_listino).toFixed(2)}`
-                              : "—"}
+                            {l.costo != null ? `€ ${Number(l.costo).toFixed(2)}` : "—"}
                           </td>
-                          <td className="px-2 py-1.5 text-right font-mono">
-                            {l.sconto_perc != null ? `${Number(l.sconto_perc)}%` : "—"}
+                          <td className="px-2 py-1.5 text-xs text-muted-foreground">
+                            {l.condizioni ?? "—"}
                           </td>
                         </tr>
                       ))}
