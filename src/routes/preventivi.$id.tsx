@@ -199,22 +199,27 @@ function PreventivoEditorPage() {
               <Input type="date" defaultValue={prev.validita ?? ""}
                 onBlur={(e) => { if ((e.target.value || null) !== prev.validita) save.mutate({ validita: e.target.value || null }); }} />
             </div>
-            <div className="grid gap-1.5 md:col-span-2">
-              <Label className="text-xs">Cliente / Cantiere</Label>
-              <div className="flex items-center justify-between rounded border bg-muted/40 px-3 py-2 text-sm">
-                <div>
-                  <div className="font-medium">{prev.cliente?.ragione_sociale ?? "—"}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {prev.cantiere?.nome ?? "Senza cantiere"}
-                    {prev.cantiere?.indirizzo ? ` — ${prev.cantiere.indirizzo}` : ""}
-                  </div>
-                </div>
-                <div className="text-right text-xs text-muted-foreground">
-                  <div>Agente: {prev.agente?.nome ?? "—"}</div>
-                  <div>Filiale: {prev.filiale ?? "—"}</div>
-                </div>
+            <div className="grid gap-1.5 md:col-span-3 md:grid-cols-2">
+              <div className="grid gap-1.5">
+                <Label className="text-xs">Cliente</Label>
+                <ClientePicker
+                  value={prev.cliente_id ?? null}
+                  onChange={(id) => save.mutate({ cliente_id: id, cantiere_id: null })}
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label className="text-xs">Cantiere</Label>
+                <CantierePicker
+                  cliente_id={prev.cliente_id ?? null}
+                  value={prev.cantiere_id ?? null}
+                  onChange={(id) => save.mutate({ cantiere_id: id })}
+                />
+              </div>
+              <div className="md:col-span-2 text-xs text-muted-foreground">
+                Agente: {prev.agente?.nome ?? "—"} · Filiale: {prev.filiale ?? "—"}
               </div>
             </div>
+
             <div className="grid gap-1.5">
               <Label className="text-xs">Tipo documento</Label>
               <Select value={prev.tipo_doc} onValueChange={(v) => save.mutate({ tipo_doc: v as TipoDoc })}>
