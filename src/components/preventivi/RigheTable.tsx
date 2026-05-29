@@ -280,14 +280,7 @@ function RigaRow({
 
   if (tipo === "separatore") {
     return (
-      <tr ref={sortable.setNodeRef} style={style} className={rowClass}
-        onContextMenu={onContextMenu}
-        onTouchStart={onTouchStart}
-        onTouchEnd={cancelLongPress}
-        onTouchMove={cancelLongPress}
-        onTouchCancel={cancelLongPress}
-        title={articoloId ? "Tasto destro o pressione lunga per aprire la scheda articolo" : undefined}
-      >
+      <tr ref={sortable.setNodeRef} style={style} className={rowClass} onClick={onRowClick}>
         <td>
           <button {...sortable.attributes} {...sortable.listeners} className="cursor-grab px-1">
             <GripVertical className="h-3 w-3 text-muted-foreground" />
