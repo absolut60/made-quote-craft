@@ -1,0 +1,1 @@
+ALTER TABLE public.preventivi ADD COLUMN IF NOT EXISTS sconto_piede_perc numeric NOT NULL DEFAULT 0;

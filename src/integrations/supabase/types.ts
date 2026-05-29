@@ -609,6 +609,7 @@ export type Database = {
           iva_perc: number | null
           note: string | null
           numero: string | null
+          sconto_piede_perc: number
           stato: Database["public"]["Enums"]["stato_preventivo"]
           tipo_doc: Database["public"]["Enums"]["tipo_doc_preventivo"]
           totale: number | null
@@ -629,6 +630,7 @@ export type Database = {
           iva_perc?: number | null
           note?: string | null
           numero?: string | null
+          sconto_piede_perc?: number
           stato?: Database["public"]["Enums"]["stato_preventivo"]
           tipo_doc?: Database["public"]["Enums"]["tipo_doc_preventivo"]
           totale?: number | null
@@ -649,6 +651,7 @@ export type Database = {
           iva_perc?: number | null
           note?: string | null
           numero?: string | null
+          sconto_piede_perc?: number
           stato?: Database["public"]["Enums"]["stato_preventivo"]
           tipo_doc?: Database["public"]["Enums"]["tipo_doc_preventivo"]
           totale?: number | null
