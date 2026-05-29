@@ -191,7 +191,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
 
   const blocchi = buildBlocchiOutput(prev);
   const USABLE = w - 28;
-  let y = 48;
+  let y = 60;
 
   for (const b of blocchi) {
     autoTable(doc, {
@@ -201,23 +201,18 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
         { content: b.descrizione, styles: { halign: "left" } },
         { content: `${fmtNum(b.quantita, 2)} ${b.um}`, styles: { halign: "right" } },
         { content: `${fmtEur(b.prezzo_um)} /${b.um}`, styles: { halign: "right" } },
-        { content: fmtEur(b.importo), styles: { halign: "right", fontStyle: "bold" } },
       ]],
       body: [],
       theme: "plain",
       headStyles: {
-        fillColor: BLOCK_BG,
-        textColor: NAVY,
-        fontSize: 8.5,
+        fillColor: BLOCK_BG, textColor: NAVY, fontSize: 8.5,
         cellPadding: { top: 2, bottom: 2, left: 2, right: 2 },
-        lineColor: GRIGIO_BD,
-        lineWidth: 0.15,
+        lineColor: GRIGIO_BD, lineWidth: 0.15,
       },
       columnStyles: {
         0: { cellWidth: 24 },
-        2: { cellWidth: 30 },
-        3: { cellWidth: 32 },
-        4: { cellWidth: 28 },
+        2: { cellWidth: 32 },
+        3: { cellWidth: 36 },
       },
       margin: { left: 14, right: 14 },
     });
@@ -233,38 +228,53 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
     const body: (string | number)[][] = [];
     for (const r of b.righe) {
       if (r.tipo_riga === "nota" || r.tipo_riga === "separatore" || r.tipo_riga === "sotto_totale") continue;
+      const prezzo = Number(r.prezzo_unit ?? 0);
+      const sc = Number(r.sconto_perc ?? 0);
+      const prezzoScontato = prezzo * (1 - sc / 100);
       body.push([
         r.articolo?.cod_gamma ?? "",
         r.descrizione ?? r.articolo?.descrizione ?? "",
         r.um ?? r.articolo?.um ?? "",
         fmtNum(Number(r.quantita ?? 0), 2),
+        fmtEur(prezzo),
+        sc > 0 ? `${fmtNum(sc, 2)}%` : "—",
+        fmtEur(prezzoScontato),
+        fmtEur(Number(r.importo ?? 0)),
       ]);
     }
     if (body.length) {
       autoTable(doc, {
         startY: y,
-        head: [["Cod. Gamma", "Descrizione", "U.M.", "Quantità"]],
+        head: [["Cod. Gamma", "Descrizione", "U.M.", "Quantità", "Prezzo unit.", "Sconto %", "Prezzo scontato", "Importo"]],
         body,
         theme: "striped",
         headStyles: {
           fillColor: [255, 255, 255] as [number, number, number],
-          textColor: GRIGIO,
-          fontStyle: "bold",
-          fontSize: 6.5,
-          lineColor: GRIGIO_BD,
-          lineWidth: 0.1,
+          textColor: GRIGIO, fontStyle: "bold", fontSize: 6.2,
+          lineColor: GRIGIO_BD, lineWidth: 0.1,
         },
-        bodyStyles: { fontSize: 7.5, textColor: [30, 35, 45] as [number, number, number] },
+        bodyStyles: { fontSize: 7, textColor: [30, 35, 45] as [number, number, number], cellPadding: 1.4 },
         alternateRowStyles: { fillColor: GRIGIO_LT },
         columnStyles: {
-          0: { cellWidth: 27, font: "courier" },
-          2: { cellWidth: 18, halign: "center" },
-          3: { cellWidth: 27, halign: "right", font: "courier" },
+          0: { cellWidth: 22, font: "courier" },
+          2: { cellWidth: 12, halign: "center" },
+          3: { cellWidth: 18, halign: "right", font: "courier" },
+          4: { cellWidth: 20, halign: "right", font: "courier" },
+          5: { cellWidth: 14, halign: "right", font: "courier" },
+          6: { cellWidth: 22, halign: "right", font: "courier" },
+          7: { cellWidth: 22, halign: "right", font: "courier", fontStyle: "bold" },
         },
         margin: { left: 14, right: 14 },
       });
       y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
     }
+
+    // Subtotale del blocco in fondo, allineato a destra, in grassetto
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(...NAVY);
+    const totDescr = `Totale ${b.descrizione}:`.slice(0, 80);
+    doc.text(`${totDescr} ${fmtEur(b.importo)}`, w - 14, y + 5, { align: "right" });
+    doc.setFont("helvetica", "normal");
+    y += 8;
 
     doc.setDrawColor(...GRIGIO_BD); doc.setLineWidth(0.1);
     doc.line(14, y, w - 14, y);
