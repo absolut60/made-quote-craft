@@ -20,8 +20,10 @@ import {
 } from "@/lib/articoli-api";
 import { StatoBadge } from "@/components/articoli/StatoBadge";
 import { ImportArticoliDialog } from "@/components/articoli/ImportDialog";
-import { Download, Upload, Eye, Search } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Download, Upload, Eye, Search, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/articoli/")({
   head: () => ({ meta: [{ title: "Articoli — Sistema MADE" }] }),
