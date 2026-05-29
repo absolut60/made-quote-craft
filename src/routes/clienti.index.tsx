@@ -174,7 +174,6 @@ function ClientiListPage() {
                 <th className="px-3 py-2 font-semibold">Filiale</th>
                 <th className="px-3 py-2 font-semibold">Agente</th>
                 <th className="px-3 py-2 font-semibold">Fascia</th>
-                <th className="px-3 py-2 text-right font-semibold">Azioni</th>
               </tr>
             </thead>
             <tbody>
