@@ -254,7 +254,13 @@ function PreventivoEditorPage() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="preventivo" className="flex flex-col gap-5 pt-3">
+          <TabsContent value="preventivo" className={cn("flex flex-col gap-5 pt-3", !editMode && "readonly-mode")}>
+            {!editMode && (
+              <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                Sola lettura. Premi <strong>Modifica</strong> in alto per sbloccare la compilazione.
+              </div>
+            )}
+            <fieldset disabled={!editMode} className="contents">
             {/* ===== TESTATA ===== */}
             <section className="flex flex-col gap-3">
               <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Testata</div>
