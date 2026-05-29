@@ -84,9 +84,9 @@ const ClientiIdRoute = ClientiIdRouteImport.update({
   getParentRoute: () => ClientiRoute,
 } as any)
 const ArticoliIdRoute = ArticoliIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ArticoliRoute,
+  id: '/articoli/$id',
+  path: '/articoli/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -192,6 +192,7 @@ export interface RootRouteChildren {
   PreventiviRoute: typeof PreventiviRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
   UtentiRoute: typeof UtentiRoute
+  ArticoliIdRoute: typeof ArticoliIdRoute
   ArticoliIndexRoute: typeof ArticoliIndexRoute
 }
 
@@ -283,10 +284,10 @@ declare module '@tanstack/react-router' {
     }
     '/articoli/$id': {
       id: '/articoli/$id'
-      path: '/$id'
+      path: '/articoli/$id'
       fullPath: '/articoli/$id'
       preLoaderRoute: typeof ArticoliIdRouteImport
-      parentRoute: typeof ArticoliRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -333,18 +334,9 @@ const rootRouteChildren: RootRouteChildren = {
   PreventiviRoute: PreventiviRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
   UtentiRoute: UtentiRoute,
+  ArticoliIdRoute: ArticoliIdRoute,
   ArticoliIndexRoute: ArticoliIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
