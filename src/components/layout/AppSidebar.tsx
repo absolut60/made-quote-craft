@@ -23,13 +23,13 @@ const nav: NavItem[] = [
   { to: "/utenti", label: "Utenti", icon: UserCog, adminOnly: true },
 ];
 
-export function AppSidebar() {
+export function SidebarBody({ onNavigate }: { onNavigate?: () => void } = {}) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { isAdmin } = useAuth();
   const visible = nav.filter((i) => !i.adminOnly || isAdmin);
 
   return (
-    <aside className="hidden md:flex w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
+    <div className="flex h-full w-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="px-5 pt-5 pb-4">
         <img src={logo} alt="Sistema MADE" className="h-8 w-auto" />
         <div className="tricolor-bar mt-3 h-[3px] w-24 rounded-sm" />
@@ -48,6 +48,7 @@ export function AppSidebar() {
             <Link
               key={item.to}
               to={item.to}
+              onClick={onNavigate}
               className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
                 active
                   ? "bg-sidebar-active text-white font-medium"
@@ -64,6 +65,14 @@ export function AppSidebar() {
       <div className="px-4 py-3 border-t border-sidebar-border text-[11px] text-sidebar-foreground/55 font-mono">
         v0.1 · Gruppo MADE
       </div>
+    </div>
+  );
+}
+
+export function AppSidebar() {
+  return (
+    <aside className="hidden lg:flex w-60 shrink-0 flex-col border-r border-sidebar-border">
+      <SidebarBody />
     </aside>
   );
 }
