@@ -206,6 +206,11 @@ export function RigheTable({
           </tfoot>
         </table>
       </DndContext>
+      <ArticoloDettaglioDialog
+        articoloId={openArticoloId}
+        open={!!openArticoloId}
+        onOpenChange={(b) => { if (!b) setOpenArticoloId(null); }}
+      />
     </div>
   );
 }
