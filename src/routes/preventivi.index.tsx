@@ -152,17 +152,20 @@ function PreventiviListPage() {
                 <TableHead className="w-40">Tipo doc</TableHead>
                 <TableHead className="w-28">Stato</TableHead>
                 <TableHead className="w-32 text-right">Totale</TableHead>
-                <TableHead className="w-24"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">Caricamento…</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">Caricamento…</TableCell></TableRow>
               ) : rows.length === 0 ? (
-                <TableRow><TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">Nessun preventivo.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">Nessun preventivo.</TableCell></TableRow>
               ) : (
                 rows.map((r) => (
-                  <TableRow key={r.id} className="text-sm">
+                  <TableRow
+                    key={r.id}
+                    onClick={() => navigate({ to: "/preventivi/$id", params: { id: r.id } })}
+                    className="cursor-pointer text-sm hover:bg-muted/50"
+                  >
                     <TableCell className="font-mono">{r.numero ?? "—"}</TableCell>
                     <TableCell className="truncate">{r.cliente?.ragione_sociale ?? "—"}</TableCell>
                     <TableCell className="truncate text-muted-foreground">{r.cantiere?.nome ?? "—"}</TableCell>
@@ -174,28 +177,6 @@ function PreventiviListPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right font-mono">€ {Number(r.totale ?? 0).toFixed(2)}</TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-1">
-                        <Button asChild size="icon" variant="ghost" className="h-7 w-7">
-                          <Link to="/preventivi/$id" params={{ id: r.id }}><Eye className="h-3.5 w-3.5" /></Link>
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Eliminare il preventivo?</AlertDialogTitle>
-                              <AlertDialogDescription>Verranno eliminati anche tutti i blocchi e le righe. Operazione irreversibile.</AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Annulla</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => del.mutate(r.id)}>Elimina</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
                   </TableRow>
                 ))
               )}
