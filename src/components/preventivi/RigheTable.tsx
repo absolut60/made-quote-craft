@@ -39,6 +39,7 @@ import {
   TIPI_RIGA, TIPI_RIGA_LABEL, updateRiga,
   type BloccoConRighe, type Riga, type TipoRiga,
 } from "@/lib/preventivi-api";
+import type { FasciaListino } from "@/lib/articoli-api";
 import { round2 } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -46,9 +47,11 @@ import { toast } from "sonner";
 export function RigheTable({
   blocco,
   preventivoId,
+  fascia,
 }: {
   blocco: BloccoConRighe;
   preventivoId: string;
+  fascia: FasciaListino;
 }) {
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["preventivo", preventivoId] });
@@ -155,6 +158,7 @@ export function RigheTable({
                     key={r.id}
                     row={r}
                     idx={idx}
+                    fascia={fascia}
                     calc={calcMap.get(r.id)!}
                     onPatch={(patch) => upd.mutate({ id: r.id, patch })}
                     onDelete={() => del.mutate(r.id)}
@@ -222,10 +226,11 @@ function AddRowMenu({ onPick }: { onPick: (tipo: TipoRiga) => void }) {
 }
 
 function RigaRow({
-  row, idx, calc, onPatch, onDelete, onAddAbove, onAddBelow,
+  row, idx, calc, fascia, onPatch, onDelete, onAddAbove, onAddBelow,
 }: {
   row: Riga & { articolo: { id: string; descrizione: string; um: string | null; peso_unit: number | null } | null };
   idx: number;
+  fascia: FasciaListino;
   calc: ReturnType<typeof calcolaBlocco>["righe"][number]["calc"];
   onPatch: (patch: Parameters<typeof updateRiga>[1]) => void;
   onDelete: () => void;
@@ -284,7 +289,21 @@ function RigaRow({
           <div className="space-y-0.5">
             <ArticoloPicker
               value={row.articolo_id}
-              onChange={(articolo_id) => onPatch({ articolo_id })}
+              onChange={(articolo_id, articolo) => {
+                const listino = articolo?.listini_vendita?.find((l) => l.fascia === fascia);
+                const acquistoRecente = articolo?.listini_acquisto?.[0];
+                const prezzo = listino?.prezzo == null ? null : Number(listino.prezzo);
+                const costo = acquistoRecente?.costo_netto == null ? null : Number(acquistoRecente.costo_netto);
+                onPatch({
+                  articolo_id,
+                  um: articolo?.um ?? null,
+                  descrizione: articolo?.descrizione ?? null,
+                  prezzo_unit: prezzo,
+                  costo,
+                  vendita: prezzo,
+                  peso: articolo?.peso_unit == null ? null : Number(articolo.peso_unit),
+                });
+              }}
             />
             <Input
               defaultValue={row.descrizione ?? row.articolo?.descrizione ?? ""}

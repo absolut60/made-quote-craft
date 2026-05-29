@@ -271,7 +271,7 @@ function PreventivoEditorPage() {
                 </Card>
               ) : (
                 prev.blocchi.map((b, idx) => (
-                  <BloccoCard key={b.id} blocco={b} index={idx} preventivoId={id} />
+                  <BloccoCard key={b.id} blocco={b} index={idx} preventivoId={id} fascia={(prev.fascia_listino ?? "A") as FasciaListino} />
                 ))
               )}
             </div>
@@ -311,8 +311,8 @@ function Totale({ label, value, strong }: { label: string; value: string; strong
 }
 
 function BloccoCard({
-  blocco, index, preventivoId,
-}: { blocco: BloccoConRighe; index: number; preventivoId: string }) {
+  blocco, index, preventivoId, fascia,
+}: { blocco: BloccoConRighe; index: number; preventivoId: string; fascia: FasciaListino }) {
   const qc = useQueryClient();
   const sortable = useSortable({ id: blocco.id });
   const style = {
@@ -434,7 +434,7 @@ function BloccoCard({
             </div>
           )}
 
-          <RigheTable blocco={blocco} preventivoId={preventivoId} />
+          <RigheTable blocco={blocco} preventivoId={preventivoId} fascia={fascia} />
         </CardContent>
       </Card>
     </div>
