@@ -40,6 +40,7 @@ export const Route = createFileRoute("/clienti/")({
 const ANY = "__any";
 
 function ClientiListPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [debSearch, setDebSearch] = useState("");
   const [agenteId, setAgenteId] = useState<string | null>(null);
