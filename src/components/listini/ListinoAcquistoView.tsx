@@ -61,16 +61,22 @@ export function ListinoAcquistoView() {
       const articoli = (arts ?? []) as ArticoloLite[];
       if (!articoli.length) return { articoli: [], byArt: new Map<string, ListinoRow>() };
 
-      // 2. Listini acquisto per quegli articoli (in chunk per ovviare al .in())
+      // 2. Listini acquisto per quegli articoli (chunk da 100 per evitare limite URL)
       const ids = articoli.map((a) => a.id);
-      let lq = supabase.from("listini_acquisto").select("*").in("articolo_id", ids);
-      if (dataFrom) lq = lq.gte("data_validita", dataFrom);
-      const { data: lists, error: lErr } = await lq;
-      if (lErr) throw lErr;
+      const CHUNK = 100;
+      const all: ListinoRow[] = [];
+      for (let i = 0; i < ids.length; i += CHUNK) {
+        const chunk = ids.slice(i, i + CHUNK);
+        let lq = supabase.from("listini_acquisto").select("*").in("articolo_id", chunk);
+        if (dataFrom) lq = lq.gte("data_validita", dataFrom);
+        const { data: lists, error: lErr } = await lq;
+        if (lErr) throw lErr;
+        all.push(...((lists ?? []) as ListinoRow[]));
+      }
 
       // 3. Mantieni solo la riga più recente per articolo
       const byArt = new Map<string, ListinoRow>();
-      for (const r of (lists ?? []) as ListinoRow[]) {
+      for (const r of all) {
         const cur = byArt.get(r.articolo_id);
         if (!cur) {
           byArt.set(r.articolo_id, r);
