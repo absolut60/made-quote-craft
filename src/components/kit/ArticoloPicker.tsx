@@ -4,8 +4,15 @@ import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { fetchArticoli, type Articolo } from "@/lib/articoli-api";
+import { supabase } from "@/integrations/supabase/client";
+import type { ArticoloConListini } from "@/lib/kit-api";
 import { cn } from "@/lib/utils";
+
+const ARTICOLO_SELECT = `
+  id, cod_gamma, descrizione, um, peso_unit, qta_fornitore, qta_cliente,
+  listini_acquisto:listini_acquisto(*),
+  listini_vendita:listini_vendita(*)
+`;
 
 export function ArticoloPicker({
   value,
@@ -13,7 +20,7 @@ export function ArticoloPicker({
   placeholder = "Seleziona articolo…",
 }: {
   value: string | null;
-  onChange: (articoloId: string) => void;
+  onChange: (articoloId: string, articolo?: ArticoloConListini | null) => void;
   placeholder?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -22,8 +29,27 @@ export function ArticoloPicker({
   const { data: items = [] } = useQuery({
     queryKey: ["articoli-picker", q],
     queryFn: async () => {
-      const res = await fetchArticoli({ search: q, stato: "attivo" }, { pageSize: 50 });
-      return res.rows;
+      let qb = supabase
+        .from("articoli")
+        .select(ARTICOLO_SELECT)
+        .eq("stato", "attivo")
+        .order("cod_gamma", { ascending: true, nullsFirst: false })
+        .limit(50);
+      if (q.trim()) {
+        const s = q.trim().replace(/[%,]/g, " ");
+        qb = qb.or(`cod_gamma.ilike.%${s}%,descrizione.ilike.%${s}%,cod_fornitore.ilike.%${s}%`);
+      }
+      const { data, error } = await qb;
+      if (error) throw error;
+      // Sort listini_acquisto by most recent first so [0] is the latest
+      for (const a of (data ?? []) as unknown as ArticoloConListini[]) {
+        a.listini_acquisto?.sort((x, y) => {
+          const dx = x.data_validita ?? x.created_at ?? "";
+          const dy = y.data_validita ?? y.created_at ?? "";
+          return dy.localeCompare(dx);
+        });
+      }
+      return (data ?? []) as unknown as ArticoloConListini[];
     },
   });
 
@@ -31,7 +57,6 @@ export function ArticoloPicker({
     queryKey: ["articolo-picker-selected", value],
     queryFn: async () => {
       if (!value) return null;
-      const { supabase } = await import("@/integrations/supabase/client");
       const { data } = await supabase
         .from("articoli")
         .select("id, cod_gamma, descrizione, um")
@@ -74,12 +99,12 @@ export function ArticoloPicker({
           {items.length === 0 ? (
             <div className="p-3 text-xs text-muted-foreground">Nessun risultato</div>
           ) : (
-            items.map((a: Articolo) => (
+            items.map((a) => (
               <button
                 key={a.id}
                 type="button"
                 onClick={() => {
-                  onChange(a.id);
+                  onChange(a.id, a);
                   setOpen(false);
                 }}
                 className={cn(
