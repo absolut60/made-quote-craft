@@ -135,14 +135,14 @@ function KitEditorPage() {
   if (isLoading || !kit) {
     return (
       <AppShell>
-        <div className="p-6 text-sm text-muted-foreground">Caricamento…</div>
+        <div className="p-3 md:p-4 lg:p-6 text-sm text-muted-foreground">Caricamento…</div>
       </AppShell>
     );
   }
 
   return (
     <AppShell>
-      <div className="flex flex-col gap-4 p-6">
+      <div className="flex flex-col gap-4 p-3 md:p-4 lg:p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">

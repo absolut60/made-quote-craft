@@ -112,7 +112,7 @@ function PreventivoEditorPage() {
   }
 
   if (isLoading || !prev) {
-    return <AppShell><div className="p-6 text-sm text-muted-foreground">Caricamento…</div></AppShell>;
+    return <AppShell><div className="p-3 md:p-4 lg:p-6 text-sm text-muted-foreground">Caricamento…</div></AppShell>;
   }
 
   const lastOrdine = prev.blocchi.length
@@ -121,7 +121,7 @@ function PreventivoEditorPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col gap-4 p-6">
+      <div className="flex flex-col gap-4 p-3 md:p-4 lg:p-6">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
