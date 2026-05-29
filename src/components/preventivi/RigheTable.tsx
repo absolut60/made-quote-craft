@@ -312,7 +312,14 @@ function RigaRow({
   }
 
   return (
-    <tr ref={sortable.setNodeRef} style={style} className={rowClass}>
+    <tr ref={sortable.setNodeRef} style={style} className={rowClass}
+      onContextMenu={onContextMenu}
+      onTouchStart={onTouchStart}
+      onTouchEnd={cancelLongPress}
+      onTouchMove={cancelLongPress}
+      onTouchCancel={cancelLongPress}
+      title={articoloId ? "Tasto destro o pressione lunga per aprire la scheda articolo" : undefined}
+    >
       <td className="w-6">
         <button {...sortable.attributes} {...sortable.listeners} className="cursor-grab px-1" title="Trascina">
           <GripVertical className="h-3 w-3 text-muted-foreground" />
