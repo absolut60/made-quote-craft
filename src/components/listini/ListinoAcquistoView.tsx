@@ -13,7 +13,8 @@ import { fetchFornitori, type ListinoAcquisto } from "@/lib/articoli-api";
 import { calcCosto } from "@/lib/pricing";
 import { EditableNumberCell } from "./EditableNumberCell";
 import { toast } from "sonner";
-import { Search } from "lucide-react";
+import { Search, Eye } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 interface ArticoloLite {
   id: string;
