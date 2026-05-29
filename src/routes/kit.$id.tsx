@@ -143,7 +143,7 @@ function KitEditorPage() {
   return (
     <AppShell>
       <div className="flex flex-col gap-4 p-3 md:p-4 lg:p-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
               <Link to="/kit"><ArrowLeft className="mr-1 h-4 w-4" /> Kit</Link>
