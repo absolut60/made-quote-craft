@@ -46,6 +46,8 @@ function ClientiListPage() {
   const [filiale, setFiliale] = useState<string | null>(null);
   const [fascia, setFascia] = useState<FasciaListino | null>(null);
   const [newOpen, setNewOpen] = useState(false);
+  const [mostraFiltri, setMostraFiltri] = useState(false);
+  const nFiltriAttivi = [agenteId, filiale, fascia].filter(Boolean).length;
 
   useEffect(() => {
     const t = setTimeout(() => setDebSearch(search), 300);
