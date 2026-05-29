@@ -259,7 +259,6 @@ function ArticoliListPage() {
                 <th className="px-3 py-2 font-semibold">Categoria</th>
                 <th className="px-3 py-2 font-semibold">Tipologia</th>
                 <th className="px-3 py-2 font-semibold">Stato</th>
-                <th className="px-3 py-2 text-right font-semibold">Azioni</th>
               </tr>
             </thead>
             <tbody>
