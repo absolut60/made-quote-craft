@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  applicaScontoPiedeARighe,
   calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, fetchAgenti, fetchCliente, fetchPreventivo,
   reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
   updateBlocco, updatePreventivo,
