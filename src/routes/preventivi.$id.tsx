@@ -29,7 +29,8 @@ import {
 import { toast } from "sonner";
 import {
   calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, fetchPreventivo,
-  reorderBlocchi, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL, updateBlocco, updatePreventivo,
+  reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
+  updateBlocco, updatePreventivo,
   type BloccoConRighe, type StatoPreventivo, type TipoDoc,
 } from "@/lib/preventivi-api";
 import { FASCE, type FasciaListino } from "@/lib/articoli-api";
@@ -335,6 +336,13 @@ function BloccoCard({
     onError: (e: unknown) => toast.error((e as Error).message),
   });
 
+  const recalcQta = useMutation({
+    mutationFn: (v: number | null) =>
+      ricalcolaBloccoSuNuovaQuantita(blocco.id, v, blocco.righe),
+    onSuccess: invalidate,
+    onError: (e: unknown) => toast.error((e as Error).message),
+  });
+
   const del = useMutation({
     mutationFn: () => deleteBlocco(blocco.id),
     onSuccess: invalidate,
@@ -376,7 +384,7 @@ function BloccoCard({
                 onBlur={(e) => {
                   const v = e.target.value === "" ? null : Number(e.target.value);
                   if (v !== (blocco.quantita_base == null ? null : Number(blocco.quantita_base)))
-                    upd.mutate({ quantita_base: v });
+                    recalcQta.mutate(v);
                 }}
                 className="h-8 text-right font-mono"
               />

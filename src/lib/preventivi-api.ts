@@ -355,6 +355,76 @@ export async function deleteRiga(id: string) {
   if (error) throw error;
 }
 
+/**
+ * Quando l'utente cambia la quantità base di un blocco, ricalcola in batch
+ * la quantità e gli importi delle righe derivate ('da_kit' e 'articolo_singolo')
+ * preservando incidenza, prezzo unitario, sconto, segno e costo/vendita/peso
+ * UNITARI (derivati dai valori salvati).
+ * Le righe 'manuale', 'nota', 'separatore', 'sotto_totale' non vengono toccate.
+ * Aggiorna inoltre il blocco con il nuovo importo totale e prezzo/UM.
+ */
+export async function ricalcolaBloccoSuNuovaQuantita(
+  blocco_id: string,
+  nuovaQuantitaBase: number | null,
+  righe: Riga[],
+): Promise<void> {
+  const qBase = n(nuovaQuantitaBase);
+  const aggiornate: { id: string; importo: number }[] = [];
+
+  await Promise.all(
+    righe.map(async (r) => {
+      if (r.tipo_riga !== "da_kit" && r.tipo_riga !== "articolo_singolo") return;
+      const inc = r.incidenza == null ? null : n(r.incidenza);
+      if (inc == null) return;
+      const oldQta = n(r.quantita) || 1;
+      const nuovaQta = round2(inc * qBase);
+      const prezzo = n(r.prezzo_unit);
+      const sc = n(r.sconto_perc);
+      const segno = (r.segno ?? 1) === -1 ? -1 : 1;
+      const nuovoImporto = round2(prezzo * nuovaQta * (1 - sc / 100) * segno);
+      const nuovoCosto = round2((n(r.costo) / oldQta) * nuovaQta);
+      const nuovaVendita = round2((n(r.vendita) / oldQta) * nuovaQta);
+      const nuovoPeso = round2((n(r.peso) / oldQta) * nuovaQta);
+      const { error } = await supabase
+        .from("righe_preventivo")
+        .update({
+          quantita: nuovaQta,
+          importo: nuovoImporto,
+          costo: nuovoCosto,
+          vendita: nuovaVendita,
+          peso: nuovoPeso,
+        })
+        .eq("id", r.id);
+      if (error) throw error;
+      aggiornate.push({ id: r.id, importo: nuovoImporto });
+    }),
+  );
+
+  // Somma importi: righe ricalcolate + righe non toccate (manuale ecc.) escluse nota/separatore/sotto_totale
+  let totale = 0;
+  for (const r of righe) {
+    if (r.tipo_riga === "nota" || r.tipo_riga === "separatore" || r.tipo_riga === "sotto_totale") continue;
+    if (r.tipo_riga === "da_kit" || r.tipo_riga === "articolo_singolo") {
+      const inc = r.incidenza == null ? null : n(r.incidenza);
+      if (inc != null) {
+        const a = aggiornate.find((x) => x.id === r.id);
+        if (a) { totale += a.importo; continue; }
+      }
+    }
+    totale += n(r.importo);
+  }
+  totale = round2(totale);
+  const prezzoUm = qBase > 0 ? round2(totale / qBase) : null;
+
+  const patch: BloccoUpdate = {
+    quantita_base: nuovaQuantitaBase,
+    importo: totale,
+    prezzo_um: prezzoUm,
+  };
+  const { error } = await supabase.from("blocchi_preventivo").update(patch).eq("id", blocco_id);
+  if (error) throw error;
+}
+
 export async function reorderRighe(updates: { id: string; ordine: number }[]) {
   await Promise.all(
     updates.map((u) =>
