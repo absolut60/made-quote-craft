@@ -95,7 +95,7 @@ export function NuovoPreventivoDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Agente</Label>
-              <Select value={agenteId ?? undefined} onValueChange={setAgenteId}>
+              <Select value={agenteId ?? ""} onValueChange={(v) => setAgenteId(v || null)}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                 <SelectContent>
                   {agenti.map((a) => (
