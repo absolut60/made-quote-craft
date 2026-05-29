@@ -542,6 +542,8 @@ function statoVariant(s: StatoPreventivo): "outline" | "secondary" | "default" {
 
 function PreventiviSection({ clienteId }: { clienteId: string }) {
   const navigate = useNavigate();
+  const [q, setQ] = useState("");
+  const [cantiereFilter, setCantiereFilter] = useState<string>("__all");
 
   const { data: preventivi = [], isLoading, error } = useQuery({
     queryKey: ["preventivi-cliente", clienteId],
@@ -557,14 +559,55 @@ function PreventiviSection({ clienteId }: { clienteId: string }) {
     },
   });
 
+  const cantieriOptions = Array.from(
+    new Set(preventivi.map((p) => p.cantiere?.nome).filter((n): n is string => !!n)),
+  ).sort((a, b) => a.localeCompare(b, "it"));
+
+  const filtered = preventivi.filter((p) => {
+    if (cantiereFilter !== "__all") {
+      const nome = p.cantiere?.nome ?? "__nessuno";
+      if (cantiereFilter === "__nessuno" ? !!p.cantiere?.nome : nome !== cantiereFilter) {
+        return false;
+      }
+    }
+    if (q.trim()) {
+      const needle = q.trim().toLowerCase();
+      const hay = `${p.numero ?? ""} ${p.cantiere?.nome ?? ""}`.toLowerCase();
+      if (!hay.includes(needle)) return false;
+    }
+    return true;
+  });
+
   return (
     <section className="rounded-lg border bg-card">
       <div className="flex items-center justify-between border-b px-4 py-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-navy">
           <FileText className="h-4 w-4" />
-          Preventivi ({preventivi.length})
+          Preventivi ({filtered.length}{filtered.length !== preventivi.length ? `/${preventivi.length}` : ""})
         </h2>
       </div>
+
+      {/* Filtri */}
+      {preventivi.length > 0 && (
+        <div className="grid grid-cols-1 gap-2 border-b px-3 py-2 sm:grid-cols-2">
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Cerca per numero o cantiere…"
+            className="h-8 text-xs"
+          />
+          <Select value={cantiereFilter} onValueChange={setCantiereFilter}>
+            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all">Tutti i cantieri</SelectItem>
+              <SelectItem value="__nessuno">Senza cantiere</SelectItem>
+              {cantieriOptions.map((n) => (
+                <SelectItem key={n} value={n}>{n}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {error ? (
         <div className="px-3 py-6 text-center text-sm text-destructive">
@@ -575,6 +618,10 @@ function PreventiviSection({ clienteId }: { clienteId: string }) {
       ) : preventivi.length === 0 ? (
         <div className="px-3 py-6 text-center text-sm text-muted-foreground">
           Nessun preventivo per questo cliente
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="px-3 py-6 text-center text-sm text-muted-foreground">
+          Nessun preventivo trovato
         </div>
       ) : (
         <>
@@ -592,7 +639,7 @@ function PreventiviSection({ clienteId }: { clienteId: string }) {
                 </tr>
               </thead>
               <tbody>
-                {preventivi.map((p) => (
+                {filtered.map((p) => (
                   <tr
                     key={p.id}
                     onClick={() => navigate({ to: "/preventivi/$id", params: { id: p.id } })}
@@ -614,7 +661,7 @@ function PreventiviSection({ clienteId }: { clienteId: string }) {
 
           {/* Lista mobile */}
           <div className="divide-y md:hidden">
-            {preventivi.map((p) => (
+            {filtered.map((p) => (
               <button
                 key={p.id}
                 type="button"
@@ -642,4 +689,5 @@ function PreventiviSection({ clienteId }: { clienteId: string }) {
     </section>
   );
 }
+
 
