@@ -158,6 +158,7 @@ export function RigheTable({
                     key={r.id}
                     row={r}
                     idx={idx}
+                    fascia={fascia}
                     calc={calcMap.get(r.id)!}
                     onPatch={(patch) => upd.mutate({ id: r.id, patch })}
                     onDelete={() => del.mutate(r.id)}
