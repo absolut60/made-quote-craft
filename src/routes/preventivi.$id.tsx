@@ -42,7 +42,9 @@ import { RigheTable } from "@/components/preventivi/RigheTable";
 import { GeneraDocumentoDialog } from "@/components/preventivi/GeneraDocumentoDialog";
 import { ClientePicker } from "@/components/preventivi/ClientePicker";
 import { CantierePicker } from "@/components/preventivi/CantierePicker";
-import { AllegatiButton } from "@/components/preventivi/AllegatiSection";
+import { AllegatiSection } from "@/components/preventivi/AllegatiSection";
+import { fetchAllegati } from "@/lib/allegati-api";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/preventivi/$id")({
   head: () => ({ meta: [{ title: "Editor Preventivo — Sistema MADE" }] }),
