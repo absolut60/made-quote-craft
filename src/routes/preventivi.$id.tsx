@@ -35,6 +35,7 @@ import {
 } from "@/lib/preventivi-api";
 import { FASCE, type FasciaListino } from "@/lib/articoli-api";
 import { round2 } from "@/lib/pricing";
+import { cn } from "@/lib/utils";
 import { AggiungiBloccoDialog } from "@/components/preventivi/AggiungiBloccoDialog";
 import { RigheTable } from "@/components/preventivi/RigheTable";
 import { GeneraDocumentoDialog } from "@/components/preventivi/GeneraDocumentoDialog";
@@ -81,6 +82,18 @@ function PreventivoEditorPage() {
       })),
       Number(prev.iva_perc ?? 22),
     );
+  }, [prev]);
+
+  const margineTotale = useMemo(() => {
+    let costo = 0, vendita = 0;
+    for (const b of prev?.blocchi ?? []) {
+      const c = calcolaBlocco(b.righe);
+      costo += c.costo;
+      vendita += c.totale;
+    }
+    const euro = vendita - costo;
+    const perc = vendita > 0 ? (euro / vendita) * 100 : 0;
+    return { costo, vendita, euro: round2(euro), perc: round2(perc) };
   }, [prev]);
 
   // Persist totali in DB (fire and forget) when cambiano significativamente
@@ -280,10 +293,17 @@ function PreventivoEditorPage() {
 
         {/* Totali */}
         <Card>
-          <CardContent className="grid grid-cols-1 gap-2 p-4 md:grid-cols-3">
-            <Totale label="Imponibile" value={`€ ${totali.imponibile.toFixed(2)}`} />
-            <Totale label={`IVA ${Number(prev.iva_perc ?? 22)}%`} value={`€ ${totali.iva.toFixed(2)}`} />
-            <Totale label="Totale" value={`€ ${totali.totale.toFixed(2)}`} strong />
+          <CardContent className="space-y-2 p-4">
+            <Totale
+              label="Margine"
+              value={`${margineTotale.perc.toFixed(1)}% · € ${margineTotale.euro.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              className={margineTotale.perc >= 0 ? "text-[#009246]" : "text-destructive"}
+            />
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+              <Totale label="Imponibile" value={`€ ${totali.imponibile.toFixed(2)}`} />
+              <Totale label={`IVA ${Number(prev.iva_perc ?? 22)}%`} value={`€ ${totali.iva.toFixed(2)}`} />
+              <Totale label="Totale" value={`€ ${totali.totale.toFixed(2)}`} strong />
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -301,11 +321,11 @@ function PreventivoEditorPage() {
   );
 }
 
-function Totale({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+function Totale({ label, value, strong, className }: { label: string; value: string; strong?: boolean; className?: string }) {
   return (
-    <div className={strong ? "rounded bg-primary/10 p-3" : "p-3"}>
+    <div className={cn(strong ? "rounded bg-primary/10 p-3" : "p-3", className)}>
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className={`font-mono ${strong ? "text-2xl font-bold" : "text-lg"}`}>{value}</div>
+      <div className={cn("font-mono", strong ? "text-2xl font-bold" : "text-lg")}>{value}</div>
     </div>
   );
 }
