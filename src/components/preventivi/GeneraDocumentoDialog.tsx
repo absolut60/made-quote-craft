@@ -1,17 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { FileText, FileBarChart, Package, Truck, Download, FileSpreadsheet } from "lucide-react";
 import type { PreventivoConDettagli } from "@/lib/preventivi-api";
 import {
   exportPreventivoPdf, exportPropostaRapidaPdf, exportListaMaterialiPdf, exportListaFornitorePdf,
+  COLONNE_RIGHE_DEFAULT, type ColonneRighePdf,
 } from "@/lib/pdf-export";
 import { exportListaMaterialiXlsx, exportListaFornitoreXlsx } from "@/lib/excel-export";
 import { AnteprimaPdfDialog } from "./AnteprimaPdfDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 type Modalita = "PREVENTIVO" | "PROPOSTA_RAPIDA" | "LISTA_MATERIALI" | "LISTA_FORNITORE";
 
@@ -38,19 +42,57 @@ const MODI: { id: Modalita; label: string; desc: string; icon: typeof FileText; 
   },
 ];
 
+const COLONNE_LABEL: { key: keyof ColonneRighePdf; label: string }[] = [
+  { key: "um", label: "U.M." },
+  { key: "quantita", label: "Quantità" },
+  { key: "prezzo_unit", label: "Prezzo unit." },
+  { key: "sconto", label: "Sconto %" },
+  { key: "prezzo_scontato", label: "Prezzo scontato" },
+  { key: "importo", label: "Importo" },
+];
+
 export function GeneraDocumentoDialog({
   open, onOpenChange, prev,
 }: { open: boolean; onOpenChange: (v: boolean) => void; prev: PreventivoConDettagli }) {
   const [sel, setSel] = useState<Modalita>("PREVENTIVO");
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<{ blob: Blob; fileName: string } | null>(null);
+  const [colonne, setColonne] = useState<ColonneRighePdf>(COLONNE_RIGHE_DEFAULT);
+
+  // Carica preferenze utente all'apertura
+  useEffect(() => {
+    if (!open) return;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("preferenze_stampa")
+        .select("colonne_righe")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data?.colonne_righe) {
+        setColonne({ ...COLONNE_RIGHE_DEFAULT, ...(data.colonne_righe as Partial<ColonneRighePdf>) });
+      }
+    })();
+  }, [open]);
+
+  async function salvaPreferenze() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase
+      .from("preferenze_stampa")
+      .upsert({ user_id: user.id, colonne_righe: colonne }, { onConflict: "user_id" });
+  }
 
   async function run(formato: "pdf" | "xlsx") {
     setBusy(true);
     try {
       if (formato === "pdf") {
         let result: { blob: Blob; fileName: string };
-        if (sel === "PREVENTIVO") result = await exportPreventivoPdf(prev);
+        if (sel === "PREVENTIVO") {
+          result = await exportPreventivoPdf(prev, { colonne });
+          await salvaPreferenze();
+        }
         else if (sel === "PROPOSTA_RAPIDA") result = await exportPropostaRapidaPdf(prev);
         else if (sel === "LISTA_MATERIALI") result = await exportListaMaterialiPdf(prev);
         else result = await exportListaFornitorePdf(prev);
@@ -103,6 +145,33 @@ export function GeneraDocumentoDialog({
               );
             })}
           </div>
+
+          {sel === "PREVENTIVO" && (
+            <div className="rounded-md border p-3">
+              <div className="mb-2 text-sm font-semibold">Colonne righe da includere</div>
+              <p className="mb-3 text-xs text-muted-foreground">
+                Cod. Gamma, Descrizione e Subtotale del blocco sono sempre stampati.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {COLONNE_LABEL.map(({ key, label }) => (
+                  <Label
+                    key={key}
+                    htmlFor={`col-${key}`}
+                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
+                  >
+                    <Checkbox
+                      id={`col-${key}`}
+                      checked={colonne[key]}
+                      onCheckedChange={(v) =>
+                        setColonne((c) => ({ ...c, [key]: v === true }))
+                      }
+                    />
+                    {label}
+                  </Label>
+                ))}
+              </div>
+            </div>
+          )}
 
           <DialogFooter className="flex flex-wrap gap-2 sm:justify-end">
             <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>Annulla</Button>
