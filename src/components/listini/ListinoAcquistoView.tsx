@@ -256,7 +256,14 @@ export function ListinoAcquistoView() {
                 </tr>
               );
             })}
-            {!isLoading && !articoli.length && (
+            {error && (
+              <tr>
+                <td colSpan={13} className="px-3 py-6 text-center text-red-600 font-mono text-xs">
+                  Errore caricamento: {error instanceof Error ? error.message : String(error)}
+                </td>
+              </tr>
+            )}
+            {!isLoading && !error && !articoli.length && (
               <tr>
                 <td colSpan={13} className="px-3 py-12 text-center text-muted-foreground">
                   Nessun articolo
