@@ -156,6 +156,19 @@ function PreventivoEditorPage() {
     ? Number(prev.blocchi[prev.blocchi.length - 1].ordine ?? 0)
     : 0;
 
+  const fmt = (n: number) =>
+    n.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const cliente = prev.cliente as (typeof prev.cliente & { comune?: { nome: string } | null }) | null;
+  const cantiere = prev.cantiere as (typeof prev.cantiere & { comune?: { nome: string } | null }) | null;
+  const indirizzoCliente = [
+    cliente?.indirizzo,
+    [cliente?.cap, cliente?.comune?.nome].filter(Boolean).join(" "),
+    cliente?.prov ? `(${cliente.prov})` : null,
+  ].filter(Boolean).join(" · ");
+  const cantiereLine = cantiere
+    ? [cantiere.nome, cantiere.indirizzo, cantiere.comune?.nome].filter(Boolean).join(" · ")
+    : null;
+
   return (
     <AppShell>
       <div className="flex flex-col gap-4 p-3 md:p-4 lg:p-6">
@@ -171,7 +184,6 @@ function PreventivoEditorPage() {
             </Badge>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <AllegatiButton preventivoId={id} />
             <Button size="sm" onClick={() => setOutputOpen(true)}>
               <FileDown className="mr-1 h-4 w-4" /> Genera documento
             </Button>
@@ -203,164 +215,228 @@ function PreventivoEditorPage() {
           </div>
         </div>
 
-        {/* Intestazione preventivo */}
-        <Card>
-          <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-3">
-            <div className="grid gap-1.5">
-              <Label className="text-xs">Numero</Label>
-              <Input defaultValue={prev.numero ?? ""}
-                onBlur={(e) => {
-                  if ((e.target.value || null) !== prev.numero)
-                    save.mutate({ numero: e.target.value || null });
-                }} />
-            </div>
-            <div className="grid gap-1.5">
-              <Label className="text-xs">Data</Label>
-              <Input type="date" defaultValue={prev.data}
-                onBlur={(e) => { if (e.target.value && e.target.value !== prev.data) save.mutate({ data: e.target.value }); }} />
-            </div>
-            <div className="grid gap-1.5">
-              <Label className="text-xs">Validità</Label>
-              <Input type="date" defaultValue={prev.validita ?? ""}
-                onBlur={(e) => { if ((e.target.value || null) !== prev.validita) save.mutate({ validita: e.target.value || null }); }} />
-            </div>
-            <div className="grid gap-1.5 md:col-span-3 md:grid-cols-2">
-              <div className="grid gap-1.5">
-                <Label className="text-xs">Cliente</Label>
-                <ClientePicker
-                  value={prev.cliente_id ?? null}
-                  onChange={onChangeCliente}
-                />
-              </div>
-              <div className="grid gap-1.5">
-                <Label className="text-xs">Cantiere</Label>
-                <CantierePicker
-                  cliente_id={prev.cliente_id ?? null}
-                  value={prev.cantiere_id ?? null}
-                  onChange={(id) => save.mutate({ cantiere_id: id })}
-                />
-              </div>
-              <div className="grid gap-1.5">
-                <Label className="text-xs">Agente</Label>
-                <Select
-                  value={prev.agente_id ?? ""}
-                  onValueChange={(v) => save.mutate({ agente_id: v || null })}
+        <Tabs defaultValue="preventivo" className="w-full">
+          <TabsList>
+            <TabsTrigger value="preventivo">Preventivo</TabsTrigger>
+            <TabsTrigger value="allegati">
+              Allegati
+              <AllegatiCountBadge preventivoId={id} />
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="preventivo" className="flex flex-col gap-5 pt-3">
+            {/* ===== TESTATA ===== */}
+            <section className="flex flex-col gap-3">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Testata</div>
+
+              {/* Riquadro cliente in evidenza */}
+              <Card className="overflow-hidden border-[#0d1f3c]/15">
+                <CardContent
+                  className="p-4"
+                  style={{ background: "linear-gradient(135deg, #f4f7fb 0%, #e8eef7 100%)" }}
                 >
-                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>
-                    {agenti.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {cliente ? (
+                    <div className="flex flex-col gap-1">
+                      {cliente.id_cliente && (
+                        <div className="font-mono text-xs text-[#2b5ea7]">Cliente n. {cliente.id_cliente}</div>
+                      )}
+                      <div className="text-lg font-bold text-[#0d1f3c]">{cliente.ragione_sociale}</div>
+                      {cliente.piva && (
+                        <div className="text-sm text-[#0d1f3c]/80">P.IVA {cliente.piva}</div>
+                      )}
+                      {indirizzoCliente && (
+                        <div className="text-sm text-[#0d1f3c]/80">{indirizzoCliente}</div>
+                      )}
+                      {cantiereLine && (
+                        <div className="mt-1 text-sm text-[#0d1f3c]">📍 Cantiere: {cantiereLine}</div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">Nessun cliente selezionato</div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Cliente / Cantiere pickers */}
+              <Card>
+                <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">Cliente</Label>
+                    <ClientePicker value={prev.cliente_id ?? null} onChange={onChangeCliente} />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">Cantiere</Label>
+                    <CantierePicker
+                      cliente_id={prev.cliente_id ?? null}
+                      value={prev.cantiere_id ?? null}
+                      onChange={(id) => save.mutate({ cantiere_id: id })}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Campi modificabili in griglia 2 colonne */}
+              <Card>
+                <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">Numero</Label>
+                    <Input defaultValue={prev.numero ?? ""}
+                      onBlur={(e) => {
+                        if ((e.target.value || null) !== prev.numero)
+                          save.mutate({ numero: e.target.value || null });
+                      }} />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">Agente</Label>
+                    <Select
+                      value={prev.agente_id ?? ""}
+                      onValueChange={(v) => save.mutate({ agente_id: v || null })}
+                    >
+                      <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                      <SelectContent>
+                        {agenti.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">Filiale</Label>
+                    <Input
+                      defaultValue={prev.filiale ?? ""}
+                      key={`fil-${prev.filiale ?? ""}`}
+                      onBlur={(e) => {
+                        if ((e.target.value || null) !== prev.filiale)
+                          save.mutate({ filiale: e.target.value || null });
+                      }}
+                    />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">Data</Label>
+                    <Input type="date" defaultValue={prev.data}
+                      onBlur={(e) => { if (e.target.value && e.target.value !== prev.data) save.mutate({ data: e.target.value }); }} />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">Validità</Label>
+                    <Input type="date" defaultValue={prev.validita ?? ""}
+                      onBlur={(e) => { if ((e.target.value || null) !== prev.validita) save.mutate({ validita: e.target.value || null }); }} />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">Tipo documento</Label>
+                    <Select value={prev.tipo_doc} onValueChange={(v) => save.mutate({ tipo_doc: v as TipoDoc })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {TIPI_DOC.map((t) => (
+                          <SelectItem key={t} value={t}>{TIPI_DOC_LABEL[t]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">Fascia listino</Label>
+                    <Select value={prev.fascia_listino ?? "A"} onValueChange={(v) => save.mutate({ fascia_listino: v as FasciaListino })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {FASCE.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">Stato</Label>
+                    <Select value={prev.stato} onValueChange={(v) => save.mutate({ stato: v as StatoPreventivo })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {STATI.map((s) => <SelectItem key={s} value={s}>{STATI_LABEL[s]}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">IVA %</Label>
+                    <Input type="number" step="0.01" defaultValue={prev.iva_perc ?? 22}
+                      onBlur={(e) => {
+                        const v = Number(e.target.value);
+                        if (Number.isFinite(v) && v !== Number(prev.iva_perc ?? 22)) save.mutate({ iva_perc: v });
+                      }} />
+                  </div>
+                  <div className="grid gap-1.5 md:col-span-2">
+                    <Label className="text-xs">Note</Label>
+                    <Textarea rows={2} defaultValue={prev.note ?? ""}
+                      onBlur={(e) => { if ((e.target.value || null) !== prev.note) save.mutate({ note: e.target.value || null }); }} />
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* ===== CORPO ===== */}
+            <section className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Corpo · Blocchi ({prev.blocchi.length})
+                </div>
+                <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
+                  <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
+                </Button>
               </div>
-              <div className="grid gap-1.5">
-                <Label className="text-xs">Filiale</Label>
-                <Input
-                  defaultValue={prev.filiale ?? ""}
-                  key={`fil-${prev.filiale ?? ""}`}
-                  onBlur={(e) => {
-                    if ((e.target.value || null) !== prev.filiale)
-                      save.mutate({ filiale: e.target.value || null });
-                  }}
-                />
-              </div>
-            </div>
 
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEndBlocchi}>
+                <SortableContext items={prev.blocchi.map((b) => b.id)} strategy={verticalListSortingStrategy}>
+                  <div className="flex flex-col gap-4">
+                    {prev.blocchi.length === 0 ? (
+                      <Card>
+                        <CardContent className="flex flex-col items-center gap-2 p-12 text-center">
+                          <p className="text-sm text-muted-foreground">Nessun blocco. Aggiungine uno per iniziare.</p>
+                          <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
+                            <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      prev.blocchi.map((b, idx) => (
+                        <BloccoCard key={b.id} blocco={b} index={idx} preventivoId={id} fascia={(prev.fascia_listino ?? "A") as FasciaListino} />
+                      ))
+                    )}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </section>
 
-            <div className="grid gap-1.5">
-              <Label className="text-xs">Tipo documento</Label>
-              <Select value={prev.tipo_doc} onValueChange={(v) => save.mutate({ tipo_doc: v as TipoDoc })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {TIPI_DOC.map((t) => (
-                    <SelectItem key={t} value={t}>{TIPI_DOC_LABEL[t]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-1.5">
-              <Label className="text-xs">Fascia listino</Label>
-              <Select value={prev.fascia_listino ?? "A"} onValueChange={(v) => save.mutate({ fascia_listino: v as FasciaListino })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {FASCE.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-1.5">
-              <Label className="text-xs">Stato</Label>
-              <Select value={prev.stato} onValueChange={(v) => save.mutate({ stato: v as StatoPreventivo })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {STATI.map((s) => <SelectItem key={s} value={s}>{STATI_LABEL[s]}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-1.5">
-              <Label className="text-xs">IVA %</Label>
-              <Input type="number" step="0.01" defaultValue={prev.iva_perc ?? 22}
-                onBlur={(e) => {
-                  const v = Number(e.target.value);
-                  if (Number.isFinite(v) && v !== Number(prev.iva_perc ?? 22)) save.mutate({ iva_perc: v });
-                }} />
-            </div>
-            <div className="grid gap-1.5 md:col-span-3">
-              <Label className="text-xs">Note</Label>
-              <Textarea rows={2} defaultValue={prev.note ?? ""}
-                onBlur={(e) => { if ((e.target.value || null) !== prev.note) save.mutate({ note: e.target.value || null }); }} />
-            </div>
-          </CardContent>
-        </Card>
+            {/* ===== PIEDE ===== */}
+            <section className="flex flex-col gap-3">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Piede</div>
+              <Card>
+                <CardContent className="space-y-2 p-4">
+                  <div className="flex items-center justify-between border-b py-2">
+                    <span className="text-sm font-medium text-muted-foreground">Margine</span>
+                    <span className={cn("font-mono text-base font-semibold", margineTotale.perc >= 0 ? "text-[#009246]" : "text-destructive")}>
+                      {margineTotale.perc.toLocaleString("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% · € {fmt(margineTotale.euro)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-1">
+                    <span className="text-sm text-muted-foreground">Imponibile</span>
+                    <span className="font-mono text-base">€ {fmt(totali.imponibile)}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1">
+                    <span className="text-sm text-muted-foreground">IVA {Number(prev.iva_perc ?? 22)}%</span>
+                    <span className="font-mono text-base">€ {fmt(totali.iva)}</span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between rounded-md bg-[#0d1f3c] px-4 py-3 text-white">
+                    <span className="text-sm font-semibold uppercase tracking-wider">Totale</span>
+                    <span className="font-mono text-2xl font-bold">€ {fmt(totali.totale)}</span>
+                  </div>
+                  <p className="pt-2 text-[11px] italic text-muted-foreground">
+                    Il presente preventivo si intende valido per il periodo di validità indicato. I prezzi sono espressi in Euro, IVA esclusa salvo diversa indicazione.
+                  </p>
+                </CardContent>
+              </Card>
+            </section>
+          </TabsContent>
 
-        {/* Blocchi */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Blocchi ({prev.blocchi.length})
-          </h2>
-          <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
-            <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
-          </Button>
-        </div>
-
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEndBlocchi}>
-          <SortableContext items={prev.blocchi.map((b) => b.id)} strategy={verticalListSortingStrategy}>
-            <div className="flex flex-col gap-4">
-              {prev.blocchi.length === 0 ? (
-                <Card>
-                  <CardContent className="flex flex-col items-center gap-2 p-12 text-center">
-                    <p className="text-sm text-muted-foreground">Nessun blocco. Aggiungine uno per iniziare.</p>
-                    <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
-                      <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                prev.blocchi.map((b, idx) => (
-                  <BloccoCard key={b.id} blocco={b} index={idx} preventivoId={id} fascia={(prev.fascia_listino ?? "A") as FasciaListino} />
-                ))
-              )}
-            </div>
-          </SortableContext>
-        </DndContext>
-
-
-        {/* Totali */}
-        <Card>
-          <CardContent className="space-y-2 p-4">
-            <Totale
-              label="Margine"
-              value={`${margineTotale.perc.toFixed(1)}% · € ${margineTotale.euro.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-              className={margineTotale.perc >= 0 ? "text-[#009246]" : "text-destructive"}
-            />
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-              <Totale label="Imponibile" value={`€ ${totali.imponibile.toFixed(2)}`} />
-              <Totale label={`IVA ${Number(prev.iva_perc ?? 22)}%`} value={`€ ${totali.iva.toFixed(2)}`} />
-              <Totale label="Totale" value={`€ ${totali.totale.toFixed(2)}`} strong />
-            </div>
-          </CardContent>
-        </Card>
+          <TabsContent value="allegati" className="pt-3">
+            <AllegatiSection preventivoId={id} />
+          </TabsContent>
+        </Tabs>
       </div>
+
 
       <AggiungiBloccoDialog
         open={addBloccoOpen}
