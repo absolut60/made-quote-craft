@@ -40,6 +40,8 @@ function ArticoliListPage() {
   const [fornitoreId, setFornitoreId] = useState<string | null>(null);
   const [stato, setStato] = useState<StatoArticolo | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [mostraFiltri, setMostraFiltri] = useState(false);
+  const nFiltriAttivi = [categoria, tipologia, fornitoreId, stato].filter(Boolean).length;
 
   // Debounce search 300ms
   useEffect(() => {
