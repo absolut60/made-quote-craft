@@ -493,10 +493,6 @@ function PreventivoEditorPage() {
                       {margineTotale.perc.toLocaleString("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% · € {fmt(margineTotale.euro)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between py-1">
-                    <span className="text-sm text-muted-foreground">Imponibile</span>
-                    <span className="font-mono text-base">€ {fmt(totali.imponibile_lordo)}</span>
-                  </div>
                   <div className="flex items-center justify-between gap-3 py-1">
                     <Label className="text-sm text-muted-foreground" htmlFor="sconto-piede">Sconto a piede %</Label>
                     <Input
@@ -528,17 +524,22 @@ function PreventivoEditorPage() {
                       </span>
                     </div>
                   )}
+                  <div className="mt-2 flex items-center justify-between rounded-md bg-[#0d1f3c] px-4 py-3 text-white">
+                    <span className="text-sm font-semibold uppercase tracking-wider">Totale</span>
+                    <span className="font-mono text-2xl font-bold">€ {fmt(totali.imponibile_netto)}</span>
+                  </div>
                   <div className="flex items-center justify-between py-1">
                     <span className="text-sm text-muted-foreground">IVA {Number(prev.iva_perc ?? 22)}%</span>
                     <span className="font-mono text-base">€ {fmt(totali.iva)}</span>
                   </div>
-                  <div className="mt-2 flex items-center justify-between rounded-md bg-[#0d1f3c] px-4 py-3 text-white">
-                    <span className="text-sm font-semibold uppercase tracking-wider">Totale</span>
-                    <span className="font-mono text-2xl font-bold">€ {fmt(totali.totale)}</span>
+                  <div className="flex items-center justify-between py-1">
+                    <span className="text-sm text-muted-foreground">Totale con IVA</span>
+                    <span className="font-mono text-base">€ {fmt(totali.totale)}</span>
                   </div>
                   <p className="pt-2 text-[11px] italic text-muted-foreground">
                     Il presente preventivo si intende valido per il periodo di validità indicato. I prezzi sono espressi in Euro, IVA esclusa salvo diversa indicazione.
                   </p>
+
                 </CardContent>
               </Card>
             </section>
