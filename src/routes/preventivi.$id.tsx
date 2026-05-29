@@ -409,9 +409,11 @@ function PreventivoEditorPage() {
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Corpo · Blocchi ({prev.blocchi.length})
                 </div>
-                <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
-                  <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
-                </Button>
+                {editMode && (
+                  <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
+                    <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
+                  </Button>
+                )}
               </div>
 
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEndBlocchi}>
