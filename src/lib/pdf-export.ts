@@ -58,9 +58,9 @@ function drawHeader(doc: jsPDF, titolo: string, prev: PreventivoConDettagli) {
 
   // ZONA BIANCA: logo sx + titolo dx
   doc.setFillColor(255, 255, 255);
-  doc.rect(0, 0, w, 24, "F");
-  // Logo 85mm x 18.1mm (rapporto 4.70 mantenuto: 85 / 4.70 ≈ 18.085)
-  try { doc.addImage(LOGO_MADE_B64, "JPEG", 12, 4, 85, 18.1); } catch { /* fallback */ }
+  doc.rect(0, 0, w, 26, "F");
+  // Logo 95mm x 20.2mm (rapporto 4.70 mantenuto: 95 / 4.70 ≈ 20.21)
+  try { doc.addImage(LOGO_MADE_B64, "JPEG", 12, 4, 95, 20.2); } catch { /* fallback */ }
   doc.setFont("helvetica", "bold"); doc.setFontSize(18);
   doc.setTextColor(...NAVY);
   doc.text(titolo.toUpperCase(), w - 14, 13, { align: "right" });
@@ -68,14 +68,8 @@ function drawHeader(doc: jsPDF, titolo: string, prev: PreventivoConDettagli) {
   doc.setTextColor(...GRIGIO);
   doc.text("Distribuzione sistemi a secco  |  cartongesso, profili, isolanti, controsoffitti", w - 14, 18.5, { align: "right" });
 
-  // TRICOLORE — 1.2mm
-  const segW = (w - 28) / 3;
-  doc.setFillColor(...VERDE);      doc.rect(14,            24, segW, 1.2, "F");
-  doc.setFillColor(255, 255, 255); doc.rect(14 + segW,     24, segW, 1.2, "F");
-  doc.setFillColor(...ROSSO);      doc.rect(14 + segW * 2, 24, segW, 1.2, "F");
-
-  // BANDA GRIGIO CHIARO — 34mm, più spaziosa
-  const by = 25.2;
+  // BANDA GRIGIO CHIARO — 34mm, attaccata alla zona bianca
+  const by = 26;
   const bh = 34;
   doc.setFillColor(...BANDA_BG); doc.rect(0, by, w, bh, "F");
 
