@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors,
@@ -24,7 +24,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  ArrowLeft, FileDown, GripVertical, Plus, Save, Trash2,
+  ArrowLeft, Check, FileDown, GripVertical, Pencil, Plus, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -57,6 +57,8 @@ function PreventivoEditorPage() {
   const navigate = useNavigate();
   const [addBloccoOpen, setAddBloccoOpen] = useState(false);
   const [outputOpen, setOutputOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editModeInitialized, setEditModeInitialized] = useState(false);
 
   const { data: prev, isLoading } = useQuery({
     queryKey: ["preventivo", id],
@@ -120,7 +122,7 @@ function PreventivoEditorPage() {
     return { costo, vendita, euro: round2(euro), perc: round2(perc) };
   }, [prev]);
 
-  // Persist totali in DB (fire and forget) when cambiano significativamente
+  // Persist totali in DB automaticamente quando cambiano
   const saveTotali = useMutation({
     mutationFn: (t: { imponibile: number; iva: number; totale: number }) =>
       updatePreventivo(id, {
@@ -129,6 +131,31 @@ function PreventivoEditorPage() {
         totale: t.totale,
       }),
   });
+
+  useEffect(() => {
+    if (!prev) return;
+    const stored = {
+      imp: Number(prev.totale_imponibile ?? 0),
+      iva: Number(prev.iva_importo ?? 0),
+      tot: Number(prev.totale ?? 0),
+    };
+    if (
+      Math.abs(stored.imp - totali.imponibile) > 0.005 ||
+      Math.abs(stored.iva - totali.iva) > 0.005 ||
+      Math.abs(stored.tot - totali.totale) > 0.005
+    ) {
+      saveTotali.mutate(totali);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totali.imponibile, totali.iva, totali.totale, prev?.totale_imponibile, prev?.iva_importo, prev?.totale]);
+
+  // Inizializza editMode: bozza vuota → modifica, altrimenti sola lettura
+  useEffect(() => {
+    if (!prev || editModeInitialized) return;
+    setEditMode(prev.stato === "bozza" && prev.blocchi.length === 0);
+    setEditModeInitialized(true);
+  }, [prev, editModeInitialized]);
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -184,21 +211,24 @@ function PreventivoEditorPage() {
             </Badge>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" onClick={() => setOutputOpen(true)}>
-              <FileDown className="mr-1 h-4 w-4" /> Genera documento
-            </Button>
             <Button
               size="sm"
-              variant="outline"
-              onClick={() => saveTotali.mutate(totali)}
-              disabled={saveTotali.isPending}
+              variant={editMode ? "default" : "outline"}
+              onClick={() => setEditMode((v) => !v)}
             >
-              <Save className="mr-1 h-4 w-4" /> Salva totali
+              {editMode ? (
+                <><Check className="mr-1 h-4 w-4" /> Fine modifica</>
+              ) : (
+                <><Pencil className="mr-1 h-4 w-4" /> Modifica</>
+              )}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setOutputOpen(true)}>
+              <FileDown className="mr-1 h-4 w-4" /> Genera documento
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button size="sm" variant="ghost" className="text-destructive">
-                  <Trash2 className="mr-1 h-4 w-4" /> Elimina
+                  <Trash2 className="mr-1 h-4 w-4" /> Elimina preventivo
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -224,7 +254,13 @@ function PreventivoEditorPage() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="preventivo" className="flex flex-col gap-5 pt-3">
+          <TabsContent value="preventivo" className={cn("flex flex-col gap-5 pt-3", !editMode && "readonly-mode")}>
+            {!editMode && (
+              <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                Sola lettura. Premi <strong>Modifica</strong> in alto per sbloccare la compilazione.
+              </div>
+            )}
+            <fieldset disabled={!editMode} className="contents">
             {/* ===== TESTATA ===== */}
             <section className="flex flex-col gap-3">
               <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Testata</div>
@@ -373,9 +409,11 @@ function PreventivoEditorPage() {
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Corpo · Blocchi ({prev.blocchi.length})
                 </div>
-                <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
-                  <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
-                </Button>
+                {editMode && (
+                  <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
+                    <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
+                  </Button>
+                )}
               </div>
 
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEndBlocchi}>
@@ -384,21 +422,24 @@ function PreventivoEditorPage() {
                     {prev.blocchi.length === 0 ? (
                       <Card>
                         <CardContent className="flex flex-col items-center gap-2 p-12 text-center">
-                          <p className="text-sm text-muted-foreground">Nessun blocco. Aggiungine uno per iniziare.</p>
-                          <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
-                            <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
-                          </Button>
+                          <p className="text-sm text-muted-foreground">Nessun blocco. {editMode ? "Aggiungine uno per iniziare." : "Premi Modifica per aggiungerne."}</p>
+                          {editMode && (
+                            <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
+                              <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
+                            </Button>
+                          )}
                         </CardContent>
                       </Card>
                     ) : (
                       prev.blocchi.map((b, idx) => (
-                        <BloccoCard key={b.id} blocco={b} index={idx} preventivoId={id} fascia={(prev.fascia_listino ?? "A") as FasciaListino} />
+                        <BloccoCard key={b.id} blocco={b} index={idx} preventivoId={id} fascia={(prev.fascia_listino ?? "A") as FasciaListino} readOnly={!editMode} />
                       ))
                     )}
                   </div>
                 </SortableContext>
               </DndContext>
-            </section>
+              </section>
+            </fieldset>
 
             {/* ===== PIEDE ===== */}
             <section className="flex flex-col gap-3">
@@ -461,8 +502,8 @@ function AllegatiCountBadge({ preventivoId }: { preventivoId: string }) {
 }
 
 function BloccoCard({
-  blocco, index, preventivoId, fascia,
-}: { blocco: BloccoConRighe; index: number; preventivoId: string; fascia: FasciaListino }) {
+  blocco, index, preventivoId, fascia, readOnly = false,
+}: { blocco: BloccoConRighe; index: number; preventivoId: string; fascia: FasciaListino; readOnly?: boolean }) {
   const qc = useQueryClient();
   const sortable = useSortable({ id: blocco.id });
   const style = {
@@ -559,23 +600,25 @@ function BloccoCard({
                 € {totaleBlocco.toFixed(2)}
               </div>
             </div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button size="icon" variant="ghost" className="mt-5 h-8 w-8 text-destructive">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Eliminare il blocco?</AlertDialogTitle>
-                  <AlertDialogDescription>Verranno eliminate anche tutte le righe del blocco.</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Annulla</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => del.mutate()}>Elimina</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {!readOnly && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="icon" variant="ghost" className="mt-5 h-8 w-8 text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Eliminare il blocco?</AlertDialogTitle>
+                    <AlertDialogDescription>Verranno eliminate anche tutte le righe del blocco.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annulla</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => del.mutate()}>Elimina</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
 
           {blocco.note_tecniche && (
