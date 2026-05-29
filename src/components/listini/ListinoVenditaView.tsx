@@ -297,6 +297,15 @@ export function ListinoVenditaView() {
                   <td className="px-2 py-1 text-right font-mono text-muted-foreground">
                     {v?.margine != null ? `${Number(v.margine).toFixed(1)}%` : "—"}
                   </td>
+                  <td className="px-2 py-1 text-right">
+                    <Link
+                      to="/articoli/$id"
+                      params={{ id: a.id }}
+                      className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-navy hover:bg-muted"
+                    >
+                      <Eye className="h-3 w-3" /> Apri
+                    </Link>
+                  </td>
                 </tr>
               );
             })}
