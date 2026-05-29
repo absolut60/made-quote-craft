@@ -98,7 +98,7 @@ function PreventivoEditorPage() {
   });
 
   const totali = useMemo(() => {
-    if (!prev) return { imponibile: 0, iva: 0, totale: 0 };
+    if (!prev) return { imponibile: 0, imponibile_lordo: 0, sconto_perc: 0, importo_sconto: 0, imponibile_netto: 0, iva: 0, totale: 0 };
     return calcolaTotaliPreventivo(
       prev.blocchi.map((b) => ({
         righe: b.righe,
@@ -107,20 +107,24 @@ function PreventivoEditorPage() {
         importo: b.importo,
       })),
       Number(prev.iva_perc ?? 22),
+      Number(prev.sconto_piede_perc ?? 0),
     );
   }, [prev]);
 
   const margineTotale = useMemo(() => {
-    let costo = 0, vendita = 0;
+    let costo = 0, venditaLorda = 0;
     for (const b of prev?.blocchi ?? []) {
       const c = calcolaBlocco(b.righe);
       costo += c.costo;
-      vendita += c.totale;
+      venditaLorda += c.totale;
     }
+    const fattore = 1 - Number(prev?.sconto_piede_perc ?? 0) / 100;
+    const vendita = venditaLorda * fattore;
     const euro = vendita - costo;
     const perc = vendita > 0 ? (euro / vendita) * 100 : 0;
     return { costo, vendita, euro: round2(euro), perc: round2(perc) };
   }, [prev]);
+
 
   // Persist totali in DB automaticamente quando cambiano
   const saveTotali = useMutation({
@@ -454,8 +458,42 @@ function PreventivoEditorPage() {
                   </div>
                   <div className="flex items-center justify-between py-1">
                     <span className="text-sm text-muted-foreground">Imponibile</span>
-                    <span className="font-mono text-base">€ {fmt(totali.imponibile)}</span>
+                    <span className="font-mono text-base">€ {fmt(totali.imponibile_lordo)}</span>
                   </div>
+                  <div className="flex items-center justify-between gap-3 py-1">
+                    <Label className="text-sm text-muted-foreground" htmlFor="sconto-piede">Sconto a piede %</Label>
+                    <Input
+                      id="sconto-piede"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      disabled={!editMode}
+                      defaultValue={Number(prev.sconto_piede_perc ?? 0)}
+                      key={`scp-${prev.sconto_piede_perc ?? 0}`}
+                      className="h-8 w-28 text-right font-mono"
+                      onBlur={(e) => {
+                        const v = Number(e.target.value);
+                        if (Number.isFinite(v) && v !== Number(prev.sconto_piede_perc ?? 0)) {
+                          save.mutate({ sconto_piede_perc: v });
+                        }
+                      }}
+                    />
+                  </div>
+                  {totali.sconto_perc > 0 && (
+                    <>
+                      <div className="flex items-center justify-between py-1 text-destructive">
+                        <span className="text-sm">
+                          Sconto −{totali.sconto_perc.toLocaleString("it-IT", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}%
+                        </span>
+                        <span className="font-mono text-base">− € {fmt(totali.importo_sconto)}</span>
+                      </div>
+                      <div className="flex items-center justify-between border-t py-1">
+                        <span className="text-sm font-medium text-muted-foreground">Imponibile netto</span>
+                        <span className="font-mono text-base font-semibold">€ {fmt(totali.imponibile_netto)}</span>
+                      </div>
+                    </>
+                  )}
                   <div className="flex items-center justify-between py-1">
                     <span className="text-sm text-muted-foreground">IVA {Number(prev.iva_perc ?? 22)}%</span>
                     <span className="font-mono text-base">€ {fmt(totali.iva)}</span>
@@ -470,6 +508,7 @@ function PreventivoEditorPage() {
                 </CardContent>
               </Card>
             </section>
+
           </TabsContent>
 
           <TabsContent value="allegati" className="pt-3">

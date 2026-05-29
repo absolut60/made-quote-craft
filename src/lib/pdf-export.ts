@@ -259,11 +259,13 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
   y += 5;
 
   const ivaPerc = Number(prev.iva_perc ?? 22);
+  const scontoPiede = Number((prev as unknown as { sconto_piede_perc?: number }).sconto_piede_perc ?? 0);
   const tot = calcolaTotaliPreventivo(
     prev.blocchi.map((bl) => ({
       righe: bl.righe, quantita_base: bl.quantita_base, prezzo_um: bl.prezzo_um, importo: bl.importo,
     })),
     ivaPerc,
+    scontoPiede,
   );
 
   const DISCLAIMER =
@@ -275,25 +277,40 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
   const discLines = doc.splitTextToSize(DISCLAIMER, 78);
   doc.text(discLines, 14, y + 1);
 
+  const hasSconto = tot.sconto_perc > 0;
+  const boxH = hasSconto ? 42 : 28;
   const tw = 80; const tx = w - 14 - tw; const ty = y;
   doc.setDrawColor(...GRIGIO_BD); doc.setLineWidth(0.3);
-  doc.rect(tx, ty, tw, 28, "D");
+  doc.rect(tx, ty, tw, boxH, "D");
 
   doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRIGIO);
-  doc.text("Totale imponibile", tx + 3, ty + 7);
-  doc.setTextColor(...NAVY); doc.text(fmtEur(tot.imponibile), tx + tw - 4, ty + 7, { align: "right" });
+  doc.text("Imponibile", tx + 3, ty + 7);
+  doc.setTextColor(...NAVY); doc.text(fmtEur(tot.imponibile_lordo), tx + tw - 4, ty + 7, { align: "right" });
+
+  let cy = ty + 14;
+  if (hasSconto) {
+    doc.setTextColor(200, 30, 30);
+    doc.text(`Sconto −${tot.sconto_perc.toLocaleString("it-IT", { maximumFractionDigits: 2 })}%`, tx + 3, cy);
+    doc.text(`− ${fmtEur(tot.importo_sconto)}`, tx + tw - 4, cy, { align: "right" });
+    cy += 7;
+    doc.setTextColor(...GRIGIO);
+    doc.text("Imponibile netto", tx + 3, cy);
+    doc.setTextColor(...NAVY); doc.text(fmtEur(tot.imponibile_netto), tx + tw - 4, cy, { align: "right" });
+    cy += 7;
+  }
 
   doc.setTextColor(...GRIGIO);
-  doc.text(`IVA ${ivaPerc}%`, tx + 3, ty + 14);
-  doc.setTextColor(...NAVY); doc.text(fmtEur(tot.iva), tx + tw - 4, ty + 14, { align: "right" });
+  doc.text(`IVA ${ivaPerc}%`, tx + 3, cy);
+  doc.setTextColor(...NAVY); doc.text(fmtEur(tot.iva), tx + tw - 4, cy, { align: "right" });
 
   doc.setDrawColor(...GRIGIO_BD); doc.setLineWidth(0.1);
-  doc.line(tx + 2, ty + 18.5, tx + tw - 2, ty + 18.5);
+  doc.line(tx + 2, cy + 4.5, tx + tw - 2, cy + 4.5);
 
-  doc.setFillColor(...NAVY); doc.rect(tx, ty + 19.5, tw, 8.5, "F");
+  doc.setFillColor(...NAVY); doc.rect(tx, cy + 5.5, tw, 8.5, "F");
   doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
-  doc.text("TOTALE", tx + 3, ty + 25.5);
-  doc.text(fmtEur(tot.totale), tx + tw - 4, ty + 25.5, { align: "right" });
+  doc.text("TOTALE", tx + 3, cy + 11.5);
+  doc.text(fmtEur(tot.totale), tx + tw - 4, cy + 11.5, { align: "right" });
+
 
   drawFooter(doc);
   const name = fileName(prev, "preventivo");
@@ -343,11 +360,13 @@ export async function exportPropostaRapidaPdf(prev: PreventivoConDettagli) {
   y += 5;
 
   const ivaPerc = Number(prev.iva_perc ?? 22);
+  const scontoPiede = Number((prev as unknown as { sconto_piede_perc?: number }).sconto_piede_perc ?? 0);
   const tot = calcolaTotaliPreventivo(
     prev.blocchi.map((bl) => ({
       righe: bl.righe, quantita_base: bl.quantita_base, prezzo_um: bl.prezzo_um, importo: bl.importo,
     })),
     ivaPerc,
+    scontoPiede,
   );
 
   const DISCLAIMER =
@@ -358,25 +377,40 @@ export async function exportPropostaRapidaPdf(prev: PreventivoConDettagli) {
   const discLines = doc.splitTextToSize(DISCLAIMER, 78);
   doc.text(discLines, 14, y + 1);
 
+  const hasSconto = tot.sconto_perc > 0;
+  const boxH = hasSconto ? 42 : 28;
   const tw = 80; const tx = w - 14 - tw; const ty = y;
   doc.setDrawColor(...GRIGIO_BD); doc.setLineWidth(0.3);
-  doc.rect(tx, ty, tw, 28, "D");
+  doc.rect(tx, ty, tw, boxH, "D");
 
   doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRIGIO);
-  doc.text("Totale imponibile", tx + 3, ty + 7);
-  doc.setTextColor(...NAVY); doc.text(fmtEur(tot.imponibile), tx + tw - 4, ty + 7, { align: "right" });
+  doc.text("Imponibile", tx + 3, ty + 7);
+  doc.setTextColor(...NAVY); doc.text(fmtEur(tot.imponibile_lordo), tx + tw - 4, ty + 7, { align: "right" });
+
+  let cy = ty + 14;
+  if (hasSconto) {
+    doc.setTextColor(200, 30, 30);
+    doc.text(`Sconto −${tot.sconto_perc.toLocaleString("it-IT", { maximumFractionDigits: 2 })}%`, tx + 3, cy);
+    doc.text(`− ${fmtEur(tot.importo_sconto)}`, tx + tw - 4, cy, { align: "right" });
+    cy += 7;
+    doc.setTextColor(...GRIGIO);
+    doc.text("Imponibile netto", tx + 3, cy);
+    doc.setTextColor(...NAVY); doc.text(fmtEur(tot.imponibile_netto), tx + tw - 4, cy, { align: "right" });
+    cy += 7;
+  }
 
   doc.setTextColor(...GRIGIO);
-  doc.text(`IVA ${ivaPerc}%`, tx + 3, ty + 14);
-  doc.setTextColor(...NAVY); doc.text(fmtEur(tot.iva), tx + tw - 4, ty + 14, { align: "right" });
+  doc.text(`IVA ${ivaPerc}%`, tx + 3, cy);
+  doc.setTextColor(...NAVY); doc.text(fmtEur(tot.iva), tx + tw - 4, cy, { align: "right" });
 
   doc.setDrawColor(...GRIGIO_BD); doc.setLineWidth(0.1);
-  doc.line(tx + 2, ty + 18.5, tx + tw - 2, ty + 18.5);
+  doc.line(tx + 2, cy + 4.5, tx + tw - 2, cy + 4.5);
 
-  doc.setFillColor(...NAVY); doc.rect(tx, ty + 19.5, tw, 8.5, "F");
+  doc.setFillColor(...NAVY); doc.rect(tx, cy + 5.5, tw, 8.5, "F");
   doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
-  doc.text("TOTALE", tx + 3, ty + 25.5);
-  doc.text(fmtEur(tot.totale), tx + tw - 4, ty + 25.5, { align: "right" });
+  doc.text("TOTALE", tx + 3, cy + 11.5);
+  doc.text(fmtEur(tot.totale), tx + tw - 4, cy + 11.5, { align: "right" });
+
 
   drawFooter(doc);
   const name = fileName(prev, "proposta-rapida");
