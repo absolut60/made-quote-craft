@@ -69,24 +69,24 @@ const ArticoliIndexRoute = ArticoliIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const PreventiviIdRoute = PreventiviIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => PreventiviRoute,
+  id: '/preventivi/$id',
+  path: '/preventivi/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const KitIdRoute = KitIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => KitRoute,
+  id: '/kit/$id',
+  path: '/kit/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ClientiIdRoute = ClientiIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ClientiRoute,
+  id: '/clienti/$id',
+  path: '/clienti/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ArticoliIdRoute = ArticoliIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ArticoliRoute,
+  id: '/articoli/$id',
+  path: '/articoli/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -189,6 +189,10 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   UtentiRoute: typeof UtentiRoute
+  ArticoliIdRoute: typeof ArticoliIdRoute
+  ClientiIdRoute: typeof ClientiIdRoute
+  KitIdRoute: typeof KitIdRoute
+  PreventiviIdRoute: typeof PreventiviIdRoute
   ArticoliIndexRoute: typeof ArticoliIndexRoute
   ClientiIndexRoute: typeof ClientiIndexRoute
   KitIndexRoute: typeof KitIndexRoute
@@ -262,31 +266,31 @@ declare module '@tanstack/react-router' {
     }
     '/preventivi/$id': {
       id: '/preventivi/$id'
-      path: '/$id'
+      path: '/preventivi/$id'
       fullPath: '/preventivi/$id'
       preLoaderRoute: typeof PreventiviIdRouteImport
-      parentRoute: typeof PreventiviRoute
+      parentRoute: typeof rootRouteImport
     }
     '/kit/$id': {
       id: '/kit/$id'
-      path: '/$id'
+      path: '/kit/$id'
       fullPath: '/kit/$id'
       preLoaderRoute: typeof KitIdRouteImport
-      parentRoute: typeof KitRoute
+      parentRoute: typeof rootRouteImport
     }
     '/clienti/$id': {
       id: '/clienti/$id'
-      path: '/$id'
+      path: '/clienti/$id'
       fullPath: '/clienti/$id'
       preLoaderRoute: typeof ClientiIdRouteImport
-      parentRoute: typeof ClientiRoute
+      parentRoute: typeof rootRouteImport
     }
     '/articoli/$id': {
       id: '/articoli/$id'
-      path: '/$id'
+      path: '/articoli/$id'
       fullPath: '/articoli/$id'
       preLoaderRoute: typeof ArticoliIdRouteImport
-      parentRoute: typeof ArticoliRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -297,6 +301,10 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   UtentiRoute: UtentiRoute,
+  ArticoliIdRoute: ArticoliIdRoute,
+  ClientiIdRoute: ClientiIdRoute,
+  KitIdRoute: KitIdRoute,
+  PreventiviIdRoute: PreventiviIdRoute,
   ArticoliIndexRoute: ArticoliIndexRoute,
   ClientiIndexRoute: ClientiIndexRoute,
   KitIndexRoute: KitIndexRoute,
