@@ -260,12 +260,13 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
 
   const ivaPerc = Number(prev.iva_perc ?? 22);
   const scontoPiede = Number((prev as unknown as { sconto_piede_perc?: number }).sconto_piede_perc ?? 0);
+  // Lo sconto è già applicato dentro le righe (sconto_perc di riga). Non riapplicarlo qui.
   const tot = calcolaTotaliPreventivo(
     prev.blocchi.map((bl) => ({
       righe: bl.righe, quantita_base: bl.quantita_base, prezzo_um: bl.prezzo_um, importo: bl.importo,
     })),
     ivaPerc,
-    scontoPiede,
+    0,
   );
 
   const DISCLAIMER =
