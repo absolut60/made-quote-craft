@@ -422,15 +422,17 @@ function PreventivoEditorPage() {
                     {prev.blocchi.length === 0 ? (
                       <Card>
                         <CardContent className="flex flex-col items-center gap-2 p-12 text-center">
-                          <p className="text-sm text-muted-foreground">Nessun blocco. Aggiungine uno per iniziare.</p>
-                          <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
-                            <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
-                          </Button>
+                          <p className="text-sm text-muted-foreground">Nessun blocco. {editMode ? "Aggiungine uno per iniziare." : "Premi Modifica per aggiungerne."}</p>
+                          {editMode && (
+                            <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
+                              <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
+                            </Button>
+                          )}
                         </CardContent>
                       </Card>
                     ) : (
                       prev.blocchi.map((b, idx) => (
-                        <BloccoCard key={b.id} blocco={b} index={idx} preventivoId={id} fascia={(prev.fascia_listino ?? "A") as FasciaListino} />
+                        <BloccoCard key={b.id} blocco={b} index={idx} preventivoId={id} fascia={(prev.fascia_listino ?? "A") as FasciaListino} readOnly={!editMode} />
                       ))
                     )}
                   </div>
