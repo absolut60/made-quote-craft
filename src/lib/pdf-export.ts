@@ -58,8 +58,9 @@ function drawHeader(doc: jsPDF, titolo: string, prev: PreventivoConDettagli) {
 
   // ZONA BIANCA: logo sx + titolo dx
   doc.setFillColor(255, 255, 255);
-  doc.rect(0, 0, w, 22, "F");
-  try { doc.addImage(LOGO_MADE_B64, "JPEG", 12, 5, 68, 14); } catch { /* fallback */ }
+  doc.rect(0, 0, w, 24, "F");
+  // Logo 85mm x 18.1mm (rapporto 4.70 mantenuto: 85 / 4.70 ≈ 18.085)
+  try { doc.addImage(LOGO_MADE_B64, "JPEG", 12, 4, 85, 18.1); } catch { /* fallback */ }
   doc.setFont("helvetica", "bold"); doc.setFontSize(18);
   doc.setTextColor(...NAVY);
   doc.text(titolo.toUpperCase(), w - 14, 13, { align: "right" });
@@ -69,12 +70,12 @@ function drawHeader(doc: jsPDF, titolo: string, prev: PreventivoConDettagli) {
 
   // TRICOLORE — 1.2mm
   const segW = (w - 28) / 3;
-  doc.setFillColor(...VERDE);      doc.rect(14,            22, segW, 1.2, "F");
-  doc.setFillColor(255, 255, 255); doc.rect(14 + segW,     22, segW, 1.2, "F");
-  doc.setFillColor(...ROSSO);      doc.rect(14 + segW * 2, 22, segW, 1.2, "F");
+  doc.setFillColor(...VERDE);      doc.rect(14,            24, segW, 1.2, "F");
+  doc.setFillColor(255, 255, 255); doc.rect(14 + segW,     24, segW, 1.2, "F");
+  doc.setFillColor(...ROSSO);      doc.rect(14 + segW * 2, 24, segW, 1.2, "F");
 
   // BANDA GRIGIO CHIARO — 34mm, più spaziosa
-  const by = 23.2;
+  const by = 25.2;
   const bh = 34;
   doc.setFillColor(...BANDA_BG); doc.rect(0, by, w, bh, "F");
 
@@ -155,11 +156,11 @@ function drawFooter(doc: jsPDF) {
     if (isLast) {
       // Claim testo (helvetica) — niente immagine per compatibilità Acrobat
       doc.setTextColor(...COBALT);
-      doc.setFont("helvetica", "bold"); doc.setFontSize(11);
-      doc.text("IL NUOVO MODO DI COSTRUIRE.", 14, h - FOOTER_H - 11);
-      doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
-      doc.text("Tecnologie leggere, risultati solidi", 14, h - FOOTER_H - 6);
-      doc.text("il sistema a secco che guarda al futuro.", 14, h - FOOTER_H - 2.5);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(16);
+      doc.text("IL NUOVO MODO DI COSTRUIRE.", 14, h - FOOTER_H - 15);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9.5);
+      doc.text("Tecnologie leggere, risultati solidi", 14, h - FOOTER_H - 8);
+      doc.text("il sistema a secco che guarda al futuro.", 14, h - FOOTER_H - 3.5);
       doc.setFont("helvetica", "normal");
     }
 
@@ -212,7 +213,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
 
   const blocchi = buildBlocchiOutput(prev);
   const USABLE = w - 28;
-  let y = 60;
+  let y = 62;
 
   for (const b of blocchi) {
     autoTable(doc, {
