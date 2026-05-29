@@ -264,7 +264,7 @@ function RigaRow({
     if (articoloId) window.open(`/articoli/${articoloId}`, "_blank", "noopener");
   };
   const longPressTimer = { current: null as ReturnType<typeof setTimeout> | null };
-  const onContextMenu = (e: React.MouseEvent) => {
+  const onContextMenu = (e: { preventDefault: () => void }) => {
     if (!articoloId) return;
     e.preventDefault();
     openArticolo();
