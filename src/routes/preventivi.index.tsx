@@ -15,7 +15,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Eye, Plus, Search, Trash2 } from "lucide-react";
+import { Eye, Plus, Search, SlidersHorizontal, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   deletePreventivo, fetchPreventivi, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
   type StatoPreventivo, type TipoDoc,
