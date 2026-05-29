@@ -41,7 +41,7 @@ import { RigheTable } from "@/components/preventivi/RigheTable";
 import { GeneraDocumentoDialog } from "@/components/preventivi/GeneraDocumentoDialog";
 import { ClientePicker } from "@/components/preventivi/ClientePicker";
 import { CantierePicker } from "@/components/preventivi/CantierePicker";
-import { AllegatiSection } from "@/components/preventivi/AllegatiSection";
+import { AllegatiButton } from "@/components/preventivi/AllegatiSection";
 
 export const Route = createFileRoute("/preventivi/$id")({
   head: () => ({ meta: [{ title: "Editor Preventivo — Sistema MADE" }] }),
@@ -149,7 +149,8 @@ function PreventivoEditorPage() {
               {STATI_LABEL[prev.stato]}
             </Badge>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <AllegatiButton preventivoId={id} />
             <Button size="sm" onClick={() => setOutputOpen(true)}>
               <FileDown className="mr-1 h-4 w-4" /> Genera documento
             </Button>
@@ -299,8 +300,6 @@ function PreventivoEditorPage() {
           </SortableContext>
         </DndContext>
 
-        {/* Allegati */}
-        <AllegatiSection preventivoId={id} />
 
         {/* Totali */}
         <Card>
