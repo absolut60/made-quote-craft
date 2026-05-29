@@ -5,6 +5,8 @@ export interface UserRow {
   id: string;
   email: string | null;
   display_name: string | null;
+  nome: string | null;
+  cognome: string | null;
   disabled: boolean;
   created_at: string;
   roles: AppRole[];
@@ -12,7 +14,7 @@ export interface UserRow {
 
 export async function fetchUsers(): Promise<UserRow[]> {
   const [{ data: profs, error: e1 }, { data: ur, error: e2 }] = await Promise.all([
-    supabase.from("profiles").select("id, email, display_name, disabled, created_at").order("created_at"),
+    supabase.from("profiles").select("id, email, display_name, nome, cognome, disabled, created_at").order("created_at"),
     supabase.from("user_roles").select("user_id, role"),
   ]);
   if (e1) throw e1;
