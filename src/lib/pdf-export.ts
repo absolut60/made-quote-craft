@@ -142,7 +142,7 @@ function drawFooter(doc: jsPDF) {
   const h = doc.internal.pageSize.getHeight();
   const pages = doc.getNumberOfPages();
   const FOOTER_H = 20;
-  const BAND_H = 46;
+  const BAND_H = 23;
   const BAND_GAP = 2; // spazio tra fascia blu e piede legale
 
   for (let i = 1; i <= pages; i++) {
