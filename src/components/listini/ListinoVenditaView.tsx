@@ -34,7 +34,8 @@ import {
 } from "@/lib/pricing";
 import { EditableNumberCell } from "./EditableNumberCell";
 import { toast } from "sonner";
-import { Search, Wand2 } from "lucide-react";
+import { Search, Wand2, Eye } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 interface ArticoloLite {
   id: string;
