@@ -34,7 +34,8 @@ import {
 } from "@/lib/pricing";
 import { EditableNumberCell } from "./EditableNumberCell";
 import { toast } from "sonner";
-import { Search, Wand2 } from "lucide-react";
+import { Search, Wand2, Eye } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 interface ArticoloLite {
   id: string;
@@ -262,6 +263,7 @@ export function ListinoVenditaView() {
               <th className="px-2 py-2 text-right">Ricarico %</th>
               <th className="px-2 py-2 text-right bg-navy/80">Prezzo €</th>
               <th className="px-2 py-2 text-right">Margine %</th>
+              <th className="px-2 py-2 text-right"></th>
             </tr>
           </thead>
           <tbody>
@@ -295,19 +297,28 @@ export function ListinoVenditaView() {
                   <td className="px-2 py-1 text-right font-mono text-muted-foreground">
                     {v?.margine != null ? `${Number(v.margine).toFixed(1)}%` : "—"}
                   </td>
+                  <td className="px-2 py-1 text-right">
+                    <Link
+                      to="/articoli/$id"
+                      params={{ id: a.id }}
+                      className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-navy hover:bg-muted"
+                    >
+                      <Eye className="h-3 w-3" /> Apri
+                    </Link>
+                  </td>
                 </tr>
               );
             })}
             {error && (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-red-600 font-mono text-xs">
+                <td colSpan={8} className="px-3 py-6 text-center text-red-600 font-mono text-xs">
                   Errore caricamento: {error instanceof Error ? error.message : String(error)}
                 </td>
               </tr>
             )}
             {!isLoading && !error && !articoli.length && (
               <tr>
-                <td colSpan={7} className="px-3 py-12 text-center text-muted-foreground">
+                <td colSpan={8} className="px-3 py-12 text-center text-muted-foreground">
                   Nessun articolo
                 </td>
               </tr>
