@@ -156,11 +156,11 @@ function drawFooter(doc: jsPDF) {
     if (isLast) {
       // Claim testo (helvetica) — niente immagine per compatibilità Acrobat
       doc.setTextColor(...COBALT);
-      doc.setFont("helvetica", "bold"); doc.setFontSize(11);
-      doc.text("IL NUOVO MODO DI COSTRUIRE.", 14, h - FOOTER_H - 11);
-      doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
-      doc.text("Tecnologie leggere, risultati solidi", 14, h - FOOTER_H - 6);
-      doc.text("il sistema a secco che guarda al futuro.", 14, h - FOOTER_H - 2.5);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(16);
+      doc.text("IL NUOVO MODO DI COSTRUIRE.", 14, h - FOOTER_H - 15);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9.5);
+      doc.text("Tecnologie leggere, risultati solidi", 14, h - FOOTER_H - 8);
+      doc.text("il sistema a secco che guarda al futuro.", 14, h - FOOTER_H - 3.5);
       doc.setFont("helvetica", "normal");
     }
 
