@@ -71,22 +71,52 @@ function ClientiListPage() {
     <AppShell>
       <div className="flex h-full flex-col">
         {/* Header */}
-        <div className="border-b bg-card px-6 py-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="border-b bg-card px-3 py-3 lg:px-6 lg:py-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 lg:gap-3">
             <div>
-              <h1 className="text-xl font-bold text-navy">Clienti</h1>
+              <h1 className="text-lg font-bold text-navy lg:text-xl">Clienti</h1>
               <p className="text-xs text-muted-foreground">
                 {isLoading ? "Caricamento…" : `${clienti.length} record`}
               </p>
             </div>
             <Button size="sm" onClick={() => setNewOpen(true)}>
-              <Plus className="mr-1 h-4 w-4" /> Nuovo cliente
+              <Plus className="h-4 w-4 lg:mr-1" />
+              <span className="hidden sm:inline">Nuovo cliente</span>
+            </Button>
+          </div>
+
+          {/* Search + Filtri toggle (mobile) */}
+          <div className="mt-3 flex items-center gap-2 lg:hidden">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Cerca ragione sociale, ID o P.IVA…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-9 pl-8 text-sm"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              onClick={() => setMostraFiltri((v) => !v)}
+            >
+              <SlidersHorizontal className="mr-1 h-4 w-4" /> Filtri
+              {nFiltriAttivi > 0 && (
+                <Badge className="ml-1 h-4 px-1.5 text-[10px]">{nFiltriAttivi}</Badge>
+              )}
             </Button>
           </div>
 
           {/* Filters */}
-          <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-12">
-            <div className="relative md:col-span-5">
+          <div
+            className={cn(
+              "mt-2 gap-2 lg:mt-4 lg:grid lg:grid-cols-12",
+              mostraFiltri ? "grid grid-cols-2" : "hidden",
+            )}
+          >
+            <div className="relative hidden lg:col-span-5 lg:block">
               <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Cerca ragione sociale, ID cliente o P.IVA…"
@@ -95,9 +125,9 @@ function ClientiListPage() {
                 className="h-9 pl-8 text-sm"
               />
             </div>
-            <div className="md:col-span-3">
+            <div className="lg:col-span-3">
               <Select value={agenteId ?? ANY} onValueChange={(v) => setAgenteId(v === ANY ? null : v)}>
-                <SelectTrigger className="h-9"><SelectValue placeholder="Agente" /></SelectTrigger>
+                <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Agente" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ANY}>Tutti gli agenti</SelectItem>
                   {agenti.map((a) => (
@@ -106,9 +136,9 @@ function ClientiListPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-2">
+            <div className="lg:col-span-2">
               <Select value={filiale ?? ANY} onValueChange={(v) => setFiliale(v === ANY ? null : v)}>
-                <SelectTrigger className="h-9"><SelectValue placeholder="Filiale" /></SelectTrigger>
+                <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Filiale" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ANY}>Tutte</SelectItem>
                   {(facets?.filiali ?? []).map((f) => (
@@ -117,9 +147,9 @@ function ClientiListPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-2">
+            <div className="lg:col-span-2">
               <Select value={fascia ?? ANY} onValueChange={(v) => setFascia(v === ANY ? null : (v as FasciaListino))}>
-                <SelectTrigger className="h-9"><SelectValue placeholder="Fascia" /></SelectTrigger>
+                <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Fascia" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ANY}>Tutte fasce</SelectItem>
                   {FASCE.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
@@ -128,6 +158,7 @@ function ClientiListPage() {
             </div>
           </div>
         </div>
+
 
         {/* Table */}
         <div className="flex-1 overflow-auto">
