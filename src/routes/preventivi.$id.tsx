@@ -24,7 +24,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  ArrowLeft, FileDown, GripVertical, Plus, Save, Trash2,
+  ArrowLeft, Check, FileDown, GripVertical, Pencil, Plus, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
