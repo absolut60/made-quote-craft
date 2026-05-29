@@ -49,11 +49,14 @@ export function RigheTable({
   blocco,
   preventivoId,
   fascia,
+  readOnly = false,
 }: {
   blocco: BloccoConRighe;
   preventivoId: string;
   fascia: FasciaListino;
+  readOnly?: boolean;
 }) {
+  const [openArticoloId, setOpenArticoloId] = useState<string | null>(null);
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["preventivo", preventivoId] });
 
