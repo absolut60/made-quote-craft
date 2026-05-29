@@ -263,6 +263,7 @@ export function ListinoVenditaView() {
               <th className="px-2 py-2 text-right">Ricarico %</th>
               <th className="px-2 py-2 text-right bg-navy/80">Prezzo €</th>
               <th className="px-2 py-2 text-right">Margine %</th>
+              <th className="px-2 py-2 text-right"></th>
             </tr>
           </thead>
           <tbody>
