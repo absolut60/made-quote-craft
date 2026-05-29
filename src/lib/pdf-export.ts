@@ -296,7 +296,8 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
   doc.text(fmtEur(tot.totale), tx + tw - 4, ty + 25.5, { align: "right" });
 
   drawFooter(doc);
-  doc.save(fileName(prev, "preventivo"));
+  const name = fileName(prev, "preventivo");
+  return { blob: doc.output("blob") as Blob, fileName: name };
 }
 
 // =========================================================================
@@ -378,7 +379,8 @@ export async function exportPropostaRapidaPdf(prev: PreventivoConDettagli) {
   doc.text(fmtEur(tot.totale), tx + tw - 4, ty + 25.5, { align: "right" });
 
   drawFooter(doc);
-  doc.save(fileName(prev, "proposta-rapida"));
+  const name = fileName(prev, "proposta-rapida");
+  return { blob: doc.output("blob") as Blob, fileName: name };
 }
 
 // =========================================================================
@@ -420,7 +422,8 @@ export async function exportListaMaterialiPdf(prev: PreventivoConDettagli) {
   });
 
   drawFooter(doc);
-  doc.save(fileName(prev, "lista-materiali"));
+  const name = fileName(prev, "lista-materiali");
+  return { blob: doc.output("blob") as Blob, fileName: name };
 }
 
 // =========================================================================
@@ -479,5 +482,6 @@ export async function exportListaFornitorePdf(prev: PreventivoConDettagli) {
   }
 
   drawFooter(doc);
-  doc.save(fileName(prev, "ordine-fornitore"));
+  const name = fileName(prev, "ordine-fornitore");
+  return { blob: doc.output("blob") as Blob, fileName: name };
 }
