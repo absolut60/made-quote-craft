@@ -267,7 +267,7 @@ export async function applicaScontoPiedeARighe(
     .eq("preventivo_id", preventivo_id);
   if (errB) throw errB;
 
-  const updates: Promise<unknown>[] = [];
+  const updates: PromiseLike<unknown>[] = [];
   for (const b of (blocchi ?? []) as unknown as { id: string; righe: Riga[] }[]) {
     for (const r of b.righe ?? []) {
       if (r.tipo_riga !== "articolo_singolo" && r.tipo_riga !== "da_kit" && r.tipo_riga !== "manuale") continue;
