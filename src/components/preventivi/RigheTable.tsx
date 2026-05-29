@@ -286,35 +286,24 @@ function RigaRow({
       <td className="text-center text-[10px] text-muted-foreground">{idx + 1}</td>
       <td className="px-1 py-0.5">
         {(tipo === "articolo_singolo" || tipo === "da_kit") ? (
-          <div className="space-y-0.5">
-            <ArticoloPicker
-              value={row.articolo_id}
-              onChange={(articolo_id, articolo) => {
-                const listino = articolo?.listini_vendita?.find((l) => l.fascia === fascia);
-                const acquistoRecente = articolo?.listini_acquisto?.[0];
-                const prezzo = listino?.prezzo == null ? null : Number(listino.prezzo);
-                const costo = acquistoRecente?.costo_netto == null ? null : Number(acquistoRecente.costo_netto);
-                onPatch({
-                  articolo_id,
-                  um: articolo?.um ?? null,
-                  descrizione: articolo?.descrizione ?? null,
-                  prezzo_unit: prezzo,
-                  costo,
-                  vendita: prezzo,
-                  peso: articolo?.peso_unit == null ? null : Number(articolo.peso_unit),
-                });
-              }}
-            />
-            <Input
-              defaultValue={row.descrizione ?? row.articolo?.descrizione ?? ""}
-              onBlur={(e) => {
-                if ((e.target.value || null) !== row.descrizione)
-                  onPatch({ descrizione: e.target.value || null });
-              }}
-              className="h-6 px-1 text-[11px]"
-              placeholder="Descrizione (override)"
-            />
-          </div>
+          <ArticoloPicker
+            value={row.articolo_id}
+            onChange={(articolo_id, articolo) => {
+              const listino = articolo?.listini_vendita?.find((l) => l.fascia === fascia);
+              const acquistoRecente = articolo?.listini_acquisto?.[0];
+              const prezzo = listino?.prezzo == null ? null : Number(listino.prezzo);
+              const costo = acquistoRecente?.costo_netto == null ? null : Number(acquistoRecente.costo_netto);
+              onPatch({
+                articolo_id,
+                um: articolo?.um ?? null,
+                descrizione: articolo?.descrizione ?? null,
+                prezzo_unit: prezzo,
+                costo,
+                vendita: prezzo,
+                peso: articolo?.peso_unit == null ? null : Number(articolo.peso_unit),
+              });
+            }}
+          />
         ) : (
           <Input
             defaultValue={row.descrizione ?? ""}
