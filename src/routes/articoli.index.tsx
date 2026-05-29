@@ -264,13 +264,13 @@ function ArticoliListPage() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={9} className="px-3 py-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-3 py-12 text-center text-muted-foreground">
                     Caricamento…
                   </td>
                 </tr>
               ) : articoli.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-3 py-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-3 py-12 text-center text-muted-foreground">
                     Nessun articolo trovato.
                   </td>
                 </tr>
@@ -282,7 +282,8 @@ function ArticoliListPage() {
                   return (
                     <tr
                       key={a.id}
-                      className="border-b hover:bg-muted/50"
+                      onClick={() => navigate({ to: "/articoli/$id", params: { id: a.id } })}
+                      className="cursor-pointer border-b hover:bg-muted/50"
                     >
                       <td className="px-3 py-1.5 font-mono">{a.cod_gamma ?? "—"}</td>
                       <td className="px-3 py-1.5 font-mono">{a.cod_fornitore ?? "—"}</td>
@@ -293,15 +294,6 @@ function ArticoliListPage() {
                       <td className="px-3 py-1.5">{a.tipologia ?? "—"}</td>
                       <td className="px-3 py-1.5">
                         <StatoBadge stato={a.stato} />
-                      </td>
-                      <td className="px-3 py-1.5 text-right">
-                        <Link
-                          to="/articoli/$id"
-                          params={{ id: a.id }}
-                          className="inline-flex items-center gap-1 rounded px-2 py-1 text-navy hover:bg-muted"
-                        >
-                          <Eye className="h-3 w-3" /> Apri
-                        </Link>
                       </td>
                     </tr>
                   );
