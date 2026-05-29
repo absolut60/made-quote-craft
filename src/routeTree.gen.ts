@@ -69,9 +69,9 @@ const ArticoliIndexRoute = ArticoliIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const PreventiviIdRoute = PreventiviIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => PreventiviRoute,
+  id: '/preventivi/$id',
+  path: '/preventivi/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const KitIdRoute = KitIdRouteImport.update({
   id: '/$id',
@@ -84,9 +84,9 @@ const ClientiIdRoute = ClientiIdRouteImport.update({
   getParentRoute: () => ClientiRoute,
 } as any)
 const ArticoliIdRoute = ArticoliIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ArticoliRoute,
+  id: '/articoli/$id',
+  path: '/articoli/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -191,6 +191,8 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   UtentiRoute: typeof UtentiRoute
+  ArticoliIdRoute: typeof ArticoliIdRoute
+  PreventiviIdRoute: typeof PreventiviIdRoute
   ArticoliIndexRoute: typeof ArticoliIndexRoute
   PreventiviIndexRoute: typeof PreventiviIndexRoute
 }
@@ -262,10 +264,10 @@ declare module '@tanstack/react-router' {
     }
     '/preventivi/$id': {
       id: '/preventivi/$id'
-      path: '/$id'
+      path: '/preventivi/$id'
       fullPath: '/preventivi/$id'
       preLoaderRoute: typeof PreventiviIdRouteImport
-      parentRoute: typeof PreventiviRoute
+      parentRoute: typeof rootRouteImport
     }
     '/kit/$id': {
       id: '/kit/$id'
@@ -283,10 +285,10 @@ declare module '@tanstack/react-router' {
     }
     '/articoli/$id': {
       id: '/articoli/$id'
-      path: '/$id'
+      path: '/articoli/$id'
       fullPath: '/articoli/$id'
       preLoaderRoute: typeof ArticoliIdRouteImport
-      parentRoute: typeof ArticoliRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -320,19 +322,11 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   UtentiRoute: UtentiRoute,
+  ArticoliIdRoute: ArticoliIdRoute,
+  PreventiviIdRoute: PreventiviIdRoute,
   ArticoliIndexRoute: ArticoliIndexRoute,
   PreventiviIndexRoute: PreventiviIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
