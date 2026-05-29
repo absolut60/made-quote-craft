@@ -3,8 +3,13 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, ExternalLink, Mail, Printer, X } from "lucide-react";
+import { Download, Loader2, Mail, Printer, X } from "lucide-react";
 import { toast } from "sonner";
+import * as pdfjsLib from "pdfjs-dist";
+// Worker bundled via Vite (no CDN, no ad-blocker interference)
+import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
 export function AnteprimaPdfDialog({
   open, onOpenChange, blob, fileName, onInviaEmail,
@@ -15,50 +20,102 @@ export function AnteprimaPdfDialog({
   fileName: string;
   onInviaEmail?: () => void;
 }) {
-  // Garantisce MIME corretto anche se il blob arriva senza type
   const pdfBlob = useMemo(
     () => (blob ? (blob.type === "application/pdf" ? blob : new Blob([blob], { type: "application/pdf" })) : null),
     [blob],
   );
 
-  const [url, setUrl] = useState<string | null>(null);
-  const urlRef = useRef<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const canvasContainerRef = useRef<HTMLDivElement | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [numPages, setNumPages] = useState(0);
 
-  // Crea l'object URL quando il dialog è aperto; revoca SOLO alla chiusura/unmount
+  // URL solo per stampa/esporta (non per rendering)
+  const blobUrlRef = useRef<string | null>(null);
   useEffect(() => {
     if (open && pdfBlob) {
       const u = URL.createObjectURL(pdfBlob);
-      urlRef.current = u;
-      setUrl(u);
+      blobUrlRef.current = u;
     }
     return () => {
-      if (!open && urlRef.current) {
-        URL.revokeObjectURL(urlRef.current);
-        urlRef.current = null;
-        setUrl(null);
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
       }
     };
   }, [open, pdfBlob]);
 
+  // Render PDF su canvas via pdf.js
   useEffect(() => {
-    return () => {
-      if (urlRef.current) {
-        URL.revokeObjectURL(urlRef.current);
-        urlRef.current = null;
+    if (!open || !pdfBlob) return;
+    let cancelled = false;
+    let pdfDoc: pdfjsLib.PDFDocumentProxy | null = null;
+
+    async function renderAll() {
+      setLoading(true);
+      setError(null);
+      setNumPages(0);
+      const container = canvasContainerRef.current;
+      if (container) container.innerHTML = "";
+
+      try {
+        const arrayBuffer = await pdfBlob!.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        pdfDoc = await loadingTask.promise;
+        if (cancelled) return;
+        setNumPages(pdfDoc.numPages);
+
+        const containerWidth = (scrollRef.current?.clientWidth ?? 760) - 24;
+        const dpr = window.devicePixelRatio || 1;
+
+        for (let i = 1; i <= pdfDoc.numPages; i++) {
+          if (cancelled) return;
+          const page = await pdfDoc.getPage(i);
+          const baseViewport = page.getViewport({ scale: 1 });
+          const scale = containerWidth / baseViewport.width;
+          const viewport = page.getViewport({ scale });
+
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.floor(viewport.width * dpr);
+          canvas.height = Math.floor(viewport.height * dpr);
+          canvas.style.width = `${Math.floor(viewport.width)}px`;
+          canvas.style.height = `${Math.floor(viewport.height)}px`;
+          canvas.className = "mx-auto mb-3 shadow-sm bg-white";
+
+          const ctx = canvas.getContext("2d");
+          if (!ctx) continue;
+          if (dpr !== 1) ctx.scale(dpr, dpr);
+
+          if (canvasContainerRef.current) {
+            canvasContainerRef.current.appendChild(canvas);
+          }
+
+          await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+          page.cleanup();
+          if (i === 1) setLoading(false);
+        }
+        setLoading(false);
+      } catch (e) {
+        console.error("PDF render error", e);
+        if (!cancelled) {
+          setError("Impossibile generare l'anteprima del PDF.");
+          setLoading(false);
+        }
       }
+    }
+
+    renderAll();
+    return () => {
+      cancelled = true;
+      if (pdfDoc) pdfDoc.destroy().catch(() => {});
+      if (canvasContainerRef.current) canvasContainerRef.current.innerHTML = "";
     };
-  }, []);
+  }, [open, pdfBlob]);
 
   function handleStampa() {
+    const url = blobUrlRef.current;
     if (!url) return;
-    const iframe = document.getElementById("anteprima-pdf-iframe") as HTMLIFrameElement | null;
-    try {
-      if (iframe?.contentWindow) {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-        return;
-      }
-    } catch { /* fallback below */ }
     const w = window.open(url, "_blank");
     if (w) {
       w.addEventListener("load", () => {
@@ -70,6 +127,7 @@ export function AnteprimaPdfDialog({
   }
 
   function handleEsporta() {
+    const url = blobUrlRef.current;
     if (!url) return;
     const a = document.createElement("a");
     a.href = url;
@@ -84,60 +142,36 @@ export function AnteprimaPdfDialog({
     else toast.info("Invio email in arrivo prossimamente");
   }
 
-  function handleOpenNewTab() {
-    if (url) window.open(url, "_blank", "noopener,noreferrer");
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[95vh] max-h-[95vh] w-[95vw] max-w-3xl flex-col gap-3 p-4 sm:p-6">
         <DialogHeader className="shrink-0">
           <DialogTitle>Anteprima documento</DialogTitle>
-          <div className="text-xs text-muted-foreground">{fileName}</div>
+          <div className="text-xs text-muted-foreground">
+            {fileName}{numPages > 0 ? ` · ${numPages} pagina${numPages > 1 ? "e" : ""}` : ""}
+          </div>
         </DialogHeader>
 
-        <div className="relative min-h-0 flex-1 overflow-hidden rounded border bg-muted/30">
-          {url ? (
-            <object
-              data={url}
-              type="application/pdf"
-              className="h-full w-full"
-              aria-label="Anteprima PDF"
-            >
-              <iframe
-                id="anteprima-pdf-iframe"
-                src={url}
-                title="Anteprima PDF"
-                className="h-full w-full"
-              />
-              <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center text-sm">
-                <p className="text-muted-foreground">
-                  L'anteprima inline non è disponibile su questo dispositivo.
-                </p>
-                <Button size="sm" variant="outline" onClick={handleOpenNewTab}>
-                  <ExternalLink className="mr-1 h-4 w-4" /> Apri in nuova scheda
-                </Button>
+        <div
+          ref={scrollRef}
+          className="relative min-h-0 flex-1 overflow-auto rounded border bg-muted/30 p-3"
+        >
+          {loading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> Caricamento anteprima…
               </div>
-            </object>
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              Generazione anteprima…
             </div>
           )}
-        </div>
-
-        {/* Fallback sempre visibile per browser che bloccano il rendering inline */}
-        <div className="shrink-0 text-center text-xs text-muted-foreground">
-          Se non vedi l'anteprima,{" "}
-          <button
-            type="button"
-            onClick={handleOpenNewTab}
-            disabled={!url}
-            className="underline underline-offset-2 hover:text-foreground disabled:opacity-50"
-          >
-            apri il PDF in una nuova scheda
-          </button>
-          .
+          {error && (
+            <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-sm">
+              <p className="text-destructive">{error}</p>
+              <Button size="sm" variant="outline" onClick={handleEsporta}>
+                <Download className="mr-1 h-4 w-4" /> Scarica PDF
+              </Button>
+            </div>
+          )}
+          <div ref={canvasContainerRef} />
         </div>
 
         <DialogFooter className="shrink-0 flex flex-wrap gap-2 sm:justify-end">
@@ -147,10 +181,10 @@ export function AnteprimaPdfDialog({
           <Button variant="outline" onClick={handleEmail} title="Disponibile a breve">
             <Mail className="mr-1 h-4 w-4" /> Invia per email
           </Button>
-          <Button variant="outline" onClick={handleStampa} disabled={!url}>
+          <Button variant="outline" onClick={handleStampa} disabled={!pdfBlob}>
             <Printer className="mr-1 h-4 w-4" /> Stampa
           </Button>
-          <Button onClick={handleEsporta} disabled={!url}>
+          <Button onClick={handleEsporta} disabled={!pdfBlob}>
             <Download className="mr-1 h-4 w-4" /> Esporta
           </Button>
         </DialogFooter>
