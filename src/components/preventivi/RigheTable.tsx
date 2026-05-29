@@ -269,8 +269,15 @@ function RigaRow({
         </td>
         <td colSpan={13}></td>
         <td className="text-right">
-          <RowActions onDelete={onDelete} onAddAbove={onAddAbove} onAddBelow={onAddBelow}
-            onChangeType={(t) => onPatch({ tipo_riga: t })} currentType={tipo} />
+          <div className="flex items-center justify-end gap-0.5">
+            <Button size="icon" variant="ghost"
+              className="h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={onDelete} title="Elimina riga">
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+            <RowActions onAddAbove={onAddAbove} onAddBelow={onAddBelow}
+              onChangeType={(t) => onPatch({ tipo_riga: t })} currentType={tipo} />
+          </div>
         </td>
       </tr>
     );
