@@ -351,6 +351,21 @@ export type Database = {
         }
         Relationships: []
       }
+      contatori_preventivo: {
+        Row: {
+          anno: number
+          ultimo_numero: number
+        }
+        Insert: {
+          anno: number
+          ultimo_numero?: number
+        }
+        Update: {
+          anno?: number
+          ultimo_numero?: number
+        }
+        Relationships: []
+      }
       fornitori: {
         Row: {
           created_at: string
@@ -851,6 +866,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      prossimo_numero_preventivo: { Args: { p_anno: number }; Returns: number }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
