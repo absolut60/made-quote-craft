@@ -299,8 +299,6 @@ function PreventivoEditorPage() {
           </SortableContext>
         </DndContext>
 
-        {/* Allegati */}
-        <AllegatiSection preventivoId={id} />
 
         {/* Totali */}
         <Card>
