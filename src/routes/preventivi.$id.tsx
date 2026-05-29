@@ -227,7 +227,7 @@ function PreventivoEditorPage() {
                 <Label className="text-xs">Cliente</Label>
                 <ClientePicker
                   value={prev.cliente_id ?? null}
-                  onChange={(id) => save.mutate({ cliente_id: id, cantiere_id: null })}
+                  onChange={onChangeCliente}
                 />
               </div>
               <div className="grid gap-1.5">
@@ -238,10 +238,33 @@ function PreventivoEditorPage() {
                   onChange={(id) => save.mutate({ cantiere_id: id })}
                 />
               </div>
-              <div className="md:col-span-2 text-xs text-muted-foreground">
-                Agente: {prev.agente?.nome ?? "—"} · Filiale: {prev.filiale ?? "—"}
+              <div className="grid gap-1.5">
+                <Label className="text-xs">Agente</Label>
+                <Select
+                  value={prev.agente_id ?? ""}
+                  onValueChange={(v) => save.mutate({ agente_id: v || null })}
+                >
+                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                  <SelectContent>
+                    {agenti.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label className="text-xs">Filiale</Label>
+                <Input
+                  defaultValue={prev.filiale ?? ""}
+                  key={`fil-${prev.filiale ?? ""}`}
+                  onBlur={(e) => {
+                    if ((e.target.value || null) !== prev.filiale)
+                      save.mutate({ filiale: e.target.value || null });
+                  }}
+                />
               </div>
             </div>
+
 
             <div className="grid gap-1.5">
               <Label className="text-xs">Tipo documento</Label>
