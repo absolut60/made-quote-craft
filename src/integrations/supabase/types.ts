@@ -641,27 +641,33 @@ export type Database = {
       }
       profiles: {
         Row: {
+          cognome: string
           created_at: string
           disabled: boolean
           display_name: string | null
           email: string | null
           id: string
+          nome: string
           updated_at: string
         }
         Insert: {
+          cognome?: string
           created_at?: string
           disabled?: boolean
           display_name?: string | null
           email?: string | null
           id: string
+          nome?: string
           updated_at?: string
         }
         Update: {
+          cognome?: string
           created_at?: string
           disabled?: boolean
           display_name?: string | null
           email?: string | null
           id?: string
+          nome?: string
           updated_at?: string
         }
         Relationships: []
