@@ -33,6 +33,7 @@ export const Route = createFileRoute("/articoli/")({
 const ANY = "__any";
 
 function ArticoliListPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [categoria, setCategoria] = useState<string | null>(null);
