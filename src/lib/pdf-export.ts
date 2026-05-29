@@ -35,7 +35,9 @@ const GRIGIO:    [number, number, number] = [110, 115, 125];
 const GRIGIO_LT: [number, number, number] = [245, 246, 248];
 const GRIGIO_BD: [number, number, number] = [220, 222, 226];
 const BLOCK_BG:  [number, number, number] = [235, 238, 244];
-const LABEL_COL: [number, number, number] = [160, 195, 235];
+const BANDA_BG:  [number, number, number] = [235, 238, 244];
+const LABEL_COL: [number, number, number] = [130, 140, 155];
+const COBALT:    [number, number, number] = [38, 95, 176];
 
 const fmtEur = (n: number) =>
   "€ " + n.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
