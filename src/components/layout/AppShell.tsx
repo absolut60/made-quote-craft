@@ -23,13 +23,13 @@ export function AppShell({
         <div className="flex-1 flex flex-col min-w-0">
           <div className="tricolor-bar h-[3px] w-full" />
 
-          {/* Mobile topbar — visibile solo sotto lg */}
-          <div className="lg:hidden h-14 shrink-0 bg-card border-b border-border flex items-center justify-between px-3 gap-3">
+          {/* Mobile topbar — visibile solo sotto lg. Sfondo navy come la sidebar per leggibilità del logo bianco */}
+          <div className="lg:hidden h-14 shrink-0 bg-sidebar text-sidebar-foreground border-b border-sidebar-border flex items-center justify-between px-3 gap-3">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <button
                   aria-label="Apri menu"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-muted"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md text-sidebar-foreground hover:bg-white/10"
                 >
                   <Menu className="h-5 w-5" />
                 </button>
