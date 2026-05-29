@@ -11,12 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UtentiRouteImport } from './routes/utenti'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as PreventiviRouteImport } from './routes/preventivi'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ListiniRouteImport } from './routes/listini'
 import { Route as KitRouteImport } from './routes/kit'
 import { Route as ClientiRouteImport } from './routes/clienti'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PreventiviIndexRouteImport } from './routes/preventivi.index'
 import { Route as ArticoliIndexRouteImport } from './routes/articoli.index'
 import { Route as PreventiviIdRouteImport } from './routes/preventivi.$id'
 import { Route as KitIdRouteImport } from './routes/kit.$id'
@@ -31,11 +31,6 @@ const UtentiRoute = UtentiRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PreventiviRoute = PreventiviRouteImport.update({
-  id: '/preventivi',
-  path: '/preventivi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -63,15 +58,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PreventiviIndexRoute = PreventiviIndexRouteImport.update({
+  id: '/preventivi/',
+  path: '/preventivi/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ArticoliIndexRoute = ArticoliIndexRouteImport.update({
   id: '/articoli/',
   path: '/articoli/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PreventiviIdRoute = PreventiviIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => PreventiviRoute,
+  id: '/preventivi/$id',
+  path: '/preventivi/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const KitIdRoute = KitIdRouteImport.update({
   id: '/$id',
@@ -95,7 +95,6 @@ export interface FileRoutesByFullPath {
   '/kit': typeof KitRouteWithChildren
   '/listini': typeof ListiniRoute
   '/login': typeof LoginRoute
-  '/preventivi': typeof PreventiviRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/utenti': typeof UtentiRoute
   '/articoli/$id': typeof ArticoliIdRoute
@@ -103,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/kit/$id': typeof KitIdRoute
   '/preventivi/$id': typeof PreventiviIdRoute
   '/articoli/': typeof ArticoliIndexRoute
+  '/preventivi/': typeof PreventiviIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,7 +110,6 @@ export interface FileRoutesByTo {
   '/kit': typeof KitRouteWithChildren
   '/listini': typeof ListiniRoute
   '/login': typeof LoginRoute
-  '/preventivi': typeof PreventiviRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/utenti': typeof UtentiRoute
   '/articoli/$id': typeof ArticoliIdRoute
@@ -118,6 +117,7 @@ export interface FileRoutesByTo {
   '/kit/$id': typeof KitIdRoute
   '/preventivi/$id': typeof PreventiviIdRoute
   '/articoli': typeof ArticoliIndexRoute
+  '/preventivi': typeof PreventiviIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -126,7 +126,6 @@ export interface FileRoutesById {
   '/kit': typeof KitRouteWithChildren
   '/listini': typeof ListiniRoute
   '/login': typeof LoginRoute
-  '/preventivi': typeof PreventiviRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/utenti': typeof UtentiRoute
   '/articoli/$id': typeof ArticoliIdRoute
@@ -134,6 +133,7 @@ export interface FileRoutesById {
   '/kit/$id': typeof KitIdRoute
   '/preventivi/$id': typeof PreventiviIdRoute
   '/articoli/': typeof ArticoliIndexRoute
+  '/preventivi/': typeof PreventiviIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -143,7 +143,6 @@ export interface FileRouteTypes {
     | '/kit'
     | '/listini'
     | '/login'
-    | '/preventivi'
     | '/reset-password'
     | '/utenti'
     | '/articoli/$id'
@@ -151,6 +150,7 @@ export interface FileRouteTypes {
     | '/kit/$id'
     | '/preventivi/$id'
     | '/articoli/'
+    | '/preventivi/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -158,7 +158,6 @@ export interface FileRouteTypes {
     | '/kit'
     | '/listini'
     | '/login'
-    | '/preventivi'
     | '/reset-password'
     | '/utenti'
     | '/articoli/$id'
@@ -166,6 +165,7 @@ export interface FileRouteTypes {
     | '/kit/$id'
     | '/preventivi/$id'
     | '/articoli'
+    | '/preventivi'
   id:
     | '__root__'
     | '/'
@@ -173,7 +173,6 @@ export interface FileRouteTypes {
     | '/kit'
     | '/listini'
     | '/login'
-    | '/preventivi'
     | '/reset-password'
     | '/utenti'
     | '/articoli/$id'
@@ -181,6 +180,7 @@ export interface FileRouteTypes {
     | '/kit/$id'
     | '/preventivi/$id'
     | '/articoli/'
+    | '/preventivi/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -189,11 +189,12 @@ export interface RootRouteChildren {
   KitRoute: typeof KitRouteWithChildren
   ListiniRoute: typeof ListiniRoute
   LoginRoute: typeof LoginRoute
-  PreventiviRoute: typeof PreventiviRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
   UtentiRoute: typeof UtentiRoute
   ArticoliIdRoute: typeof ArticoliIdRoute
+  PreventiviIdRoute: typeof PreventiviIdRoute
   ArticoliIndexRoute: typeof ArticoliIndexRoute
+  PreventiviIndexRoute: typeof PreventiviIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -210,13 +211,6 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/preventivi': {
-      id: '/preventivi'
-      path: '/preventivi'
-      fullPath: '/preventivi'
-      preLoaderRoute: typeof PreventiviRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -254,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/preventivi/': {
+      id: '/preventivi/'
+      path: '/preventivi'
+      fullPath: '/preventivi/'
+      preLoaderRoute: typeof PreventiviIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/articoli/': {
       id: '/articoli/'
       path: '/articoli'
@@ -263,10 +264,10 @@ declare module '@tanstack/react-router' {
     }
     '/preventivi/$id': {
       id: '/preventivi/$id'
-      path: '/$id'
+      path: '/preventivi/$id'
       fullPath: '/preventivi/$id'
       preLoaderRoute: typeof PreventiviIdRouteImport
-      parentRoute: typeof PreventiviRoute
+      parentRoute: typeof rootRouteImport
     }
     '/kit/$id': {
       id: '/kit/$id'
@@ -313,29 +314,18 @@ const KitRouteChildren: KitRouteChildren = {
 
 const KitRouteWithChildren = KitRoute._addFileChildren(KitRouteChildren)
 
-interface PreventiviRouteChildren {
-  PreventiviIdRoute: typeof PreventiviIdRoute
-}
-
-const PreventiviRouteChildren: PreventiviRouteChildren = {
-  PreventiviIdRoute: PreventiviIdRoute,
-}
-
-const PreventiviRouteWithChildren = PreventiviRoute._addFileChildren(
-  PreventiviRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClientiRoute: ClientiRouteWithChildren,
   KitRoute: KitRouteWithChildren,
   ListiniRoute: ListiniRoute,
   LoginRoute: LoginRoute,
-  PreventiviRoute: PreventiviRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
   UtentiRoute: UtentiRoute,
   ArticoliIdRoute: ArticoliIdRoute,
+  PreventiviIdRoute: PreventiviIdRoute,
   ArticoliIndexRoute: ArticoliIndexRoute,
+  PreventiviIndexRoute: PreventiviIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
