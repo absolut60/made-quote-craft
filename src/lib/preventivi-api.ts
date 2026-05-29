@@ -283,7 +283,7 @@ export async function applicaScontoPiedeARighe(
   await Promise.all(updates);
 
   await Promise.all(
-    (blocchi ?? []).map((b: { id: string; righe: Riga[] }) => {
+    ((blocchi ?? []) as unknown as { id: string; righe: Riga[] }[]).map((b) => {
       let totale = 0;
       for (const r of b.righe ?? []) {
         if (r.tipo_riga === "nota" || r.tipo_riga === "separatore" || r.tipo_riga === "sotto_totale") continue;
@@ -296,7 +296,7 @@ export async function applicaScontoPiedeARighe(
           totale += n(r.importo);
         }
       }
-      return supabase.from("blocchi_preventivo").update({ importo: round2(totale) }).eq("id", b.id);
+      return supabase.from("blocchi_preventivo").update({ importo: round2(totale) }).eq("id", b.id).then();
     }),
   );
 }
