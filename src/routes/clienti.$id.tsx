@@ -257,6 +257,10 @@ function ClienteDetailPage() {
 
             {/* Cantieri */}
             <CantieriSection clienteId={id} />
+
+            {/* Preventivi */}
+            <PreventiviSection clienteId={id} />
+
           </div>
         </div>
       </div>
