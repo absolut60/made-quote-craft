@@ -259,9 +259,37 @@ function RigaRow({
     tipo === "nota" && "bg-muted/20 italic",
   );
 
+  const articoloId = row.articolo_id;
+  const openArticolo = () => {
+    if (articoloId) window.open(`/articoli/${articoloId}`, "_blank", "noopener");
+  };
+  const longPressTimer = { current: null as ReturnType<typeof setTimeout> | null };
+  const onContextMenu = (e: React.MouseEvent) => {
+    if (!articoloId) return;
+    e.preventDefault();
+    openArticolo();
+  };
+  const onTouchStart = () => {
+    if (!articoloId) return;
+    longPressTimer.current = setTimeout(openArticolo, 550);
+  };
+  const cancelLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
   if (tipo === "separatore") {
     return (
-      <tr ref={sortable.setNodeRef} style={style} className={rowClass}>
+      <tr ref={sortable.setNodeRef} style={style} className={rowClass}
+        onContextMenu={onContextMenu}
+        onTouchStart={onTouchStart}
+        onTouchEnd={cancelLongPress}
+        onTouchMove={cancelLongPress}
+        onTouchCancel={cancelLongPress}
+        title={articoloId ? "Tasto destro o pressione lunga per aprire la scheda articolo" : undefined}
+      >
         <td>
           <button {...sortable.attributes} {...sortable.listeners} className="cursor-grab px-1">
             <GripVertical className="h-3 w-3 text-muted-foreground" />
