@@ -451,13 +451,13 @@ function PreventivoEditorPage() {
   );
 }
 
-function Totale({ label, value, strong, className }: { label: string; value: string; strong?: boolean; className?: string }) {
-  return (
-    <div className={cn(strong ? "rounded bg-primary/10 p-3" : "p-3", className)}>
-      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className={cn("font-mono", strong ? "text-2xl font-bold" : "text-lg")}>{value}</div>
-    </div>
-  );
+function AllegatiCountBadge({ preventivoId }: { preventivoId: string }) {
+  const { data = [] } = useQuery({
+    queryKey: ["allegati", preventivoId],
+    queryFn: () => fetchAllegati(preventivoId),
+  });
+  if (!data.length) return null;
+  return <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-[10px]">{data.length}</Badge>;
 }
 
 function BloccoCard({
