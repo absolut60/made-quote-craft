@@ -384,7 +384,7 @@ function BloccoCard({
                 onBlur={(e) => {
                   const v = e.target.value === "" ? null : Number(e.target.value);
                   if (v !== (blocco.quantita_base == null ? null : Number(blocco.quantita_base)))
-                    upd.mutate({ quantita_base: v });
+                    recalcQta.mutate(v);
                 }}
                 className="h-8 text-right font-mono"
               />
