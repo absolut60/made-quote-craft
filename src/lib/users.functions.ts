@@ -93,7 +93,7 @@ export const adminUpdateUser = createServerFn({ method: "POST" })
     }
 
     // Profili
-    const profileUpdate: Record<string, string> = {};
+    const profileUpdate: { nome?: string; cognome?: string; email?: string } = {};
     if (data.nome !== undefined) profileUpdate.nome = data.nome;
     if (data.cognome !== undefined) profileUpdate.cognome = data.cognome;
     if (data.email !== undefined) profileUpdate.email = data.email;
