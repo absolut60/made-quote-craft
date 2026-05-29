@@ -59,7 +59,7 @@ export function AnteprimaPdfDialog({
   useEffect(() => {
     if (!open || !pdfBlob) return;
     let cancelled = false;
-    let pdfDoc: pdfjsLib.PDFDocumentProxy | null = null;
+    let pdfDoc: import("pdfjs-dist").PDFDocumentProxy | null = null;
 
     async function renderAll() {
       setLoading(true);
@@ -69,6 +69,7 @@ export function AnteprimaPdfDialog({
       if (container) container.innerHTML = "";
 
       try {
+        const pdfjsLib = await loadPdfJs();
         const arrayBuffer = await pdfBlob!.arrayBuffer();
         const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
         pdfDoc = await loadingTask.promise;
