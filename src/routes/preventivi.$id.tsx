@@ -271,7 +271,7 @@ function PreventivoEditorPage() {
                 </Card>
               ) : (
                 prev.blocchi.map((b, idx) => (
-                  <BloccoCard key={b.id} blocco={b} index={idx} preventivoId={id} />
+                  <BloccoCard key={b.id} blocco={b} index={idx} preventivoId={id} fascia={(prev.fascia_listino ?? "A") as FasciaListino} />
                 ))
               )}
             </div>
