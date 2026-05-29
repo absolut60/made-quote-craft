@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
@@ -50,8 +51,14 @@ export function NuovoPreventivoDialog({
   }, [clienteId]);
 
   const create = useMutation({
-    mutationFn: () => {
-      const numeroFinal = numero.trim() || `PRV-${Date.now()}`;
+    mutationFn: async () => {
+      let numeroFinal = numero.trim();
+      if (!numeroFinal) {
+        const anno = new Date().getFullYear();
+        const { data: prog, error } = await supabase.rpc("prossimo_numero_preventivo", { p_anno: anno });
+        if (error) throw error;
+        numeroFinal = `PRV-${prog}/${String(anno).slice(-2)}`;
+      }
       const dataFinal = data || today;
       const fasciaFinal: FasciaListino = fascia || "A";
       const tipoDocFinal: TipoDoc = tipoDoc || "PREVENTIVO";
