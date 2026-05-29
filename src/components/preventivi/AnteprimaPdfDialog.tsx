@@ -5,11 +5,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Download, Loader2, Mail, Printer, X } from "lucide-react";
 import { toast } from "sonner";
-import * as pdfjsLib from "pdfjs-dist";
-// Worker bundled via Vite (no CDN, no ad-blocker interference)
-import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
+type PdfJs = typeof import("pdfjs-dist");
+let pdfjsPromise: Promise<PdfJs> | null = null;
+function loadPdfJs(): Promise<PdfJs> {
+  if (typeof window === "undefined") return Promise.reject(new Error("SSR"));
+  if (!pdfjsPromise) {
+    pdfjsPromise = (async () => {
+      const lib = await import("pdfjs-dist");
+      const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+      lib.GlobalWorkerOptions.workerSrc = workerUrl;
+      return lib;
+    })();
+  }
+  return pdfjsPromise;
+}
 
 export function AnteprimaPdfDialog({
   open, onOpenChange, blob, fileName, onInviaEmail,
