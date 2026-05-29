@@ -98,6 +98,18 @@ function PreventivoEditorPage() {
     onError: (e: unknown) => toast.error((e as Error).message),
   });
 
+  const applicaSconto = useMutation({
+    mutationFn: async (perc: number) => {
+      await applicaScontoPiedeARighe(id, perc);
+      await updatePreventivo(id, { sconto_piede_perc: perc });
+    },
+    onSuccess: () => {
+      toast.success("Sconto a piede applicato a tutte le righe");
+      invalidate();
+    },
+    onError: (e: unknown) => toast.error((e as Error).message),
+  });
+
   const totali = useMemo(() => {
     if (!prev) return { imponibile: 0, imponibile_lordo: 0, sconto_perc: 0, importo_sconto: 0, imponibile_netto: 0, iva: 0, totale: 0 };
     // Lo sconto è già applicato nelle righe (sconto_perc di riga). NON applicarlo di nuovo qui.
