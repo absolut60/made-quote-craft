@@ -148,19 +148,33 @@ function drawFooter(doc: jsPDF) {
   const h = doc.internal.pageSize.getHeight();
   const pages = doc.getNumberOfPages();
   const FOOTER_H = 20;
+  const BAND_H = 46;
+  const BAND_GAP = 2; // spazio tra fascia blu e piede legale
 
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
     const isLast = i === pages;
 
     if (isLast) {
-      // Claim testo (helvetica) — niente immagine per compatibilità Acrobat
-      doc.setTextColor(...COBALT);
-      doc.setFont("helvetica", "bold"); doc.setFontSize(16);
-      doc.text("IL NUOVO MODO DI COSTRUIRE.", 14, h - FOOTER_H - 15);
-      doc.setFont("helvetica", "bold"); doc.setFontSize(9.5);
-      doc.text("Tecnologie leggere, risultati solidi", 14, h - FOOTER_H - 8);
-      doc.text("il sistema a secco che guarda al futuro.", 14, h - FOOTER_H - 3.5);
+      // Fascia blu cobalto a tutta larghezza
+      const bandY = h - FOOTER_H - BAND_GAP - BAND_H;
+      doc.setFillColor(...COBALT);
+      doc.rect(0, bandY, w, BAND_H, "F");
+
+      // Testo claim in bianco — Helvetica Bold (compat. Acrobat)
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+
+      // Titolo (righe 1-2) — 24pt, interlinea ~9mm
+      doc.setFontSize(24);
+      doc.text("IL NUOVO MODO", 14, bandY + 13);
+      doc.text("DI COSTRUIRE.", 14, bandY + 23);
+
+      // Tagline (righe 3-4) — 12pt, ~metà del titolo
+      doc.setFontSize(12);
+      doc.text("Tecnologie leggere, risultati solidi", 14, bandY + 34);
+      doc.text("il sistema a secco che guarda al futuro.", 14, bandY + 40);
+
       doc.setFont("helvetica", "normal");
     }
 
@@ -316,12 +330,12 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
     doc.line(14, y, w - 14, y);
     y += 6;
 
-    if (y > doc.internal.pageSize.getHeight() - 55) {
+    if (y > doc.internal.pageSize.getHeight() - 72) {
       doc.addPage(); y = 20;
     }
   }
 
-  if (y > doc.internal.pageSize.getHeight() - 60) { doc.addPage(); y = 20; }
+  if (y > doc.internal.pageSize.getHeight() - 75) { doc.addPage(); y = 20; }
   doc.setDrawColor(...GRIGIO_BD); doc.setLineWidth(0.2);
   doc.line(14, y, w - 14, y);
   y += 5;
