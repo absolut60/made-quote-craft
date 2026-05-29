@@ -28,7 +28,7 @@ export const Route = createFileRoute("/preventivi/")({
 const ANY = "__any";
 
 function PreventiviListPage() {
-  const qc = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [dSearch, setDSearch] = useState("");
   const [clienteId, setClienteId] = useState<string | null>(null);
@@ -58,14 +58,6 @@ function PreventiviListPage() {
     queryFn: () => searchClienti(""),
   });
 
-  const del = useMutation({
-    mutationFn: (id: string) => deletePreventivo(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["preventivi"] });
-      toast.success("Preventivo eliminato");
-    },
-    onError: (e: unknown) => toast.error((e as Error).message),
-  });
 
   return (
     <AppShell>
