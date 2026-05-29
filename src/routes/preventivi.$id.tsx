@@ -61,6 +61,24 @@ function PreventivoEditorPage() {
     queryFn: () => fetchPreventivo(id),
   });
 
+  const { data: agenti = [] } = useQuery({ queryKey: ["agenti"], queryFn: fetchAgenti });
+
+  async function onChangeCliente(nuovoId: string | null) {
+    if (!nuovoId) {
+      save.mutate({ cliente_id: null, cantiere_id: null });
+      return;
+    }
+    const c = await fetchCliente(nuovoId);
+    save.mutate({
+      cliente_id: nuovoId,
+      cantiere_id: null,
+      agente_id: c?.agente_id ?? null,
+      filiale: c?.filiale ?? null,
+      ...(c?.fascia_listino_default ? { fascia_listino: c.fascia_listino_default } : {}),
+    });
+  }
+
+
   const invalidate = () => qc.invalidateQueries({ queryKey: ["preventivo", id] });
 
   const save = useMutation({
