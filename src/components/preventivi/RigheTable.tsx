@@ -47,9 +47,11 @@ import { toast } from "sonner";
 export function RigheTable({
   blocco,
   preventivoId,
+  fascia,
 }: {
   blocco: BloccoConRighe;
   preventivoId: string;
+  fascia: FasciaListino;
 }) {
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["preventivo", preventivoId] });
