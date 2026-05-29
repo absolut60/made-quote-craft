@@ -61,6 +61,7 @@ function PreventivoEditorPage() {
   const [outputOpen, setOutputOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editModeInitialized, setEditModeInitialized] = useState(false);
+  const [clienteDialogOpen, setClienteDialogOpen] = useState(false);
 
   const { data: prev, isLoading } = useQuery({
     queryKey: ["preventivo", id],
