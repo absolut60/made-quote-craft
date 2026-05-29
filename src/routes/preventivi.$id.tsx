@@ -434,7 +434,7 @@ function BloccoCard({
             </div>
           )}
 
-          <RigheTable blocco={blocco} preventivoId={preventivoId} />
+          <RigheTable blocco={blocco} preventivoId={preventivoId} fascia={fascia} />
         </CardContent>
       </Card>
     </div>
