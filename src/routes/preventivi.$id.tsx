@@ -122,7 +122,7 @@ function PreventivoEditorPage() {
     return { costo, vendita, euro: round2(euro), perc: round2(perc) };
   }, [prev]);
 
-  // Persist totali in DB (fire and forget) when cambiano significativamente
+  // Persist totali in DB automaticamente quando cambiano
   const saveTotali = useMutation({
     mutationFn: (t: { imponibile: number; iva: number; totale: number }) =>
       updatePreventivo(id, {
@@ -131,6 +131,31 @@ function PreventivoEditorPage() {
         totale: t.totale,
       }),
   });
+
+  useEffect(() => {
+    if (!prev) return;
+    const stored = {
+      imp: Number(prev.totale_imponibile ?? 0),
+      iva: Number(prev.iva_importo ?? 0),
+      tot: Number(prev.totale ?? 0),
+    };
+    if (
+      Math.abs(stored.imp - totali.imponibile) > 0.005 ||
+      Math.abs(stored.iva - totali.iva) > 0.005 ||
+      Math.abs(stored.tot - totali.totale) > 0.005
+    ) {
+      saveTotali.mutate(totali);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totali.imponibile, totali.iva, totali.totale, prev?.totale_imponibile, prev?.iva_importo, prev?.totale]);
+
+  // Inizializza editMode: bozza vuota → modifica, altrimenti sola lettura
+  useEffect(() => {
+    if (!prev || editModeInitialized) return;
+    setEditMode(prev.stato === "bozza" && prev.blocchi.length === 0);
+    setEditModeInitialized(true);
+  }, [prev, editModeInitialized]);
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
