@@ -310,8 +310,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
   const discLines = doc.splitTextToSize(DISCLAIMER, 78);
   doc.text(discLines, 14, y + 1);
 
-  const hasSconto = scontoPiede > 0;
-  const boxH = hasSconto ? 35 : 28;
+  const boxH = 28;
   const tw = 80; const tx = w - 14 - tw; const ty = y;
   doc.setDrawColor(...GRIGIO_BD); doc.setLineWidth(0.3);
   doc.rect(tx, ty, tw, boxH, "D");
@@ -320,12 +319,8 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
   doc.text("Imponibile", tx + 3, ty + 7);
   doc.setTextColor(...NAVY); doc.text(fmtEur(tot.imponibile_lordo), tx + tw - 4, ty + 7, { align: "right" });
 
-  let cy = ty + 14;
-  if (hasSconto) {
-    doc.setTextColor(200, 30, 30);
-    doc.text(`Sconto applicato −${scontoPiede.toLocaleString("it-IT", { maximumFractionDigits: 2 })}% su righe`, tx + 3, cy);
-    cy += 7;
-  }
+  const cy = ty + 14;
+
 
   doc.setTextColor(...GRIGIO);
   doc.text(`IVA ${ivaPerc}%`, tx + 3, cy);
