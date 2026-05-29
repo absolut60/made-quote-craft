@@ -438,7 +438,8 @@ function PreventivoEditorPage() {
                   </div>
                 </SortableContext>
               </DndContext>
-            </section>
+              </section>
+            </fieldset>
 
             {/* ===== PIEDE ===== */}
             <section className="flex flex-col gap-3">
