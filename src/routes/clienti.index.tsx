@@ -178,20 +178,24 @@ function ClientiListPage() {
             </thead>
             <tbody>
               {error ? (
-                <tr><td colSpan={9} className="px-3 py-12 text-center text-destructive">
+                <tr><td colSpan={8} className="px-3 py-12 text-center text-destructive">
                   Errore: {(error as Error).message}
                 </td></tr>
               ) : isLoading ? (
-                <tr><td colSpan={9} className="px-3 py-12 text-center text-muted-foreground">
+                <tr><td colSpan={8} className="px-3 py-12 text-center text-muted-foreground">
                   Caricamento…
                 </td></tr>
               ) : clienti.length === 0 ? (
-                <tr><td colSpan={9} className="px-3 py-12 text-center text-muted-foreground">
+                <tr><td colSpan={8} className="px-3 py-12 text-center text-muted-foreground">
                   Nessun cliente trovato.
                 </td></tr>
               ) : (
                 clienti.map((c) => (
-                  <tr key={c.id} className="border-b hover:bg-muted/50">
+                  <tr
+                    key={c.id}
+                    onClick={() => navigate({ to: "/clienti/$id", params: { id: c.id } })}
+                    className="cursor-pointer border-b hover:bg-muted/50"
+                  >
                     <td className="px-3 py-1.5 font-medium">{c.ragione_sociale}</td>
                     <td className="px-3 py-1.5 font-mono">{c.id_cliente ?? "—"}</td>
                     <td className="px-3 py-1.5 font-mono">{c.piva ?? "—"}</td>
@@ -200,15 +204,6 @@ function ClientiListPage() {
                     <td className="px-3 py-1.5">{c.filiale ?? "—"}</td>
                     <td className="px-3 py-1.5">{c.agente?.nome ?? "—"}</td>
                     <td className="px-3 py-1.5 font-mono">{c.fascia_listino_default ?? "—"}</td>
-                    <td className="px-3 py-1.5 text-right">
-                      <Link
-                        to="/clienti/$id"
-                        params={{ id: c.id }}
-                        className="inline-flex items-center gap-1 rounded px-2 py-1 text-navy hover:bg-muted"
-                      >
-                        <Eye className="h-3 w-3" /> Apri
-                      </Link>
-                    </td>
                   </tr>
                 ))
               )}
