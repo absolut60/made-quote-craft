@@ -74,19 +74,48 @@ function PreventiviListPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col gap-4 p-3 md:p-4 lg:p-6">
+      <div className="flex flex-col gap-2 p-3 lg:gap-4 lg:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h1 className="text-2xl font-semibold">Preventivi</h1>
-            <p className="text-sm text-muted-foreground">Documenti commerciali per cantiere</p>
+            <h1 className="text-lg font-semibold lg:text-2xl">Preventivi</h1>
+            <p className="text-xs text-muted-foreground lg:text-sm">Documenti commerciali per cantiere</p>
           </div>
-          <Button onClick={() => setOpenNew(true)}>
+          <Button size="sm" onClick={() => setOpenNew(true)} className="lg:h-10">
             <Plus className="mr-1 h-4 w-4" /> Nuovo preventivo
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative w-full max-w-sm">
+        {/* Search + Filtri toggle (mobile) */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cerca per numero…"
+              className="h-9 pl-8 text-sm"
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            onClick={() => setMostraFiltri((v) => !v)}
+          >
+            <SlidersHorizontal className="mr-1 h-4 w-4" /> Filtri
+            {nFiltriAttivi > 0 && (
+              <Badge className="ml-1 h-4 px-1.5 text-[10px]">{nFiltriAttivi}</Badge>
+            )}
+          </Button>
+        </div>
+
+        <div
+          className={cn(
+            "gap-2 lg:flex lg:flex-wrap lg:items-center",
+            mostraFiltri ? "grid grid-cols-2" : "hidden",
+          )}
+        >
+          <div className="relative hidden w-full max-w-sm lg:block">
             <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
@@ -96,7 +125,7 @@ function PreventiviListPage() {
             />
           </div>
           <Select value={clienteId ?? ANY} onValueChange={(v) => setClienteId(v === ANY ? null : v)}>
-            <SelectTrigger className="w-56"><SelectValue placeholder="Cliente" /></SelectTrigger>
+            <SelectTrigger className="h-9 text-sm lg:h-10 lg:w-56"><SelectValue placeholder="Cliente" /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ANY}>Tutti i clienti</SelectItem>
               {clienti.map((c) => (
@@ -105,7 +134,7 @@ function PreventiviListPage() {
             </SelectContent>
           </Select>
           <Select value={stato ?? ANY} onValueChange={(v) => setStato(v === ANY ? null : (v as StatoPreventivo))}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="Stato" /></SelectTrigger>
+            <SelectTrigger className="h-9 text-sm lg:h-10 lg:w-40"><SelectValue placeholder="Stato" /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ANY}>Tutti gli stati</SelectItem>
               {STATI.map((s) => (
@@ -114,7 +143,7 @@ function PreventiviListPage() {
             </SelectContent>
           </Select>
           <Select value={tipoDoc ?? ANY} onValueChange={(v) => setTipoDoc(v === ANY ? null : (v as TipoDoc))}>
-            <SelectTrigger className="w-56"><SelectValue placeholder="Tipo doc" /></SelectTrigger>
+            <SelectTrigger className="h-9 text-sm lg:h-10 lg:w-56"><SelectValue placeholder="Tipo doc" /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ANY}>Tutti i tipi</SelectItem>
               {TIPI_DOC.map((t) => (
@@ -123,6 +152,7 @@ function PreventiviListPage() {
             </SelectContent>
           </Select>
         </div>
+
 
         <div className="rounded-md border bg-card">
           <Table>
