@@ -33,7 +33,7 @@ function ListiniPage() {
             </TabsContent>
             <TabsContent
               value="vendita"
-              className="mt-0 -mx-6 border-t data-[state=inactive]:hidden"
+              className="mt-0 -mx-3 border-t data-[state=inactive]:hidden lg:-mx-6"
               forceMount
             >
               <ListinoVenditaView />
