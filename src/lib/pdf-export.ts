@@ -159,15 +159,15 @@ function drawFooter(doc: jsPDF) {
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
 
-      // Titolo (righe 1-2) — 24pt, interlinea ~9mm
-      doc.setFontSize(24);
-      doc.text("IL NUOVO MODO", 14, bandY + 13);
-      doc.text("DI COSTRUIRE.", 14, bandY + 23);
-
-      // Tagline (righe 3-4) — 12pt, ~metà del titolo
+      // Titolo (righe 1-2) — 12pt, interlinea ~5mm
       doc.setFontSize(12);
-      doc.text("Tecnologie leggere, risultati solidi", 14, bandY + 34);
-      doc.text("il sistema a secco che guarda al futuro.", 14, bandY + 40);
+      doc.text("IL NUOVO MODO", 14, bandY + 6);
+      doc.text("DI COSTRUIRE.", 14, bandY + 11);
+
+      // Tagline (righe 3-4) — 6.5pt, ~metà del titolo
+      doc.setFontSize(6.5);
+      doc.text("Tecnologie leggere, risultati solidi", 14, bandY + 16.5);
+      doc.text("il sistema a secco che guarda al futuro.", 14, bandY + 20);
 
       doc.setFont("helvetica", "normal");
     }
