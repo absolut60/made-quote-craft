@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,19 +11,14 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Eye, Plus, Search, SlidersHorizontal, Trash2 } from "lucide-react";
+import { Plus, Search, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  deletePreventivo, fetchPreventivi, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
+  fetchPreventivi, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
   type StatoPreventivo, type TipoDoc,
 } from "@/lib/preventivi-api";
 import { searchClienti } from "@/lib/preventivi-api";
 import { NuovoPreventivoDialog } from "@/components/preventivi/NuovoPreventivoDialog";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/preventivi/")({
   head: () => ({ meta: [{ title: "Preventivi — Sistema MADE" }] }),
