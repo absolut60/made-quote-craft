@@ -82,36 +82,39 @@ function drawHeader(doc: jsPDF, titolo: string, prev: PreventivoConDettagli) {
   doc.text("CLIENTE", 14, by + 5);
   doc.setFont("helvetica", "bold"); doc.setFontSize(9.5);
   doc.setTextColor(255, 255, 255);
-  const rs = (prev.cliente?.ragione_sociale ?? "—").slice(0, 45);
+  const rs = (prev.cliente?.ragione_sociale ?? "—").slice(0, 38);
   doc.text(rs, 14, by + 10);
   if (prev.cantiere) {
     doc.setFont("helvetica", "normal"); doc.setFontSize(7);
     doc.setTextColor(...LABEL_COL);
-    const ct = (prev.cantiere.nome + (prev.cantiere.indirizzo ? " — " + prev.cantiere.indirizzo : "")).slice(0, 55);
+    const ct = (prev.cantiere.nome + (prev.cantiere.indirizzo ? " — " + prev.cantiere.indirizzo : "")).slice(0, 48);
     doc.text(ct, 14, by + 16);
   }
 
-  // Metadata
+  // Metadata — colonne right-aligned per evitare sovrapposizioni
+  const colDoc = w - 78;   // N° DOCUMENTO (right edge)
+  const colData = w - 42;  // DATA (right edge)
+  const colVal = w - 14;   // VALIDITÀ (right edge)
   const R1 = [
-    { lbl: "N° DOCUMENTO", val: String(prev.numero ?? "—"), x: w - 100 },
-    { lbl: "DATA",         val: fmtData(prev.data),          x: w - 70  },
-    { lbl: "VALIDITÀ",     val: fmtData(prev.validita),      x: w - 40  },
+    { lbl: "N° DOCUMENTO", val: String(prev.numero ?? "—"), x: colDoc },
+    { lbl: "DATA",         val: fmtData(prev.data),          x: colData },
+    { lbl: "VALIDITÀ",     val: fmtData(prev.validita),      x: colVal },
   ];
   const R2 = [
-    { lbl: "AGENTE",  val: (prev.agente?.nome ?? "—").slice(0, 18), x: w - 100 },
-    { lbl: "FILIALE", val: (prev.filiale ?? "—").slice(0, 14),       x: w - 70  },
+    { lbl: "AGENTE",  val: (prev.agente?.nome ?? "—").slice(0, 16), x: colDoc },
+    { lbl: "FILIALE", val: (prev.filiale ?? "—").slice(0, 14),       x: colData },
   ];
   for (const c of R1) {
     doc.setFont("helvetica", "bold"); doc.setFontSize(5.5); doc.setTextColor(...LABEL_COL);
-    doc.text(c.lbl, c.x, by + 5);
+    doc.text(c.lbl, c.x, by + 5, { align: "right" });
     doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(255, 255, 255);
-    doc.text(c.val, c.x, by + 10);
+    doc.text(c.val, c.x, by + 10, { align: "right" });
   }
   for (const c of R2) {
     doc.setFont("helvetica", "bold"); doc.setFontSize(5.5); doc.setTextColor(...LABEL_COL);
-    doc.text(c.lbl, c.x, by + 15.5);
+    doc.text(c.lbl, c.x, by + 15.5, { align: "right" });
     doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(255, 255, 255);
-    doc.text(c.val, c.x, by + 20);
+    doc.text(c.val, c.x, by + 20, { align: "right" });
   }
 }
 
@@ -124,9 +127,11 @@ function drawFooter(doc: jsPDF) {
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
 
-    if (i === pages) {
-      const claimW = 56;
-      const claimH = 22;
+    const claimW = 56;
+    const claimH = 22;
+    const isLast = i === pages;
+
+    if (isLast) {
       const claimY = h - FOOTER_H - claimH - 4;
       try { doc.addImage(CLAIM_MADE_B64, "JPEG", 14, claimY, claimW, claimH); } catch { /* ignora */ }
     }
@@ -136,8 +141,11 @@ function drawFooter(doc: jsPDF) {
 
     doc.setFont("helvetica", "normal"); doc.setFontSize(5.2);
     doc.setTextColor(...GRIGIO);
-    const lines = doc.splitTextToSize(FOOTER_LEGAL, w - 28);
-    doc.text(lines, 14, h - FOOTER_H + 4);
+    // sull'ultima pagina sposto il testo a destra del claim per non sovrapporre
+    const legalX = isLast ? 14 + claimW + 6 : 14;
+    const legalW = w - legalX - 14;
+    const lines = doc.splitTextToSize(FOOTER_LEGAL, legalW);
+    doc.text(lines, legalX, h - FOOTER_H + 4);
 
     doc.setFontSize(6);
     doc.text(`Pag. ${i} / ${pages}`, w - 14, h - 5, { align: "right" });
