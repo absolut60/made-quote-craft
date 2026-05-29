@@ -1,0 +1,1 @@
+ALTER TABLE public.kit_componenti ALTER COLUMN articolo_id DROP NOT NULL;
