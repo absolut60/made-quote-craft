@@ -362,7 +362,7 @@ export async function exportPropostaRapidaPdf(prev: PreventivoConDettagli) {
       righe: bl.righe, quantita_base: bl.quantita_base, prezzo_um: bl.prezzo_um, importo: bl.importo,
     })),
     ivaPerc,
-    scontoPiede,
+    0,
   );
 
   const DISCLAIMER =
