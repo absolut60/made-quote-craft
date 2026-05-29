@@ -39,6 +39,7 @@ import {
   TIPI_RIGA, TIPI_RIGA_LABEL, updateRiga,
   type BloccoConRighe, type Riga, type TipoRiga,
 } from "@/lib/preventivi-api";
+import type { FasciaListino } from "@/lib/articoli-api";
 import { round2 } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
