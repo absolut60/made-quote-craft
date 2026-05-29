@@ -42,14 +42,14 @@ export function ListinoAcquistoView() {
     queryFn: fetchFornitori,
   });
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["listini-acquisto-view", dSearch, fornId, dataFrom],
     queryFn: async () => {
       // 1. Articoli filtrati
       let aq = supabase
         .from("articoli")
         .select("id, cod_gamma, descrizione, fornitore_id")
-        .order("cod_gamma", { ascending: true, nullsFirst: false })
+        .order("cod_gamma", { ascending: true })
         .limit(1500);
       if (dSearch.trim()) {
         const s = dSearch.trim().replace(/[%,]/g, " ");
@@ -57,7 +57,10 @@ export function ListinoAcquistoView() {
       }
       if (fornId) aq = aq.eq("fornitore_id", fornId);
       const { data: arts, error: aErr } = await aq;
-      if (aErr) throw aErr;
+      if (aErr) {
+        console.error("ListinoAcquistoView articoli query error:", aErr);
+        throw aErr;
+      }
       const articoli = (arts ?? []) as ArticoloLite[];
       if (!articoli.length) return { articoli: [], byArt: new Map<string, ListinoRow>() };
 
@@ -70,7 +73,10 @@ export function ListinoAcquistoView() {
         let lq = supabase.from("listini_acquisto").select("*").in("articolo_id", chunk);
         if (dataFrom) lq = lq.gte("data_validita", dataFrom);
         const { data: lists, error: lErr } = await lq;
-        if (lErr) throw lErr;
+        if (lErr) {
+          console.error("ListinoAcquistoView listini chunk error:", lErr);
+          throw lErr;
+        }
         all.push(...((lists ?? []) as ListinoRow[]));
       }
 
