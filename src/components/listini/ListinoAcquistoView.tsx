@@ -35,6 +35,8 @@ export function ListinoAcquistoView() {
   const [dSearch, setDSearch] = useState("");
   const [fornId, setFornId] = useState<string | null>(null);
   const [dataFrom, setDataFrom] = useState<string>("");
+  const [mostraFiltri, setMostraFiltri] = useState(false);
+  const nFiltriAttivi = [fornId, dataFrom].filter(Boolean).length;
 
   useEffect(() => {
     const t = setTimeout(() => setDSearch(search), 300);
