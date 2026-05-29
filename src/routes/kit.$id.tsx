@@ -88,7 +88,7 @@ function KitEditorPage() {
     mutationFn: () =>
       insertComponente({
         kit_id: id,
-        articolo_id: "00000000-0000-0000-0000-000000000000",
+        articolo_id: null,
         ordine: (kit?.componenti.length ?? 0) + 1,
         tipo_driver: "INCIDENZA_FISSA",
       }),
@@ -405,6 +405,7 @@ function ComponenteRow({
         <ArticoloPicker
           value={row.articolo_id}
           onChange={(articolo_id) => onPatch({ articolo_id })}
+          placeholder="— Seleziona articolo —"
         />
         {row.articolo?.um && (
           <div className="mt-0.5 px-1 font-mono text-[10px] text-muted-foreground">
