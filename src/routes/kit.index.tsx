@@ -25,7 +25,7 @@ import { FAMIGLIE_KIT, FAMIGLIA_LABEL } from "@/lib/incidenza";
 import { FASCE } from "@/lib/articoli-api";
 import { NuovoKitDialog } from "@/components/kit/NuovoKitDialog";
 
-export const Route = createFileRoute("/kit")({
+export const Route = createFileRoute("/kit/")({
   head: () => ({ meta: [{ title: "Kit / Lavorazioni — Sistema MADE" }] }),
   component: KitListPage,
 });
