@@ -600,23 +600,25 @@ function BloccoCard({
                 € {totaleBlocco.toFixed(2)}
               </div>
             </div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button size="icon" variant="ghost" className="mt-5 h-8 w-8 text-destructive">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Eliminare il blocco?</AlertDialogTitle>
-                  <AlertDialogDescription>Verranno eliminate anche tutte le righe del blocco.</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Annulla</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => del.mutate()}>Elimina</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {!readOnly && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="icon" variant="ghost" className="mt-5 h-8 w-8 text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Eliminare il blocco?</AlertDialogTitle>
+                    <AlertDialogDescription>Verranno eliminate anche tutte le righe del blocco.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annulla</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => del.mutate()}>Elimina</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
 
           {blocco.note_tecniche && (
