@@ -354,29 +354,30 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
   const discLines = doc.splitTextToSize(DISCLAIMER, 78);
   doc.text(discLines, 14, y + 1);
 
-  const boxH = 28;
+  const boxH = 26;
   const tw = 80; const tx = w - 14 - tw; const ty = y;
   doc.setDrawColor(...GRIGIO_BD); doc.setLineWidth(0.3);
   doc.rect(tx, ty, tw, boxH, "D");
 
+  // Riga "Totale" evidenziata (ex Imponibile) — al netto sconti
+  doc.setFillColor(...NAVY); doc.rect(tx, ty, tw, 11, "F");
+  doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+  doc.text("Totale", tx + 3, ty + 7.5);
+  doc.text(fmtEur(tot.imponibile_netto), tx + tw - 4, ty + 7.5, { align: "right" });
+
+  // IVA — riga normale
   doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRIGIO);
-  doc.text("Imponibile", tx + 3, ty + 7);
-  doc.setTextColor(...NAVY); doc.text(fmtEur(tot.imponibile_lordo), tx + tw - 4, ty + 7, { align: "right" });
-
-  const cy = ty + 14;
-
-
-  doc.setTextColor(...GRIGIO);
-  doc.text(`IVA ${ivaPerc}%`, tx + 3, cy);
-  doc.setTextColor(...NAVY); doc.text(fmtEur(tot.iva), tx + tw - 4, cy, { align: "right" });
+  doc.text(`IVA ${ivaPerc}%`, tx + 3, ty + 16);
+  doc.setTextColor(...NAVY); doc.text(fmtEur(tot.iva), tx + tw - 4, ty + 16, { align: "right" });
 
   doc.setDrawColor(...GRIGIO_BD); doc.setLineWidth(0.1);
-  doc.line(tx + 2, cy + 4.5, tx + tw - 2, cy + 4.5);
+  doc.line(tx + 2, ty + 18.5, tx + tw - 2, ty + 18.5);
 
-  doc.setFillColor(...NAVY); doc.rect(tx, cy + 5.5, tw, 8.5, "F");
-  doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
-  doc.text("TOTALE", tx + 3, cy + 11.5);
-  doc.text(fmtEur(tot.totale), tx + tw - 4, cy + 11.5, { align: "right" });
+  // Totale con IVA — riga normale
+  doc.setTextColor(...GRIGIO);
+  doc.text("Totale con IVA", tx + 3, ty + 22.5);
+  doc.setTextColor(...NAVY); doc.text(fmtEur(tot.totale), tx + tw - 4, ty + 22.5, { align: "right" });
+
 
 
   drawFooter(doc);
