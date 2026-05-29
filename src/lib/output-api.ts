@@ -178,7 +178,7 @@ export function buildBlocchiOutput(prev: PreventivoConDettagli): BloccoOutput[] 
     const prezzo_um = q > 0 ? round2(totale / q) : n(b.prezzo_um);
     return {
       id: b.id,
-      rif: b.rif_capitolato ?? "",
+      rif: b.rif_capitolato ?? "—",
       descrizione: b.descrizione ?? "",
       note_tecniche: b.note_tecniche ?? null,
       um: b.um_base ?? "mq",
