@@ -536,28 +536,47 @@ export function calcolaBlocco(righe: Riga[]): {
   };
 }
 
+export interface TotaliPreventivo {
+  imponibile: number;        // alias di imponibile_netto (retrocompat)
+  imponibile_lordo: number;
+  sconto_perc: number;
+  importo_sconto: number;
+  imponibile_netto: number;
+  iva: number;
+  totale: number;
+}
+
 export function calcolaTotaliPreventivo(
   blocchi: { righe: Riga[]; quantita_base?: number | null; prezzo_um?: number | null; importo?: number | null }[],
   iva_perc = 22,
-): { imponibile: number; iva: number; totale: number } {
-  let imponibile = 0;
+  sconto_piede_perc = 0,
+): TotaliPreventivo {
+  let imponibileLordo = 0;
   for (const b of blocchi) {
-    // Se il blocco ha righe → somma righe (calcolate). Altrimenti usa importo memorizzato.
     if (b.righe?.length) {
-      imponibile += calcolaBlocco(b.righe).totale;
+      imponibileLordo += calcolaBlocco(b.righe).totale;
     } else if (b.importo != null) {
-      imponibile += n(b.importo);
+      imponibileLordo += n(b.importo);
     } else if (b.quantita_base != null && b.prezzo_um != null) {
-      imponibile += n(b.quantita_base) * n(b.prezzo_um);
+      imponibileLordo += n(b.quantita_base) * n(b.prezzo_um);
     }
   }
-  const iva = round2((imponibile * n(iva_perc)) / 100);
+  imponibileLordo = round2(imponibileLordo);
+  const scontoPerc = Math.max(0, n(sconto_piede_perc));
+  const importoSconto = round2((imponibileLordo * scontoPerc) / 100);
+  const imponibileNetto = round2(imponibileLordo - importoSconto);
+  const iva = round2((imponibileNetto * n(iva_perc)) / 100);
   return {
-    imponibile: round2(imponibile),
+    imponibile: imponibileNetto,
+    imponibile_lordo: imponibileLordo,
+    sconto_perc: scontoPerc,
+    importo_sconto: importoSconto,
+    imponibile_netto: imponibileNetto,
     iva,
-    totale: round2(imponibile + iva),
+    totale: round2(imponibileNetto + iva),
   };
 }
+
 
 /** Genera un nuovo "ordine" frazionario tra prev e next (per drag&drop senza rinumerare). */
 export function fractionalOrder(prev: number | null, next: number | null): number {
