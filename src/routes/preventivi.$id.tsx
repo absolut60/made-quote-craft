@@ -45,6 +45,7 @@ import { ClientePicker } from "@/components/preventivi/ClientePicker";
 import { CantierePicker } from "@/components/preventivi/CantierePicker";
 import { AllegatiSection } from "@/components/preventivi/AllegatiSection";
 import { fetchAllegati } from "@/lib/allegati-api";
+import { ClienteDettaglioDialog } from "@/components/preventivi/ClienteDettaglioDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/preventivi/$id")({
