@@ -30,7 +30,7 @@ import {
 import { Eye, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/clienti")({
+export const Route = createFileRoute("/clienti/")({
   head: () => ({ meta: [{ title: "Clienti — Sistema MADE" }] }),
   component: ClientiListPage,
 });
