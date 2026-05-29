@@ -27,7 +27,9 @@ import {
   FASCE,
   type FasciaListino,
 } from "@/lib/clienti-api";
-import { Eye, Plus, Search } from "lucide-react";
+import { Eye, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/clienti/")({
