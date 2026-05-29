@@ -294,9 +294,9 @@ function PreventivoEditorPage() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(`/clienti/${cliente.id}`, "_blank", "noopener");
+                            setClienteDialogOpen(true);
                           }}
-                          title="Apri scheda cliente"
+                          title="Apri dettaglio cliente"
                           className="cursor-pointer self-start bg-transparent p-0 text-left text-base font-bold leading-tight text-[#0d1f3c] hover:text-[#2b5ea7] hover:underline"
                         >
                           {cliente.ragione_sociale}
