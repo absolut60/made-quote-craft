@@ -39,6 +39,8 @@ import { cn } from "@/lib/utils";
 import { AggiungiBloccoDialog } from "@/components/preventivi/AggiungiBloccoDialog";
 import { RigheTable } from "@/components/preventivi/RigheTable";
 import { GeneraDocumentoDialog } from "@/components/preventivi/GeneraDocumentoDialog";
+import { ClientePicker } from "@/components/preventivi/ClientePicker";
+import { CantierePicker } from "@/components/preventivi/CantierePicker";
 
 export const Route = createFileRoute("/preventivi/$id")({
   head: () => ({ meta: [{ title: "Editor Preventivo — Sistema MADE" }] }),
