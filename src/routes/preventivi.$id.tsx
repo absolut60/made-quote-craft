@@ -281,142 +281,172 @@ function PreventivoEditorPage() {
             <section className="flex flex-col gap-3">
               <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Testata</div>
 
-              {/* Riquadro cliente in evidenza */}
-              <Card className="overflow-hidden border-[#0d1f3c]/15">
-                <CardContent
-                  className="p-4"
-                  style={{ background: "linear-gradient(135deg, #f4f7fb 0%, #e8eef7 100%)" }}
-                >
-                  {cliente ? (
-                    <div className="flex flex-col gap-1">
-                      {cliente.id_cliente && (
-                        <div className="font-mono text-xs text-[#2b5ea7]">Cliente n. {cliente.id_cliente}</div>
-                      )}
-                      <div className="text-lg font-bold text-[#0d1f3c]">{cliente.ragione_sociale}</div>
-                      {cliente.piva && (
-                        <div className="text-sm text-[#0d1f3c]/80">P.IVA {cliente.piva}</div>
-                      )}
-                      {indirizzoCliente && (
-                        <div className="text-sm text-[#0d1f3c]/80">{indirizzoCliente}</div>
-                      )}
-                      {cantiereLine && (
-                        <div className="mt-1 text-sm text-[#0d1f3c]">📍 Cantiere: {cantiereLine}</div>
-                      )}
+              {!editMode ? (
+                /* ===== BANNER RIASSUNTIVO (sola lettura) ===== */
+                <Card className="overflow-hidden border-[#0d1f3c]/15">
+                  <CardContent
+                    className="p-4 md:p-5"
+                    style={{ background: "linear-gradient(135deg, #f4f7fb 0%, #e8eef7 100%)" }}
+                  >
+                    {cliente ? (
+                      <div className="flex flex-col gap-1">
+                        {cliente.id_cliente && (
+                          <div className="font-mono text-xs text-[#2b5ea7]">Cliente n. {cliente.id_cliente}</div>
+                        )}
+                        <div className="text-lg font-bold text-[#0d1f3c]">{cliente.ragione_sociale}</div>
+                        {cliente.piva && (
+                          <div className="text-sm text-[#0d1f3c]/80">P.IVA {cliente.piva}</div>
+                        )}
+                        {indirizzoCliente && (
+                          <div className="text-sm text-[#0d1f3c]/80">{indirizzoCliente}</div>
+                        )}
+                        {cantiereLine && (
+                          <div className="mt-1 text-sm text-[#0d1f3c]">📍 Cantiere: {cantiereLine}</div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">Nessun cliente selezionato</div>
+                    )}
+
+                    {/* Griglia campi aggiuntivi */}
+                    <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-[#0d1f3c]/10 pt-3 md:grid-cols-3">
+                      {[
+                        { label: "Numero", value: prev.numero || "—" },
+                        { label: "Data", value: prev.data ? new Date(prev.data).toLocaleDateString("it-IT") : "—" },
+                        { label: "Validità", value: prev.validita ? new Date(prev.validita).toLocaleDateString("it-IT") : "—" },
+                        { label: "Agente", value: agenti.find((a) => a.id === prev.agente_id)?.nome || "—" },
+                        { label: "Filiale", value: prev.filiale || "—" },
+                        { label: "Tipo documento", value: TIPI_DOC_LABEL[prev.tipo_doc] || "—" },
+                        { label: "Fascia listino", value: prev.fascia_listino || "—" },
+                        { label: "Stato", value: STATI_LABEL[prev.stato] || "—" },
+                        { label: "IVA", value: `${Number(prev.iva_perc ?? 22)}%` },
+                      ].map((f) => (
+                        <div key={f.label} className="flex flex-col">
+                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{f.label}</span>
+                          <span className="text-sm font-medium text-[#0d1f3c]">{f.value}</span>
+                        </div>
+                      ))}
                     </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">Nessun cliente selezionato</div>
-                  )}
-                </CardContent>
-              </Card>
+                    {prev.note && (
+                      <div className="mt-3 border-t border-[#0d1f3c]/10 pt-3">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Note</div>
+                        <div className="whitespace-pre-wrap text-sm text-[#0d1f3c]">{prev.note}</div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  {/* Cliente / Cantiere pickers */}
+                  <Card>
+                    <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
+                      <div className="grid gap-1.5">
+                        <Label className="text-xs">Cliente</Label>
+                        <ClientePicker value={prev.cliente_id ?? null} onChange={onChangeCliente} />
+                      </div>
+                      <div className="grid gap-1.5">
+                        <Label className="text-xs">Cantiere</Label>
+                        <CantierePicker
+                          cliente_id={prev.cliente_id ?? null}
+                          value={prev.cantiere_id ?? null}
+                          onChange={(id) => save.mutate({ cantiere_id: id })}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              {/* Cliente / Cantiere pickers */}
-              <Card>
-                <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">Cliente</Label>
-                    <ClientePicker value={prev.cliente_id ?? null} onChange={onChangeCliente} />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">Cantiere</Label>
-                    <CantierePicker
-                      cliente_id={prev.cliente_id ?? null}
-                      value={prev.cantiere_id ?? null}
-                      onChange={(id) => save.mutate({ cantiere_id: id })}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Campi modificabili in griglia 2 colonne */}
-              <Card>
-                <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">Numero</Label>
-                    <Input defaultValue={prev.numero ?? ""}
-                      onBlur={(e) => {
-                        if ((e.target.value || null) !== prev.numero)
-                          save.mutate({ numero: e.target.value || null });
-                      }} />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">Agente</Label>
-                    <Select
-                      value={prev.agente_id ?? ""}
-                      onValueChange={(v) => save.mutate({ agente_id: v || null })}
-                    >
-                      <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                      <SelectContent>
-                        {agenti.map((a) => (
-                          <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">Filiale</Label>
-                    <Input
-                      defaultValue={prev.filiale ?? ""}
-                      key={`fil-${prev.filiale ?? ""}`}
-                      onBlur={(e) => {
-                        if ((e.target.value || null) !== prev.filiale)
-                          save.mutate({ filiale: e.target.value || null });
-                      }}
-                    />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">Data</Label>
-                    <Input type="date" defaultValue={prev.data}
-                      onBlur={(e) => { if (e.target.value && e.target.value !== prev.data) save.mutate({ data: e.target.value }); }} />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">Validità</Label>
-                    <Input type="date" defaultValue={prev.validita ?? ""}
-                      onBlur={(e) => { if ((e.target.value || null) !== prev.validita) save.mutate({ validita: e.target.value || null }); }} />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">Tipo documento</Label>
-                    <Select value={prev.tipo_doc} onValueChange={(v) => save.mutate({ tipo_doc: v as TipoDoc })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {TIPI_DOC.map((t) => (
-                          <SelectItem key={t} value={t}>{TIPI_DOC_LABEL[t]}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">Fascia listino</Label>
-                    <Select value={prev.fascia_listino ?? "A"} onValueChange={(v) => save.mutate({ fascia_listino: v as FasciaListino })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {FASCE.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">Stato</Label>
-                    <Select value={prev.stato} onValueChange={(v) => save.mutate({ stato: v as StatoPreventivo })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {STATI.map((s) => <SelectItem key={s} value={s}>{STATI_LABEL[s]}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">IVA %</Label>
-                    <Input type="number" step="0.01" defaultValue={prev.iva_perc ?? 22}
-                      onBlur={(e) => {
-                        const v = Number(e.target.value);
-                        if (Number.isFinite(v) && v !== Number(prev.iva_perc ?? 22)) save.mutate({ iva_perc: v });
-                      }} />
-                  </div>
-                  <div className="grid gap-1.5 md:col-span-2">
-                    <Label className="text-xs">Note</Label>
-                    <Textarea rows={2} defaultValue={prev.note ?? ""}
-                      onBlur={(e) => { if ((e.target.value || null) !== prev.note) save.mutate({ note: e.target.value || null }); }} />
-                  </div>
-                </CardContent>
-              </Card>
+                  {/* Campi modificabili in griglia 2 colonne */}
+                  <Card>
+                    <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
+                      <div className="grid gap-1.5">
+                        <Label className="text-xs">Numero</Label>
+                        <Input defaultValue={prev.numero ?? ""}
+                          onBlur={(e) => {
+                            if ((e.target.value || null) !== prev.numero)
+                              save.mutate({ numero: e.target.value || null });
+                          }} />
+                      </div>
+                      <div className="grid gap-1.5">
+                        <Label className="text-xs">Agente</Label>
+                        <Select
+                          value={prev.agente_id ?? ""}
+                          onValueChange={(v) => save.mutate({ agente_id: v || null })}
+                        >
+                          <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                          <SelectContent>
+                            {agenti.map((a) => (
+                              <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-1.5">
+                        <Label className="text-xs">Filiale</Label>
+                        <Input
+                          defaultValue={prev.filiale ?? ""}
+                          key={`fil-${prev.filiale ?? ""}`}
+                          onBlur={(e) => {
+                            if ((e.target.value || null) !== prev.filiale)
+                              save.mutate({ filiale: e.target.value || null });
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-1.5">
+                        <Label className="text-xs">Data</Label>
+                        <Input type="date" defaultValue={prev.data}
+                          onBlur={(e) => { if (e.target.value && e.target.value !== prev.data) save.mutate({ data: e.target.value }); }} />
+                      </div>
+                      <div className="grid gap-1.5">
+                        <Label className="text-xs">Validità</Label>
+                        <Input type="date" defaultValue={prev.validita ?? ""}
+                          onBlur={(e) => { if ((e.target.value || null) !== prev.validita) save.mutate({ validita: e.target.value || null }); }} />
+                      </div>
+                      <div className="grid gap-1.5">
+                        <Label className="text-xs">Tipo documento</Label>
+                        <Select value={prev.tipo_doc} onValueChange={(v) => save.mutate({ tipo_doc: v as TipoDoc })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {TIPI_DOC.map((t) => (
+                              <SelectItem key={t} value={t}>{TIPI_DOC_LABEL[t]}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-1.5">
+                        <Label className="text-xs">Fascia listino</Label>
+                        <Select value={prev.fascia_listino ?? "A"} onValueChange={(v) => save.mutate({ fascia_listino: v as FasciaListino })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {FASCE.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-1.5">
+                        <Label className="text-xs">Stato</Label>
+                        <Select value={prev.stato} onValueChange={(v) => save.mutate({ stato: v as StatoPreventivo })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {STATI.map((s) => <SelectItem key={s} value={s}>{STATI_LABEL[s]}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-1.5">
+                        <Label className="text-xs">IVA %</Label>
+                        <Input type="number" step="0.01" defaultValue={prev.iva_perc ?? 22}
+                          onBlur={(e) => {
+                            const v = Number(e.target.value);
+                            if (Number.isFinite(v) && v !== Number(prev.iva_perc ?? 22)) save.mutate({ iva_perc: v });
+                          }} />
+                      </div>
+                      <div className="grid gap-1.5 md:col-span-2">
+                        <Label className="text-xs">Note</Label>
+                        <Textarea rows={2} defaultValue={prev.note ?? ""}
+                          onBlur={(e) => { if ((e.target.value || null) !== prev.note) save.mutate({ note: e.target.value || null }); }} />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </section>
 
             {/* ===== CORPO ===== */}
