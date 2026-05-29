@@ -502,8 +502,8 @@ function AllegatiCountBadge({ preventivoId }: { preventivoId: string }) {
 }
 
 function BloccoCard({
-  blocco, index, preventivoId, fascia,
-}: { blocco: BloccoConRighe; index: number; preventivoId: string; fascia: FasciaListino }) {
+  blocco, index, preventivoId, fascia, readOnly = false,
+}: { blocco: BloccoConRighe; index: number; preventivoId: string; fascia: FasciaListino; readOnly?: boolean }) {
   const qc = useQueryClient();
   const sortable = useSortable({ id: blocco.id });
   const style = {
