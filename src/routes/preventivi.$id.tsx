@@ -41,6 +41,7 @@ import { RigheTable } from "@/components/preventivi/RigheTable";
 import { GeneraDocumentoDialog } from "@/components/preventivi/GeneraDocumentoDialog";
 import { ClientePicker } from "@/components/preventivi/ClientePicker";
 import { CantierePicker } from "@/components/preventivi/CantierePicker";
+import { AllegatiSection } from "@/components/preventivi/AllegatiSection";
 
 export const Route = createFileRoute("/preventivi/$id")({
   head: () => ({ meta: [{ title: "Editor Preventivo — Sistema MADE" }] }),
@@ -297,6 +298,9 @@ function PreventivoEditorPage() {
             </div>
           </SortableContext>
         </DndContext>
+
+        {/* Allegati */}
+        <AllegatiSection preventivoId={id} />
 
         {/* Totali */}
         <Card>
