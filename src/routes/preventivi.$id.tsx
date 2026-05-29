@@ -28,11 +28,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, fetchPreventivo,
+  calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, fetchAgenti, fetchCliente, fetchPreventivo,
   reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
   updateBlocco, updatePreventivo,
   type BloccoConRighe, type StatoPreventivo, type TipoDoc,
 } from "@/lib/preventivi-api";
+
 import { FASCE, type FasciaListino } from "@/lib/articoli-api";
 import { round2 } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
@@ -59,6 +60,24 @@ function PreventivoEditorPage() {
     queryKey: ["preventivo", id],
     queryFn: () => fetchPreventivo(id),
   });
+
+  const { data: agenti = [] } = useQuery({ queryKey: ["agenti"], queryFn: fetchAgenti });
+
+  async function onChangeCliente(nuovoId: string | null) {
+    if (!nuovoId) {
+      save.mutate({ cliente_id: null, cantiere_id: null });
+      return;
+    }
+    const c = await fetchCliente(nuovoId);
+    save.mutate({
+      cliente_id: nuovoId,
+      cantiere_id: null,
+      agente_id: c?.agente_id ?? null,
+      filiale: c?.filiale ?? null,
+      ...(c?.fascia_listino_default ? { fascia_listino: c.fascia_listino_default } : {}),
+    });
+  }
+
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["preventivo", id] });
 
@@ -208,7 +227,7 @@ function PreventivoEditorPage() {
                 <Label className="text-xs">Cliente</Label>
                 <ClientePicker
                   value={prev.cliente_id ?? null}
-                  onChange={(id) => save.mutate({ cliente_id: id, cantiere_id: null })}
+                  onChange={onChangeCliente}
                 />
               </div>
               <div className="grid gap-1.5">
@@ -219,10 +238,33 @@ function PreventivoEditorPage() {
                   onChange={(id) => save.mutate({ cantiere_id: id })}
                 />
               </div>
-              <div className="md:col-span-2 text-xs text-muted-foreground">
-                Agente: {prev.agente?.nome ?? "—"} · Filiale: {prev.filiale ?? "—"}
+              <div className="grid gap-1.5">
+                <Label className="text-xs">Agente</Label>
+                <Select
+                  value={prev.agente_id ?? ""}
+                  onValueChange={(v) => save.mutate({ agente_id: v || null })}
+                >
+                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                  <SelectContent>
+                    {agenti.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label className="text-xs">Filiale</Label>
+                <Input
+                  defaultValue={prev.filiale ?? ""}
+                  key={`fil-${prev.filiale ?? ""}`}
+                  onBlur={(e) => {
+                    if ((e.target.value || null) !== prev.filiale)
+                      save.mutate({ filiale: e.target.value || null });
+                  }}
+                />
               </div>
             </div>
+
 
             <div className="grid gap-1.5">
               <Label className="text-xs">Tipo documento</Label>
