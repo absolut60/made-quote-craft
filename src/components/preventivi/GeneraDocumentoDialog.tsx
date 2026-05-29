@@ -11,6 +11,7 @@ import {
   exportPreventivoPdf, exportPropostaRapidaPdf, exportListaMaterialiPdf, exportListaFornitorePdf,
 } from "@/lib/pdf-export";
 import { exportListaMaterialiXlsx, exportListaFornitoreXlsx } from "@/lib/excel-export";
+import { AnteprimaPdfDialog } from "./AnteprimaPdfDialog";
 
 type Modalita = "PREVENTIVO" | "PROPOSTA_RAPIDA" | "LISTA_MATERIALI" | "LISTA_FORNITORE";
 
@@ -42,21 +43,25 @@ export function GeneraDocumentoDialog({
 }: { open: boolean; onOpenChange: (v: boolean) => void; prev: PreventivoConDettagli }) {
   const [sel, setSel] = useState<Modalita>("PREVENTIVO");
   const [busy, setBusy] = useState(false);
+  const [preview, setPreview] = useState<{ blob: Blob; fileName: string } | null>(null);
 
   async function run(formato: "pdf" | "xlsx") {
     setBusy(true);
     try {
       if (formato === "pdf") {
-        if (sel === "PREVENTIVO") await exportPreventivoPdf(prev);
-        else if (sel === "PROPOSTA_RAPIDA") await exportPropostaRapidaPdf(prev);
-        else if (sel === "LISTA_MATERIALI") await exportListaMaterialiPdf(prev);
-        else await exportListaFornitorePdf(prev);
+        let result: { blob: Blob; fileName: string };
+        if (sel === "PREVENTIVO") result = await exportPreventivoPdf(prev);
+        else if (sel === "PROPOSTA_RAPIDA") result = await exportPropostaRapidaPdf(prev);
+        else if (sel === "LISTA_MATERIALI") result = await exportListaMaterialiPdf(prev);
+        else result = await exportListaFornitorePdf(prev);
+        setPreview(result);
+        onOpenChange(false);
       } else {
         if (sel === "LISTA_MATERIALI") await exportListaMaterialiXlsx(prev);
         else if (sel === "LISTA_FORNITORE") await exportListaFornitoreXlsx(prev);
+        toast.success("Documento generato");
+        onOpenChange(false);
       }
-      toast.success("Documento generato");
-      onOpenChange(false);
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -67,49 +72,58 @@ export function GeneraDocumentoDialog({
   const modoCorrente = MODI.find((m) => m.id === sel)!;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Genera documento</DialogTitle>
-          <DialogDescription>Scegli la modalità di output dal preventivo {prev.numero ?? ""}.</DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Genera documento</DialogTitle>
+            <DialogDescription>Scegli la modalità di output dal preventivo {prev.numero ?? ""}.</DialogDescription>
+          </DialogHeader>
 
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-          {MODI.map((m) => {
-            const Icon = m.icon;
-            const active = sel === m.id;
-            return (
-              <Card
-                key={m.id}
-                onClick={() => setSel(m.id)}
-                className={`cursor-pointer border-2 p-3 transition ${
-                  active ? "border-primary bg-primary/5" : "border-transparent hover:border-muted"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <Icon className={`h-6 w-6 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                  <div>
-                    <div className="text-sm font-semibold">{m.label}</div>
-                    <div className="mt-0.5 text-xs text-muted-foreground">{m.desc}</div>
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            {MODI.map((m) => {
+              const Icon = m.icon;
+              const active = sel === m.id;
+              return (
+                <Card
+                  key={m.id}
+                  onClick={() => setSel(m.id)}
+                  className={`cursor-pointer border-2 p-3 transition ${
+                    active ? "border-primary bg-primary/5" : "border-transparent hover:border-muted"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <Icon className={`h-6 w-6 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                    <div>
+                      <div className="text-sm font-semibold">{m.label}</div>
+                      <div className="mt-0.5 text-xs text-muted-foreground">{m.desc}</div>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+                </Card>
+              );
+            })}
+          </div>
 
-        <DialogFooter className="flex flex-wrap gap-2 sm:justify-end">
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>Annulla</Button>
-          {modoCorrente.excel && (
-            <Button variant="outline" onClick={() => run("xlsx")} disabled={busy}>
-              <FileSpreadsheet className="mr-1 h-4 w-4" /> Esporta Excel
+          <DialogFooter className="flex flex-wrap gap-2 sm:justify-end">
+            <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>Annulla</Button>
+            {modoCorrente.excel && (
+              <Button variant="outline" onClick={() => run("xlsx")} disabled={busy}>
+                <FileSpreadsheet className="mr-1 h-4 w-4" /> Esporta Excel
+              </Button>
+            )}
+            <Button onClick={() => run("pdf")} disabled={busy}>
+              <Download className="mr-1 h-4 w-4" /> {busy ? "Generazione…" : "Genera PDF"}
             </Button>
-          )}
-          <Button onClick={() => run("pdf")} disabled={busy}>
-            <Download className="mr-1 h-4 w-4" /> {busy ? "Generazione…" : "Genera PDF"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AnteprimaPdfDialog
+        open={preview !== null}
+        onOpenChange={(v) => { if (!v) setPreview(null); }}
+        blob={preview?.blob ?? null}
+        fileName={preview?.fileName ?? ""}
+      />
+    </>
   );
 }
