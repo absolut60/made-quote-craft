@@ -211,21 +211,24 @@ function PreventivoEditorPage() {
             </Badge>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" onClick={() => setOutputOpen(true)}>
-              <FileDown className="mr-1 h-4 w-4" /> Genera documento
-            </Button>
             <Button
               size="sm"
-              variant="outline"
-              onClick={() => saveTotali.mutate(totali)}
-              disabled={saveTotali.isPending}
+              variant={editMode ? "default" : "outline"}
+              onClick={() => setEditMode((v) => !v)}
             >
-              <Save className="mr-1 h-4 w-4" /> Salva totali
+              {editMode ? (
+                <><Check className="mr-1 h-4 w-4" /> Fine modifica</>
+              ) : (
+                <><Pencil className="mr-1 h-4 w-4" /> Modifica</>
+              )}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setOutputOpen(true)}>
+              <FileDown className="mr-1 h-4 w-4" /> Genera documento
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button size="sm" variant="ghost" className="text-destructive">
-                  <Trash2 className="mr-1 h-4 w-4" /> Elimina
+                  <Trash2 className="mr-1 h-4 w-4" /> Elimina preventivo
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
