@@ -153,10 +153,13 @@ function drawFooter(doc: jsPDF) {
     const isLast = i === pages;
 
     if (isLast) {
-      // Claim testo (helvetica bold) — niente immagine per compatibilità Acrobat
-      doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+      // Claim testo (helvetica) — niente immagine per compatibilità Acrobat
       doc.setTextColor(...COBALT);
-      doc.text("IL NUOVO MODO DI COSTRUIRE.", 14, h - FOOTER_H - 4);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+      doc.text("IL NUOVO MODO DI COSTRUIRE.", 14, h - FOOTER_H - 11);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+      doc.text("Tecnologie leggere, risultati solidi", 14, h - FOOTER_H - 6);
+      doc.text("il sistema a secco che guarda al futuro.", 14, h - FOOTER_H - 2.5);
       doc.setFont("helvetica", "normal");
     }
 
