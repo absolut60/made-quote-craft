@@ -280,23 +280,23 @@ function PreventivoEditorPage() {
                 /* ===== BANNER RIASSUNTIVO (sola lettura) ===== */
                 <Card className="overflow-hidden border-[#0d1f3c]/15">
                   <CardContent
-                    className="p-4 md:p-5"
+                    className="p-3 md:p-3.5"
                     style={{ background: "linear-gradient(135deg, #f4f7fb 0%, #e8eef7 100%)" }}
                   >
                     {cliente ? (
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col space-y-0.5">
                         {cliente.id_cliente && (
                           <div className="font-mono text-xs text-[#2b5ea7]">Cliente n. {cliente.id_cliente}</div>
                         )}
-                        <div className="text-lg font-bold text-[#0d1f3c]">{cliente.ragione_sociale}</div>
+                        <div className="text-base font-bold leading-tight text-[#0d1f3c]">{cliente.ragione_sociale}</div>
                         {cliente.piva && (
-                          <div className="text-sm text-[#0d1f3c]/80">P.IVA {cliente.piva}</div>
+                          <div className="text-sm leading-snug text-[#0d1f3c]/80">P.IVA {cliente.piva}</div>
                         )}
                         {indirizzoCliente && (
-                          <div className="text-sm text-[#0d1f3c]/80">{indirizzoCliente}</div>
+                          <div className="text-sm leading-snug text-[#0d1f3c]/80">{indirizzoCliente}</div>
                         )}
                         {cantiereLine && (
-                          <div className="mt-1 text-sm text-[#0d1f3c]">📍 Cantiere: {cantiereLine}</div>
+                          <div className="pt-0.5 text-sm leading-snug text-[#0d1f3c]">📍 Cantiere: {cantiereLine}</div>
                         )}
                       </div>
                     ) : (
@@ -304,7 +304,7 @@ function PreventivoEditorPage() {
                     )}
 
                     {/* Griglia campi aggiuntivi */}
-                    <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-[#0d1f3c]/10 pt-3 md:grid-cols-3">
+                    <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1.5 border-t border-[#0d1f3c]/10 pt-2 md:grid-cols-3">
                       {[
                         { label: "Numero", value: prev.numero || "—" },
                         { label: "Data", value: prev.data ? new Date(prev.data).toLocaleDateString("it-IT") : "—" },
@@ -316,16 +316,16 @@ function PreventivoEditorPage() {
                         { label: "Stato", value: STATI_LABEL[prev.stato] || "—" },
                         { label: "IVA", value: `${Number(prev.iva_perc ?? 22)}%` },
                       ].map((f) => (
-                        <div key={f.label} className="flex flex-col">
+                        <div key={f.label} className="flex flex-col leading-tight">
                           <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{f.label}</span>
                           <span className="text-sm font-medium text-[#0d1f3c]">{f.value}</span>
                         </div>
                       ))}
                     </div>
                     {prev.note && (
-                      <div className="mt-3 border-t border-[#0d1f3c]/10 pt-3">
+                      <div className="mt-2 border-t border-[#0d1f3c]/10 pt-2">
                         <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Note</div>
-                        <div className="whitespace-pre-wrap text-sm text-[#0d1f3c]">{prev.note}</div>
+                        <div className="whitespace-pre-wrap text-sm leading-snug text-[#0d1f3c]">{prev.note}</div>
                       </div>
                     )}
                   </CardContent>
