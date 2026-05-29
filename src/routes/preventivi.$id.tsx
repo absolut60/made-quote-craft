@@ -100,6 +100,7 @@ function PreventivoEditorPage() {
 
   const totali = useMemo(() => {
     if (!prev) return { imponibile: 0, imponibile_lordo: 0, sconto_perc: 0, importo_sconto: 0, imponibile_netto: 0, iva: 0, totale: 0 };
+    // Lo sconto è già applicato nelle righe (sconto_perc di riga). NON applicarlo di nuovo qui.
     return calcolaTotaliPreventivo(
       prev.blocchi.map((b) => ({
         righe: b.righe,
@@ -108,19 +109,17 @@ function PreventivoEditorPage() {
         importo: b.importo,
       })),
       Number(prev.iva_perc ?? 22),
-      Number(prev.sconto_piede_perc ?? 0),
+      0,
     );
   }, [prev]);
 
   const margineTotale = useMemo(() => {
-    let costo = 0, venditaLorda = 0;
+    let costo = 0, vendita = 0;
     for (const b of prev?.blocchi ?? []) {
       const c = calcolaBlocco(b.righe);
       costo += c.costo;
-      venditaLorda += c.totale;
+      vendita += c.totale; // già al netto dello sconto di riga
     }
-    const fattore = 1 - Number(prev?.sconto_piede_perc ?? 0) / 100;
-    const vendita = venditaLorda * fattore;
     const euro = vendita - costo;
     const perc = vendita > 0 ? (euro / vendita) * 100 : 0;
     return { costo, vendita, euro: round2(euro), perc: round2(perc) };
