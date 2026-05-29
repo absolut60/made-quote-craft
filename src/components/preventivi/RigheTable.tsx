@@ -428,9 +428,8 @@ function RigaRow({
 }
 
 function RowActions({
-  onDelete, onAddAbove, onAddBelow, onChangeType, currentType,
+  onAddAbove, onAddBelow, onChangeType, currentType,
 }: {
-  onDelete: () => void;
   onAddAbove: (t: TipoRiga) => void;
   onAddBelow: (t: TipoRiga) => void;
   onChangeType: (t: TipoRiga) => void;
@@ -439,7 +438,7 @@ function RowActions({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="ghost" className="h-6 w-6">
+        <Button size="icon" variant="ghost" className="h-7 w-7">
           <span className="text-xs">⋯</span>
         </Button>
       </DropdownMenuTrigger>
@@ -464,13 +463,10 @@ function RowActions({
             {TIPI_RIGA_LABEL[t]}
           </DropdownMenuItem>
         ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onDelete} className="text-destructive">
-          <Trash2 className="mr-2 h-3 w-3" /> Elimina riga
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
+
 
 void round2;
