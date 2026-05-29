@@ -311,8 +311,8 @@ function Totale({ label, value, strong }: { label: string; value: string; strong
 }
 
 function BloccoCard({
-  blocco, index, preventivoId,
-}: { blocco: BloccoConRighe; index: number; preventivoId: string }) {
+  blocco, index, preventivoId, fascia,
+}: { blocco: BloccoConRighe; index: number; preventivoId: string; fascia: FasciaListino }) {
   const qc = useQueryClient();
   const sortable = useSortable({ id: blocco.id });
   const style = {
