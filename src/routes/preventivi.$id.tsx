@@ -149,7 +149,8 @@ function PreventivoEditorPage() {
               {STATI_LABEL[prev.stato]}
             </Badge>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <AllegatiButton preventivoId={id} />
             <Button size="sm" onClick={() => setOutputOpen(true)}>
               <FileDown className="mr-1 h-4 w-4" /> Genera documento
             </Button>
