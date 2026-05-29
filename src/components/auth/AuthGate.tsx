@@ -17,8 +17,12 @@ export function AuthGate({
     if (loading) return;
     if (!user) {
       navigate({ to: "/login", search: { redirect: pathname } });
+      return;
     }
-  }, [loading, user, navigate, pathname]);
+    if (requireRole && !roles.includes(requireRole)) {
+      navigate({ to: "/" });
+    }
+  }, [loading, user, roles, requireRole, navigate, pathname]);
 
   if (loading) {
     return (
