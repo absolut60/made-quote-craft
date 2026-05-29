@@ -190,7 +190,18 @@ export async function fetchPreventivo(id: string): Promise<PreventivoConDettagli
 
 export async function createPreventivo(row: PreventivoInsert): Promise<Preventivo> {
   const { data, error } = await supabase.from("preventivi").insert(row).select().single();
-  if (error) throw error;
+  if (error) {
+    console.error("[createPreventivo] Supabase error:", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+      payload: row,
+    });
+    throw new Error(
+      `${error.message}${error.details ? ` — ${error.details}` : ""}${error.hint ? ` (hint: ${error.hint})` : ""}${error.code ? ` [${error.code}]` : ""}`,
+    );
+  }
   return data;
 }
 
