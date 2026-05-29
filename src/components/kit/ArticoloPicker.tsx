@@ -4,7 +4,15 @@ import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchArticoliFacets } from "@/lib/articoli-api";
 import type { ArticoloConListini } from "@/lib/kit-api";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +21,8 @@ const ARTICOLO_SELECT = `
   listini_acquisto:listini_acquisto(*),
   listini_vendita:listini_vendita(*)
 `;
+
+const ALL = "__all__";
 
 export function ArticoloPicker({
   value,
@@ -25,9 +35,29 @@ export function ArticoloPicker({
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const [fornitoreFiltro, setFornitoreFiltro] = useState("");
+  const [tipologiaFiltro, setTipologiaFiltro] = useState("");
+
+  const { data: fornitori = [] } = useQuery({
+    queryKey: ["fornitori-picker"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fornitori")
+        .select("id, ragione_sociale")
+        .order("ragione_sociale");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: facets } = useQuery({
+    queryKey: ["articoli-facets"],
+    queryFn: fetchArticoliFacets,
+  });
+  const tipologie = facets?.tipologie ?? [];
 
   const { data: items = [] } = useQuery({
-    queryKey: ["articoli-picker", q],
+    queryKey: ["articoli-picker", q, fornitoreFiltro, tipologiaFiltro],
     queryFn: async () => {
       let qb = supabase
         .from("articoli")
@@ -35,13 +65,14 @@ export function ArticoloPicker({
         .eq("stato", "attivo")
         .order("cod_gamma", { ascending: true, nullsFirst: false })
         .limit(50);
+      if (fornitoreFiltro) qb = qb.eq("fornitore_id", fornitoreFiltro);
+      if (tipologiaFiltro) qb = qb.eq("tipologia", tipologiaFiltro);
       if (q.trim()) {
         const s = q.trim().replace(/[%,]/g, " ");
         qb = qb.or(`cod_gamma.ilike.%${s}%,descrizione.ilike.%${s}%,cod_fornitore.ilike.%${s}%`);
       }
       const { data, error } = await qb;
       if (error) throw error;
-      // Sort listini_acquisto by most recent first so [0] is the latest
       for (const a of (data ?? []) as unknown as ArticoloConListini[]) {
         a.listini_acquisto?.sort((x, y) => {
           const dx = x.data_validita ?? x.created_at ?? "";
@@ -72,6 +103,8 @@ export function ArticoloPicker({
     return `${selected.cod_gamma ?? "—"} · ${selected.descrizione}`;
   }, [selected]);
 
+  const hasFilters = !!(fornitoreFiltro || tipologiaFiltro || q);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -85,6 +118,40 @@ export function ArticoloPicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[480px] p-0" align="start">
+        <div className="grid grid-cols-1 gap-1.5 border-b p-2 sm:grid-cols-2">
+          <Select
+            value={fornitoreFiltro || ALL}
+            onValueChange={(v) => setFornitoreFiltro(v === ALL ? "" : v)}
+          >
+            <SelectTrigger className="h-7 text-xs">
+              <SelectValue placeholder="Fornitore" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Tutti i fornitori</SelectItem>
+              {fornitori.map((f) => (
+                <SelectItem key={f.id} value={f.id}>
+                  {f.ragione_sociale}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={tipologiaFiltro || ALL}
+            onValueChange={(v) => setTipologiaFiltro(v === ALL ? "" : v)}
+          >
+            <SelectTrigger className="h-7 text-xs">
+              <SelectValue placeholder="Tipologia" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Tutte le tipologie</SelectItem>
+              {tipologie.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex items-center gap-2 border-b px-2 py-1.5">
           <Search className="h-3.5 w-3.5 text-muted-foreground" />
           <Input
@@ -94,6 +161,19 @@ export function ArticoloPicker({
             placeholder="Cerca per codice o descrizione…"
             className="h-7 border-0 px-0 text-xs focus-visible:ring-0"
           />
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={() => {
+                setFornitoreFiltro("");
+                setTipologiaFiltro("");
+                setQ("");
+              }}
+              className="shrink-0 text-[11px] text-muted-foreground underline hover:text-foreground"
+            >
+              Azzera
+            </button>
+          )}
         </div>
         <div className="max-h-72 overflow-auto">
           {items.length === 0 ? (
