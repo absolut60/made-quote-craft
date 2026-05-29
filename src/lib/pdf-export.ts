@@ -278,8 +278,8 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
   const discLines = doc.splitTextToSize(DISCLAIMER, 78);
   doc.text(discLines, 14, y + 1);
 
-  const hasSconto = tot.sconto_perc > 0;
-  const boxH = hasSconto ? 42 : 28;
+  const hasSconto = scontoPiede > 0;
+  const boxH = hasSconto ? 35 : 28;
   const tw = 80; const tx = w - 14 - tw; const ty = y;
   doc.setDrawColor(...GRIGIO_BD); doc.setLineWidth(0.3);
   doc.rect(tx, ty, tw, boxH, "D");
@@ -291,12 +291,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli) {
   let cy = ty + 14;
   if (hasSconto) {
     doc.setTextColor(200, 30, 30);
-    doc.text(`Sconto −${tot.sconto_perc.toLocaleString("it-IT", { maximumFractionDigits: 2 })}%`, tx + 3, cy);
-    doc.text(`− ${fmtEur(tot.importo_sconto)}`, tx + tw - 4, cy, { align: "right" });
-    cy += 7;
-    doc.setTextColor(...GRIGIO);
-    doc.text("Imponibile netto", tx + 3, cy);
-    doc.setTextColor(...NAVY); doc.text(fmtEur(tot.imponibile_netto), tx + tw - 4, cy, { align: "right" });
+    doc.text(`Sconto applicato −${scontoPiede.toLocaleString("it-IT", { maximumFractionDigits: 2 })}% su righe`, tx + 3, cy);
     cy += 7;
   }
 
