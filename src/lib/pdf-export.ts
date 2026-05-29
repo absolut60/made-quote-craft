@@ -127,9 +127,11 @@ function drawFooter(doc: jsPDF) {
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
 
-    if (i === pages) {
-      const claimW = 56;
-      const claimH = 22;
+    const claimW = 56;
+    const claimH = 22;
+    const isLast = i === pages;
+
+    if (isLast) {
       const claimY = h - FOOTER_H - claimH - 4;
       try { doc.addImage(CLAIM_MADE_B64, "JPEG", 14, claimY, claimW, claimH); } catch { /* ignora */ }
     }
@@ -139,8 +141,11 @@ function drawFooter(doc: jsPDF) {
 
     doc.setFont("helvetica", "normal"); doc.setFontSize(5.2);
     doc.setTextColor(...GRIGIO);
-    const lines = doc.splitTextToSize(FOOTER_LEGAL, w - 28);
-    doc.text(lines, 14, h - FOOTER_H + 4);
+    // sull'ultima pagina sposto il testo a destra del claim per non sovrapporre
+    const legalX = isLast ? 14 + claimW + 6 : 14;
+    const legalW = w - legalX - 14;
+    const lines = doc.splitTextToSize(FOOTER_LEGAL, legalW);
+    doc.text(lines, legalX, h - FOOTER_H + 4);
 
     doc.setFontSize(6);
     doc.text(`Pag. ${i} / ${pages}`, w - 14, h - 5, { align: "right" });
