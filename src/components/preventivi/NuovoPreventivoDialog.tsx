@@ -50,25 +50,33 @@ export function NuovoPreventivoDialog({
   }, [clienteId]);
 
   const create = useMutation({
-    mutationFn: () =>
-      createPreventivo({
+    mutationFn: () => {
+      const numeroFinal = numero.trim() || `PRV-${Date.now()}`;
+      const dataFinal = data || today;
+      const fasciaFinal: FasciaListino = fascia || "A";
+      const tipoDocFinal: TipoDoc = tipoDoc || "PREVENTIVO";
+      return createPreventivo({
         cliente_id: clienteId,
         cantiere_id: cantiereId,
         agente_id: agenteId,
         filiale: filiale || null,
-        fascia_listino: fascia,
-        tipo_doc: tipoDoc,
-        numero: numero.trim() || null,
-        data,
+        fascia_listino: fasciaFinal,
+        tipo_doc: tipoDocFinal,
+        numero: numeroFinal,
+        data: dataFinal,
         validita: validita || null,
-      }),
+      });
+    },
     onSuccess: (p) => {
       qc.invalidateQueries({ queryKey: ["preventivi"] });
       toast.success("Preventivo creato");
       onOpenChange(false);
       navigate({ to: "/preventivi/$id", params: { id: p.id } });
     },
-    onError: (e: unknown) => toast.error((e as Error).message),
+    onError: (e: unknown) => {
+      console.error("[NuovoPreventivoDialog] create error:", e);
+      toast.error((e as Error).message || "Errore creazione preventivo");
+    },
   });
 
   return (
