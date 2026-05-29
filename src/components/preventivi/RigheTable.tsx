@@ -289,7 +289,21 @@ function RigaRow({
           <div className="space-y-0.5">
             <ArticoloPicker
               value={row.articolo_id}
-              onChange={(articolo_id) => onPatch({ articolo_id })}
+              onChange={(articolo_id, articolo) => {
+                const listino = articolo?.listini_vendita?.find((l) => l.fascia === fascia);
+                const acquistoRecente = articolo?.listini_acquisto?.[0];
+                const prezzo = listino?.prezzo == null ? null : Number(listino.prezzo);
+                const costo = acquistoRecente?.costo_netto == null ? null : Number(acquistoRecente.costo_netto);
+                onPatch({
+                  articolo_id,
+                  um: articolo?.um ?? null,
+                  descrizione: articolo?.descrizione ?? null,
+                  prezzo_unit: prezzo,
+                  costo,
+                  vendita: prezzo,
+                  peso: articolo?.peso_unit == null ? null : Number(articolo.peso_unit),
+                });
+              }}
             />
             <Input
               defaultValue={row.descrizione ?? row.articolo?.descrizione ?? ""}
