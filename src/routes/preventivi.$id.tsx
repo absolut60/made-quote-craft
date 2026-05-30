@@ -440,10 +440,10 @@ function PreventivoEditorPage() {
                       </div>
                       <div className="grid gap-1.5">
                         <Label className="text-xs">IVA %</Label>
-                        <Input type="number" step="0.01" defaultValue={prev.iva_perc ?? 22}
+                        <Input type="text" inputMode="decimal" defaultValue={String(prev.iva_perc ?? 22).replace(".",",")}
                           onBlur={(e) => {
-                            const v = Number(e.target.value);
-                            if (Number.isFinite(v) && v !== Number(prev.iva_perc ?? 22)) save.mutate({ iva_perc: v });
+                            const v = parseNumeroIt(e.target.value);
+                            if (v !== null && v !== Number(prev.iva_perc ?? 22)) save.mutate({ iva_perc: v });
                           }} />
                       </div>
                       <div className="grid gap-1.5 md:col-span-2">
