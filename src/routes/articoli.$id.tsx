@@ -44,6 +44,7 @@ export const Route = createFileRoute("/articoli/$id")({
 
 function ArticoloDetailPage() {
   const { id } = Route.useParams();
+  const { tab: tabParam } = Route.useSearch();
   const qc = useQueryClient();
   const navigate = useNavigate();
 
