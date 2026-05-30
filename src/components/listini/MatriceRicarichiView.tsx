@@ -148,15 +148,22 @@ export function MatriceRicarichiView() {
       const vendIdx = new Map<string, string>();
       for (const v of vendAll) vendIdx.set(vendKey(v.articolo_id, v.fascia), v.id);
 
-      const toUpdate: { id: string; payload: Record<string, unknown> }[] = [];
-      const toInsert: Record<string, unknown>[] = [];
+      type VendPayload = {
+        articolo_id: string;
+        fascia: FasciaListino;
+        ricarico: number;
+        prezzo: number;
+        margine: number;
+      };
+      const toUpdate: { id: string; payload: VendPayload }[] = [];
+      const toInsert: VendPayload[] = [];
       let saltati_categoria = 0;
       let saltati_costo = 0;
       let aggiornati = 0;
       let fasceCount = 0;
 
       for (const a of articoli) {
-        const m = catMap.get(a.categoria!);
+        const m = a.categoria ? catMap.get(a.categoria) : undefined;
         if (!m) {
           saltati_categoria++;
           continue;
@@ -178,10 +185,9 @@ export function MatriceRicarichiView() {
           if (ric == null) continue;
           const prezzo = round2(costo * (1 + Number(ric) / 100));
           const margine = prezzo > 0 ? round2(((prezzo - costo) / prezzo) * 100) : 0;
-          const payload = {
+          const payload: VendPayload = {
             articolo_id: a.id,
             fascia: f,
-            costo,
             ricarico: round2(Number(ric)),
             prezzo,
             margine,
