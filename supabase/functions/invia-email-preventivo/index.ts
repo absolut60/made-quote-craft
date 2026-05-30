@@ -1,8 +1,9 @@
 // Edge Function: invia-email-preventivo
-// Invia il PDF di un preventivo via SMTP (SSL).
-// JWT richiesto (verify_jwt=true): solo utenti autenticati.
+// Invia il PDF di un preventivo via SMTP (SSL) con corpo HTML + footer aziendale MADE.
+// Il logo "sistema MADE" è allegato inline (Content-ID "logo-made") nel riquadro navy.
 
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { LOGO_WHITE_B64 } from "./logo.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,12 +26,86 @@ function isValidEmail(e: string): boolean {
 }
 
 function base64ToUint8(b64: string): Uint8Array {
-  // strip data URL prefix if present
-  const clean = b64.replace(/^data:application\/pdf;base64,/, "");
+  const clean = b64.replace(/^data:[^;]+;base64,/, "");
   const bin = atob(clean);
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function buildHtml(messaggioUtente: string): string {
+  const msgHtml = escapeHtml(messaggioUtente).replace(/\n/g, "<br/>");
+  const privacy =
+    "In ottemperanza al regolamento UE 2016/679 (RGPD) si precisa che la presente comunicazione contiene " +
+    "informazioni riservate e confidenziali ed è destinata esclusivamente ai destinatari della medesima qui " +
+    "indicati. Le opinioni, le conclusioni e le altre informazioni sul contenuto, che non siano relative alla " +
+    "nostra attività caratteristica, devono essere considerate come non inviate né avvalorate da noi. Tutte le " +
+    "informazioni contenute sono soggette ai termini e alle condizioni previste dagli accordi che regolano il " +
+    "rapporto con il cliente. Nel caso in cui abbiate ricevuto per errore la presente comunicazione, vogliate " +
+    "cortesemente darcene immediata notizia, e poi procedere alla cancellazione di questo messaggio dal Vostro " +
+    "sistema. È strettamente proibito e potrebbe essere fonte di violazione di legge qualsiasi uso, " +
+    "comunicazione, copia o diffusione dei contenuti di questa comunicazione da parte di chi la abbia ricevuta " +
+    "per errore o in violazione degli scopi della presente.";
+
+  return `<!DOCTYPE html>
+<html lang="it">
+<head><meta charset="utf-8"/></head>
+<body style="margin:0;padding:0;background-color:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#333333;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;">
+    <tr><td align="left" style="padding:24px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;">
+        <tr><td style="font-size:14px;line-height:1.5;color:#333333;padding-bottom:24px;">
+          ${msgHtml}
+        </td></tr>
+
+        <tr><td style="border-top:1px solid #d9d9d9;font-size:0;line-height:0;height:1px;">&nbsp;</td></tr>
+
+        <tr><td style="padding-top:18px;font-size:13px;line-height:1.6;color:#333333;">
+          <div style="font-weight:bold;color:#0d1f3c;font-size:14px;">Made Distribuzione – Sede di Cinisello Balsamo</div>
+          <div>Tel: <a href="tel:+390225569828" style="color:#0d1f3c;text-decoration:none;">02 25569828</a></div>
+          <div><a href="https://www.gruppomade.com" style="color:#0d1f3c;text-decoration:underline;">www.gruppomade.com</a></div>
+        </td></tr>
+
+        <tr><td style="padding:16px 0;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background-color:#0d1f3c;border-radius:6px;">
+            <tr><td style="padding:18px 24px;" align="center">
+              <img src="cid:logo-made" alt="sistema MADE" width="240" style="display:block;width:240px;height:auto;border:0;outline:none;text-decoration:none;"/>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding-top:8px;font-size:10px;line-height:1.4;color:#888888;text-align:justify;">
+          ${privacy}
+        </td></tr>
+
+        <tr><td style="padding-top:12px;font-size:11px;line-height:1.4;color:#2e7d32;">
+          ♻️ Per favore, prima di stampare questa email considera l'impatto sull'ambiente.
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+function buildPlainText(messaggioUtente: string): string {
+  return (
+    messaggioUtente +
+    "\n\n--\n" +
+    "Made Distribuzione – Sede di Cinisello Balsamo\n" +
+    "Tel: 02 25569828\n" +
+    "www.gruppomade.com\n\n" +
+    "Per favore, prima di stampare questa email considera l'impatto sull'ambiente."
+  );
 }
 
 Deno.serve(async (req) => {
@@ -96,15 +171,25 @@ Deno.serve(async (req) => {
     });
 
     const pdfBytes = base64ToUint8(pdf_base64);
+    const logoBytes = base64ToUint8(LOGO_WHITE_B64);
+    const htmlBody = buildHtml(corpo ?? "");
+    const textBody = buildPlainText(corpo ?? "");
 
     try {
       await client.send({
         from: SMTP_FROM,
         to: destinatario,
         subject: oggetto,
-        content: corpo, // testo plain
-        html: corpo.replace(/\n/g, "<br/>"),
+        content: textBody,
+        html: htmlBody,
         attachments: [
+          {
+            filename: "sistema-made-logo.png",
+            content: logoBytes,
+            encoding: "binary",
+            contentType: "image/png",
+            contentID: "logo-made",
+          },
           {
             filename: nome_file,
             content: pdfBytes,
