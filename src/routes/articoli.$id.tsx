@@ -24,6 +24,9 @@ import {
   type Articolo,
   type ArticoloUpdate,
 } from "@/lib/articoli-api";
+import { fetchAllegatiArticolo } from "@/lib/allegati-articolo-api";
+import { Badge } from "@/components/ui/badge";
+import { AllegatiArticoloSection } from "@/components/articoli/AllegatiArticoloSection";
 import { StatoBadge } from "@/components/articoli/StatoBadge";
 import { ListinoAcquistoSection } from "@/components/articoli/ListinoAcquistoSection";
 import { ListinoVenditaSection } from "@/components/articoli/ListinoVenditaSection";
