@@ -148,8 +148,9 @@ export function ArticoloDettaglioDialog({
                     <thead className="bg-muted/40 text-left text-[10px] uppercase tracking-wide text-muted-foreground">
                       <tr>
                         <th className="px-2 py-1.5">Validità</th>
+                        <th className="px-2 py-1.5 text-right">List. for.</th>
+                        <th className="px-2 py-1.5 text-right">Prezzo scont.</th>
                         <th className="px-2 py-1.5 text-right">Costo netto</th>
-                        <th className="px-2 py-1.5 text-right">Costo lordo</th>
                         <th className="px-2 py-1.5">Condizioni</th>
                       </tr>
                     </thead>
@@ -162,10 +163,13 @@ export function ArticoloDettaglioDialog({
                               : "—"}
                           </td>
                           <td className="px-2 py-1.5 text-right font-mono">
-                            {l.costo_netto != null ? `€ ${Number(l.costo_netto).toFixed(2)}` : "—"}
+                            {l.listino_for ?? "—"}
                           </td>
                           <td className="px-2 py-1.5 text-right font-mono">
-                            {l.costo != null ? `€ ${Number(l.costo).toFixed(2)}` : "—"}
+                            {l.prezzo_scontato != null ? `€ ${Number(l.prezzo_scontato).toFixed(4)}` : "—"}
+                          </td>
+                          <td className="px-2 py-1.5 text-right font-mono font-bold">
+                            {l.costo_netto != null ? `€ ${Number(l.costo_netto).toFixed(4)}` : "—"}
                           </td>
                           <td className="px-2 py-1.5 text-xs text-muted-foreground">
                             {l.condizioni ?? "—"}
