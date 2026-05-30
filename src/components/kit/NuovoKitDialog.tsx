@@ -93,7 +93,7 @@ export function NuovoKitDialog({
           <div className="grid grid-cols-3 gap-3">
             <div className="grid gap-1.5">
               <Label>Spessore (mm)</Label>
-              <Input type="number" value={spessore} onChange={(e) => setSpessore(e.target.value)} />
+              <Input type="text" inputMode="decimal" value={spessore} onChange={(e) => setSpessore(e.target.value.replace(/[^0-9.,]/g, ""))} />
             </div>
             <div className="grid gap-1.5">
               <Label>Tipo struttura</Label>
