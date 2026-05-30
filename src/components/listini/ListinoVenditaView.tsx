@@ -52,6 +52,7 @@ interface ArticoloLite {
 const ANY = "__any";
 
 export function ListinoVenditaView() {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [fascia, setFascia] = useState<FasciaListino>("A");
   const [search, setSearch] = useState("");
