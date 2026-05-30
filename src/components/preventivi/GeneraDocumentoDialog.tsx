@@ -15,6 +15,7 @@ import {
 } from "@/lib/pdf-export";
 import { exportListaMaterialiXlsx, exportListaFornitoreXlsx } from "@/lib/excel-export";
 import { AnteprimaPdfDialog } from "./AnteprimaPdfDialog";
+import { InviaEmailDialog } from "./InviaEmailDialog";
 import { supabase } from "@/integrations/supabase/client";
 
 type Modalita = "PREVENTIVO" | "PROPOSTA_RAPIDA" | "LISTA_MATERIALI" | "LISTA_FORNITORE";
@@ -57,7 +58,19 @@ export function GeneraDocumentoDialog({
   const [sel, setSel] = useState<Modalita>("PREVENTIVO");
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<{ blob: Blob; fileName: string } | null>(null);
+  const [emailOpen, setEmailOpen] = useState(false);
   const [colonne, setColonne] = useState<ColonneRighePdf>(COLONNE_RIGHE_DEFAULT);
+
+  const clienteEmail = (prev.cliente as (typeof prev.cliente & { email?: string | null }) | null)?.email ?? null;
+  const ragSoc = prev.cliente?.ragione_sociale ?? "";
+  const cantiereNome = prev.cantiere?.nome ?? "";
+  const numero = prev.numero ?? "";
+  const defaultSubject = `Preventivo ${numero}${ragSoc ? ` - ${ragSoc}` : ""} - Sistema MADE`;
+  const defaultBody =
+    `Gentile Cliente,\n\n` +
+    `in allegato trovate il preventivo ${numero}${cantiereNome ? ` relativo a ${cantiereNome}` : ""}.\n` +
+    `Restiamo a disposizione per qualsiasi chiarimento.\n\n` +
+    `Cordiali saluti,\nSistema MADE`;
 
   // Carica preferenze utente all'apertura
   useEffect(() => {
@@ -192,6 +205,18 @@ export function GeneraDocumentoDialog({
         onOpenChange={(v) => { if (!v) setPreview(null); }}
         blob={preview?.blob ?? null}
         fileName={preview?.fileName ?? ""}
+        onInviaEmail={() => setEmailOpen(true)}
+      />
+
+      <InviaEmailDialog
+        open={emailOpen}
+        onOpenChange={setEmailOpen}
+        blob={preview?.blob ?? null}
+        fileName={preview?.fileName ?? ""}
+        defaultTo={clienteEmail}
+        defaultSubject={defaultSubject}
+        defaultBody={defaultBody}
+        preventivoId={prev.id}
       />
     </>
   );
