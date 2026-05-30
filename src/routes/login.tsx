@@ -58,7 +58,7 @@ function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-navy p-6">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center gap-3">
-          <img src={logo} alt="Sistema MADE" className="h-12 w-auto" />
+          <img src={logo} alt="sistema MADE" className="h-10 w-auto" />
           <div className="tricolor-bar h-[3px] w-32 rounded-sm" />
           <h1 className="text-white text-lg font-semibold">Sistema MADE — Preventivatore</h1>
           <p className="text-xs text-white/60 uppercase tracking-widest">Accesso riservato</p>
