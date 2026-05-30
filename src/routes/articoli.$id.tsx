@@ -280,22 +280,24 @@ function ArticoloDetailPage() {
                 </Field>
                 <div />
 
-                <Field label="Note acquisto" className="md:col-span-3">
-                  <Textarea
-                    value={form.note_acquisto ?? ""}
-                    onChange={(e) => set("note_acquisto", e.target.value || null)}
-                    rows={2}
-                    placeholder="Condizioni di acquisto, sconti, trasporto…"
-                  />
-                </Field>
+                <div className="md:col-span-3 space-y-4 border-t pt-4">
+                  <Field label="NOTE ACQUISTO">
+                    <Textarea
+                      value={form.note_acquisto ?? ""}
+                      onChange={(e) => set("note_acquisto", e.target.value || null)}
+                      rows={3}
+                      placeholder="Note di acquisto (condizioni fornitore, sconti, minimi d'ordine...)"
+                    />
+                  </Field>
 
-                <Field label="Note" className="md:col-span-3">
-                  <Textarea
-                    value={form.note ?? ""}
-                    onChange={(e) => set("note", e.target.value || null)}
-                    rows={3}
-                  />
-                </Field>
+                  <Field label="NOTE">
+                    <Textarea
+                      value={form.note ?? ""}
+                      onChange={(e) => set("note", e.target.value || null)}
+                      rows={3}
+                    />
+                  </Field>
+                </div>
               </div>
             </TabsContent>
 

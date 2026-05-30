@@ -54,7 +54,9 @@ export async function fetchArticoli(
 export async function fetchArticolo(id: string) {
   const { data, error } = await supabase
     .from("articoli")
-    .select("*, fornitore:fornitori(id, ragione_sociale)")
+    .select(
+      "id, cod_gamma, cod_fornitore, fornitore_id, descrizione, um, categoria, tipologia, componente, stato, note, note_acquisto, created_at, updated_at, peso_unit, qta_cliente, qta_fornitore, fornitore:fornitori(id, ragione_sociale)",
+    )
     .eq("id", id)
     .single();
   if (error) throw error;
