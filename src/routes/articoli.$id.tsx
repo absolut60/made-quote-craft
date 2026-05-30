@@ -254,24 +254,16 @@ function ArticoloDetailPage() {
                 </Field>
 
                 <Field label="Q.tà cliente">
-                  <Input
-                    type="number"
-                    step="0.001"
-                    value={form.qta_cliente ?? ""}
-                    onChange={(e) =>
-                      set("qta_cliente", e.target.value === "" ? null : Number(e.target.value))
-                    }
+                  <NumberInputIt
+                    value={form.qta_cliente ?? null}
+                    onChange={(v) => set("qta_cliente", v)}
                     className="font-mono"
                   />
                 </Field>
                 <Field label="Q.tà fornitore">
-                  <Input
-                    type="number"
-                    step="0.001"
-                    value={form.qta_fornitore ?? ""}
-                    onChange={(e) =>
-                      set("qta_fornitore", e.target.value === "" ? null : Number(e.target.value))
-                    }
+                  <NumberInputIt
+                    value={form.qta_fornitore ?? null}
+                    onChange={(v) => set("qta_fornitore", v)}
                     className="font-mono"
                   />
                 </Field>
