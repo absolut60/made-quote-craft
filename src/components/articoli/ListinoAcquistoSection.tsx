@@ -214,11 +214,9 @@ export function ListinoAcquistoSection({
         <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
           <div>
             <label className="text-[11px] uppercase text-muted-foreground">Listino fornitore</label>
-            <Input
-              type="number"
-              step="0.0001"
-              value={draft.listino_for ?? ""}
-              onChange={(e) => setDraft({ ...draft, listino_for: e.target.value || null })}
+            <NumberInputIt
+              value={draft.listino_for ?? null}
+              onChange={(v) => setDraft({ ...draft, listino_for: v == null ? null : String(v) })}
               className="h-8 font-mono text-xs"
             />
           </div>
