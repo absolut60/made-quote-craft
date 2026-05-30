@@ -183,7 +183,6 @@ Deno.serve(async (req) => {
     });
 
     const pdfBytes = base64ToUint8(pdf_base64);
-    const logoBytes = base64ToUint8(LOGO_WHITE_B64);
     const htmlBody = buildHtml(corpo ?? "");
     const textBody = buildPlainText(corpo ?? "");
 
@@ -195,13 +194,6 @@ Deno.serve(async (req) => {
         content: textBody,
         html: htmlBody,
         attachments: [
-          {
-            filename: "sistema-made-logo.png",
-            content: logoBytes,
-            encoding: "binary",
-            contentType: "image/png",
-            contentID: "logo-made",
-          },
           {
             filename: nome_file,
             content: pdfBytes,
