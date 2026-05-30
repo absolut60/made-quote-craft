@@ -37,6 +37,7 @@ import {
 
 import { FASCE, type FasciaListino } from "@/lib/articoli-api";
 import { round2 } from "@/lib/pricing";
+import { parseNumeroIt } from "@/lib/numero-it";
 import { cn } from "@/lib/utils";
 import { AggiungiBloccoDialog } from "@/components/preventivi/AggiungiBloccoDialog";
 import { RigheTable } from "@/components/preventivi/RigheTable";
