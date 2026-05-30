@@ -280,17 +280,13 @@ export function MatriceRicarichiView() {
                 <td className="px-3 py-1 font-mono font-bold text-navy">{r.categoria}</td>
                 <td className="px-2 py-0.5">
                   <Input
-                    value={r.descrizione_categoria ?? ""}
+                    defaultValue={r.descrizione_categoria ?? ""}
                     disabled={!isAdmin}
                     onBlur={(e) => {
                       const v = e.target.value.trim() || null;
                       if (v !== (r.descrizione_categoria ?? null))
                         updateCell(r.categoria, { descrizione_categoria: v });
                     }}
-                    onChange={(e) => {
-                      e.currentTarget.value = e.target.value;
-                    }}
-                    defaultValue={r.descrizione_categoria ?? ""}
                     className="h-7 text-xs"
                     placeholder="—"
                     key={`d-${r.categoria}-${r.descrizione_categoria ?? ""}`}
