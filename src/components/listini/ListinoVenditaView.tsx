@@ -35,10 +35,10 @@ import {
 import { EditableNumberCell } from "./EditableNumberCell";
 import { toast } from "sonner";
 import { parseNumeroIt } from "@/lib/numero-it";
-import { Search, Wand2, Eye, SlidersHorizontal } from "lucide-react";
+import { Search, Wand2, SlidersHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 interface ArticoloLite {
   id: string;
