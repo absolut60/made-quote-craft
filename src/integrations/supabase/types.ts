@@ -613,6 +613,39 @@ export type Database = {
           },
         ]
       }
+      matrice_ricarichi: {
+        Row: {
+          categoria: string
+          descrizione_categoria: string | null
+          macro_gruppo: string | null
+          ricarico_a: number | null
+          ricarico_b: number | null
+          ricarico_c: number | null
+          ricarico_soci: number | null
+          updated_at: string
+        }
+        Insert: {
+          categoria: string
+          descrizione_categoria?: string | null
+          macro_gruppo?: string | null
+          ricarico_a?: number | null
+          ricarico_b?: number | null
+          ricarico_c?: number | null
+          ricarico_soci?: number | null
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string
+          descrizione_categoria?: string | null
+          macro_gruppo?: string | null
+          ricarico_a?: number | null
+          ricarico_b?: number | null
+          ricarico_c?: number | null
+          ricarico_soci?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       preferenze_stampa: {
         Row: {
           colonne_righe: Json
