@@ -328,6 +328,10 @@ function ArticoloDetailPage() {
                 </div>
               )}
             </TabsContent>
+
+            <TabsContent value="allegati" className="mt-4">
+              <AllegatiArticoloSection articoloId={id} />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
