@@ -62,13 +62,7 @@ export function NuovoPreventivoDialog({
 
   const create = useMutation({
     mutationFn: async () => {
-      let numeroFinal = numero.trim();
-      if (!numeroFinal) {
-        const anno = new Date().getFullYear();
-        const { data: prog, error } = await supabase.rpc("prossimo_numero_preventivo", { p_anno: anno });
-        if (error) throw error;
-        numeroFinal = `PRV-${prog}/${String(anno).slice(-2)}`;
-      }
+      const numeroFinal = numero.trim(); // se vuoto, createPreventivo assegnerà
       const dataFinal = data || today;
       const fasciaFinal: FasciaListino = fascia || "A";
       const tipoDocFinal: TipoDoc = tipoDoc || "PREVENTIVO";
@@ -84,11 +78,15 @@ export function NuovoPreventivoDialog({
         validita: validita || null,
       });
     },
-    onSuccess: (p) => {
+    onSuccess: ({ preventivo, numeroRiassegnato }) => {
       qc.invalidateQueries({ queryKey: ["preventivi"] });
-      toast.success("Preventivo creato");
+      if (numeroRiassegnato) {
+        toast.warning(`Numero già impegnato — assegnato il successivo: ${numeroRiassegnato}`);
+      } else {
+        toast.success("Preventivo creato");
+      }
       onOpenChange(false);
-      navigate({ to: "/preventivi/$id", params: { id: p.id } });
+      navigate({ to: "/preventivi/$id", params: { id: preventivo.id } });
     },
     onError: (e: unknown) => {
       console.error("[NuovoPreventivoDialog] create error:", e);
