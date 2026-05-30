@@ -103,6 +103,7 @@ function ArticoloDetailPage() {
       qta_cliente: form.qta_cliente ?? null,
       qta_fornitore: form.qta_fornitore ?? null,
       note: form.note ?? null,
+      note_acquisto: form.note_acquisto ?? null,
       stato: form.stato ?? articolo!.stato,
     });
   }
