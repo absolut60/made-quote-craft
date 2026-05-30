@@ -162,7 +162,7 @@ function ArticoloDetailPage() {
         </div>
 
         <div className="flex-1 overflow-auto p-3 md:p-4 lg:p-6">
-          <Tabs defaultValue="anagrafica">
+          <Tabs value={tabParam ?? "anagrafica"} onValueChange={(v) => navigate({ to: "/articoli/$id", params: { id }, search: { tab: v as "anagrafica" | "acquisto" | "vendita" }, replace: true })}>
             <TabsList>
               <TabsTrigger value="anagrafica">Anagrafica</TabsTrigger>
               <TabsTrigger value="acquisto">Listino acquisto</TabsTrigger>
