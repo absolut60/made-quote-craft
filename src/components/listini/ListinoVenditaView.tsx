@@ -272,7 +272,7 @@ export function ListinoVenditaView() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ANY}>Tutte le categorie</SelectItem>
-                {(facets ?? []).map((c) => (
+                {categorie.map((c) => (
                   <SelectItem key={c} value={c}>
                     {c}
                   </SelectItem>
