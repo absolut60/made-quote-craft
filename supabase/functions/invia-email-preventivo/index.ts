@@ -1,6 +1,6 @@
 // Edge Function: invia-email-preventivo
 // Invia il PDF di un preventivo via SMTP (SSL) con corpo HTML + footer aziendale MADE.
-// Il logo "sistema MADE" è allegato inline (Content-ID "logo-made") nel riquadro navy.
+// Il logo "sistema MADE" è incorporato inline come data URI base64 nel footer HTML.
 
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 import { LOGO_NAVY_JPEG_B64 } from "./logo.ts";
@@ -76,8 +76,8 @@ function buildHtml(messaggioUtente: string): string {
           <div><a href="https://www.gruppomade.com" style="color:#0d1f3c;text-decoration:underline;">www.gruppomade.com</a></div>
         </td></tr>
 
-        <tr><td style="padding:16px 0;">
-          <img src="data:image/jpeg;base64,${LOGO_NAVY_JPEG_B64}" width="280" height="60" alt="sistema MADE" style="display:block;width:280px;height:60px;border:0;outline:none;text-decoration:none;"/>
+        <tr><td style="padding:16px 0;font-size:0;line-height:0;mso-line-height-rule:exactly;">
+          <img src="data:image/jpeg;base64,${LOGO_NAVY_JPEG_B64}" width="280" height="59" alt="sistema MADE" style="display:block;vertical-align:top;width:280px;height:59px;border:0;outline:none;text-decoration:none;"/>
         </td></tr>
 
         <tr><td style="padding-top:8px;font-size:10px;line-height:1.4;color:#888888;text-align:justify;">
