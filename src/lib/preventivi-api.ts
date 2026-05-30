@@ -188,21 +188,60 @@ export async function fetchPreventivo(id: string): Promise<PreventivoConDettagli
   return p;
 }
 
-export async function createPreventivo(row: PreventivoInsert): Promise<Preventivo> {
-  const { data, error } = await supabase.from("preventivi").insert(row).select().single();
-  if (error) {
-    console.error("[createPreventivo] Supabase error:", {
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-      code: error.code,
-      payload: row,
-    });
-    throw new Error(
-      `${error.message}${error.details ? ` — ${error.details}` : ""}${error.hint ? ` (hint: ${error.hint})` : ""}${error.code ? ` [${error.code}]` : ""}`,
-    );
+export async function anteprimaProssimoNumero(anno?: number): Promise<string> {
+  const a = anno ?? new Date().getFullYear();
+  const { data, error } = await supabase.rpc("anteprima_numero_preventivo", { p_anno: a });
+  if (error) throw error;
+  return `PRV-${data}/${String(a).slice(-2)}`;
+}
+
+async function assegnaProssimoNumero(anno: number): Promise<string> {
+  const { data, error } = await supabase.rpc("prossimo_numero_preventivo", { p_anno: anno });
+  if (error) throw error;
+  return `PRV-${data}/${String(anno).slice(-2)}`;
+}
+
+/**
+ * Crea un preventivo gestendo il conflitto di unicità sul numero:
+ * se il numero è già impegnato da un altro utente, riassegna il successivo
+ * libero in modo atomico e riprova (fino a 5 tentativi).
+ * Ritorna l'eventuale numero riassegnato per consentire all'UI di avvisare.
+ */
+export async function createPreventivo(
+  row: PreventivoInsert,
+): Promise<{ preventivo: Preventivo; numeroRiassegnato: string | null }> {
+  const anno = new Date().getFullYear();
+  let numero = (row.numero ?? "").trim();
+  if (!numero) {
+    numero = await assegnaProssimoNumero(anno);
   }
-  return data;
+  let reassignedTo: string | null = null;
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const payload = { ...row, numero };
+    const { data, error } = await supabase
+      .from("preventivi")
+      .insert(payload)
+      .select()
+      .single();
+    if (!error) {
+      return { preventivo: data, numeroRiassegnato: reassignedTo };
+    }
+    // 23505 = unique_violation
+    const isDup =
+      error.code === "23505" ||
+      /preventivi_numero_unique|duplicate key/i.test(error.message ?? "");
+    if (!isDup) {
+      console.error("[createPreventivo] Supabase error:", error);
+      throw new Error(
+        `${error.message}${error.details ? ` — ${error.details}` : ""}${error.hint ? ` (hint: ${error.hint})` : ""}${error.code ? ` [${error.code}]` : ""}`,
+      );
+    }
+    // numero già impegnato → riassegna il successivo e ritenta
+    numero = await assegnaProssimoNumero(anno);
+    reassignedTo = numero;
+  }
+  throw new Error("Impossibile assegnare un numero libero dopo 5 tentativi");
 }
 
 export async function updatePreventivo(id: string, patch: PreventivoUpdate): Promise<Preventivo> {
