@@ -24,6 +24,9 @@ import {
   type Articolo,
   type ArticoloUpdate,
 } from "@/lib/articoli-api";
+import { fetchAllegatiArticolo } from "@/lib/allegati-articolo-api";
+import { Badge } from "@/components/ui/badge";
+import { AllegatiArticoloSection } from "@/components/articoli/AllegatiArticoloSection";
 import { StatoBadge } from "@/components/articoli/StatoBadge";
 import { ListinoAcquistoSection } from "@/components/articoli/ListinoAcquistoSection";
 import { ListinoVenditaSection } from "@/components/articoli/ListinoVenditaSection";
@@ -35,8 +38,8 @@ export const Route = createFileRoute("/articoli/$id")({
   head: () => ({ meta: [{ title: "Scheda articolo — Sistema MADE" }] }),
   validateSearch: (s: Record<string, unknown>) => ({
     tab:
-      s.tab === "acquisto" || s.tab === "vendita" || s.tab === "anagrafica"
-        ? (s.tab as "acquisto" | "vendita" | "anagrafica")
+      s.tab === "acquisto" || s.tab === "vendita" || s.tab === "anagrafica" || s.tab === "allegati"
+        ? (s.tab as "acquisto" | "vendita" | "anagrafica" | "allegati")
         : undefined,
   }),
   component: ArticoloDetailPage,
@@ -61,6 +64,11 @@ function ArticoloDetailPage() {
   const { data: listiniAcq = [] } = useQuery({
     queryKey: ["listini_acquisto", id],
     queryFn: () => fetchListiniAcquisto(id),
+  });
+
+  const { data: allegati = [] } = useQuery({
+    queryKey: ["allegati_articolo", id],
+    queryFn: () => fetchAllegatiArticolo(id),
   });
 
   const [form, setForm] = useState<Partial<Articolo>>({});
@@ -162,11 +170,15 @@ function ArticoloDetailPage() {
         </div>
 
         <div className="flex-1 overflow-auto p-3 md:p-4 lg:p-6">
-          <Tabs value={tabParam ?? "anagrafica"} onValueChange={(v) => navigate({ to: "/articoli/$id", params: { id }, search: { tab: v as "anagrafica" | "acquisto" | "vendita" }, replace: true })}>
+          <Tabs value={tabParam ?? "anagrafica"} onValueChange={(v) => navigate({ to: "/articoli/$id", params: { id }, search: { tab: v as "anagrafica" | "acquisto" | "vendita" | "allegati" }, replace: true })}>
             <TabsList>
               <TabsTrigger value="anagrafica">Anagrafica</TabsTrigger>
               <TabsTrigger value="acquisto">Listino acquisto</TabsTrigger>
               <TabsTrigger value="vendita">Listino vendita</TabsTrigger>
+              <TabsTrigger value="allegati">
+                Allegati
+                <Badge variant="secondary" className="ml-1.5 px-1.5 py-0">{allegati.length}</Badge>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="anagrafica" className="mt-4">
@@ -315,6 +327,10 @@ function ArticoloDetailPage() {
                   </Link>
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="allegati" className="mt-4">
+              <AllegatiArticoloSection articoloId={id} />
             </TabsContent>
           </Tabs>
         </div>

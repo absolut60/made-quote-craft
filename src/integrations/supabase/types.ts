@@ -38,6 +38,47 @@ export type Database = {
         }
         Relationships: []
       }
+      allegati_articolo: {
+        Row: {
+          articolo_id: string
+          categoria: Database["public"]["Enums"]["categoria_allegato_articolo"]
+          created_at: string
+          dimensione_bytes: number | null
+          id: string
+          mime_type: string | null
+          nome_file: string
+          storage_path: string
+        }
+        Insert: {
+          articolo_id: string
+          categoria?: Database["public"]["Enums"]["categoria_allegato_articolo"]
+          created_at?: string
+          dimensione_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          nome_file: string
+          storage_path: string
+        }
+        Update: {
+          articolo_id?: string
+          categoria?: Database["public"]["Enums"]["categoria_allegato_articolo"]
+          created_at?: string
+          dimensione_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          nome_file?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "allegati_articolo_articolo_id_fkey"
+            columns: ["articolo_id"]
+            isOneToOne: false
+            referencedRelation: "articoli"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       allegati_preventivo: {
         Row: {
           categoria: Database["public"]["Enums"]["categoria_allegato"]
@@ -914,6 +955,19 @@ export type Database = {
         | "foto_cantiere"
         | "documenti_commerciali"
         | "altro"
+      categoria_allegato_articolo:
+        | "scheda_tecnica"
+        | "scheda_sicurezza"
+        | "certificazione_ce_dop"
+        | "certificazione_antincendio"
+        | "certificazione_acustica"
+        | "dichiarazione_conformita"
+        | "voce_capitolato"
+        | "manuale_posa"
+        | "certificato_ambientale"
+        | "immagine_prodotto"
+        | "disegno_tecnico"
+        | "altro"
       fascia_listino: "A" | "B" | "C" | "SOCI"
       kit_famiglia:
         | "PARETE"
@@ -1072,6 +1126,20 @@ export const Constants = {
         "certificazioni",
         "foto_cantiere",
         "documenti_commerciali",
+        "altro",
+      ],
+      categoria_allegato_articolo: [
+        "scheda_tecnica",
+        "scheda_sicurezza",
+        "certificazione_ce_dop",
+        "certificazione_antincendio",
+        "certificazione_acustica",
+        "dichiarazione_conformita",
+        "voce_capitolato",
+        "manuale_posa",
+        "certificato_ambientale",
+        "immagine_prodotto",
+        "disegno_tecnico",
         "altro",
       ],
       fascia_listino: ["A", "B", "C", "SOCI"],
