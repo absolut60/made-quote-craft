@@ -45,7 +45,7 @@ export function AggiungiBloccoDialog({
       addBloccoDaKit({
         preventivo_id: preventivoId,
         kit_id: kitId!,
-        quantita_base: Number(quantita) || 0,
+        quantita_base: parseNumeroIt(quantita) ?? 0,
         fascia,
         ordine: fractionalOrder(lastOrdine, null),
       }),
