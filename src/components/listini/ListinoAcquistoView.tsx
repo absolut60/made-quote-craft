@@ -249,7 +249,6 @@ export function ListinoAcquistoView() {
               <th className="px-2 py-2 text-right">Trasp.%</th>
               <th className="px-2 py-2 text-right bg-navy/80">COSTO NETTO</th>
               <th className="px-2 py-2 text-left">Data</th>
-              <th className="px-2 py-2 text-right"></th>
             </tr>
           </thead>
           <tbody>
