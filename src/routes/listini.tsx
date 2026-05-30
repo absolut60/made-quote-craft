@@ -3,6 +3,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ListinoAcquistoView } from "@/components/listini/ListinoAcquistoView";
 import { ListinoVenditaView } from "@/components/listini/ListinoVenditaView";
+import { MatriceRicarichiView } from "@/components/listini/MatriceRicarichiView";
 
 export const Route = createFileRoute("/listini")({
   head: () => ({ meta: [{ title: "Listini — Sistema MADE" }] }),
@@ -21,8 +22,9 @@ function ListiniPage() {
           </p>
           <Tabs defaultValue="acquisto" className="mt-2 lg:mt-3">
             <TabsList>
-              <TabsTrigger value="acquisto">Acquisto</TabsTrigger>
-              <TabsTrigger value="vendita">Vendita</TabsTrigger>
+              <TabsTrigger value="acquisto">Listino acquisto</TabsTrigger>
+              <TabsTrigger value="vendita">Listino vendita</TabsTrigger>
+              <TabsTrigger value="matrice">Matrice ricarichi</TabsTrigger>
             </TabsList>
             <TabsContent
               value="acquisto"
@@ -37,6 +39,13 @@ function ListiniPage() {
               forceMount
             >
               <ListinoVenditaView />
+            </TabsContent>
+            <TabsContent
+              value="matrice"
+              className="mt-0 -mx-3 border-t data-[state=inactive]:hidden lg:-mx-6"
+              forceMount
+            >
+              <MatriceRicarichiView />
             </TabsContent>
           </Tabs>
         </div>
