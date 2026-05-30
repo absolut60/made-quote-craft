@@ -170,11 +170,15 @@ function ArticoloDetailPage() {
         </div>
 
         <div className="flex-1 overflow-auto p-3 md:p-4 lg:p-6">
-          <Tabs value={tabParam ?? "anagrafica"} onValueChange={(v) => navigate({ to: "/articoli/$id", params: { id }, search: { tab: v as "anagrafica" | "acquisto" | "vendita" }, replace: true })}>
+          <Tabs value={tabParam ?? "anagrafica"} onValueChange={(v) => navigate({ to: "/articoli/$id", params: { id }, search: { tab: v as "anagrafica" | "acquisto" | "vendita" | "allegati" }, replace: true })}>
             <TabsList>
               <TabsTrigger value="anagrafica">Anagrafica</TabsTrigger>
               <TabsTrigger value="acquisto">Listino acquisto</TabsTrigger>
               <TabsTrigger value="vendita">Listino vendita</TabsTrigger>
+              <TabsTrigger value="allegati">
+                Allegati
+                <Badge variant="secondary" className="ml-1.5 px-1.5 py-0">{allegati.length}</Badge>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="anagrafica" className="mt-4">
