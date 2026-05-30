@@ -85,7 +85,28 @@ export function ArticoloDettaglioDialog({
                   }
                 />
               </div>
+              {articolo.note_acquisto && (
+                <div className="mt-3 border-t pt-2">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Note acquisto
+                  </div>
+                  <div className="whitespace-pre-wrap text-sm text-foreground">
+                    {articolo.note_acquisto}
+                  </div>
+                </div>
+              )}
+              {articolo.note && (
+                <div className="mt-2 border-t pt-2">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Note
+                  </div>
+                  <div className="whitespace-pre-wrap text-sm text-foreground">
+                    {articolo.note}
+                  </div>
+                </div>
+              )}
             </section>
+
 
             <section className="rounded-md border bg-card p-3">
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy">
