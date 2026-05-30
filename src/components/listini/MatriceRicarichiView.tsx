@@ -32,8 +32,6 @@ interface MatriceRow {
   ricarico_soci: number | null;
 }
 
-const fmtEUR = (n: number) =>
-  new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(n);
 
 export function MatriceRicarichiView() {
   const qc = useQueryClient();
