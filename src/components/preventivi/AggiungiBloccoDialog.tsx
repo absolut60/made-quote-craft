@@ -15,6 +15,7 @@ import { FAMIGLIE_KIT, FAMIGLIA_LABEL } from "@/lib/incidenza";
 import { addBloccoDaKit, addBloccoVuoto, fractionalOrder } from "@/lib/preventivi-api";
 import type { FasciaListino } from "@/lib/articoli-api";
 import { toast } from "sonner";
+import { parseNumeroIt } from "@/lib/numero-it";
 
 export function AggiungiBloccoDialog({
   open, onOpenChange, preventivoId, fascia, lastOrdine,
