@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS public._staging_cat_note;

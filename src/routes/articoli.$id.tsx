@@ -103,6 +103,7 @@ function ArticoloDetailPage() {
       qta_cliente: form.qta_cliente ?? null,
       qta_fornitore: form.qta_fornitore ?? null,
       note: form.note ?? null,
+      note_acquisto: form.note_acquisto ?? null,
       stato: form.stato ?? articolo!.stato,
     });
   }
@@ -278,6 +279,15 @@ function ArticoloDetailPage() {
                   />
                 </Field>
                 <div />
+
+                <Field label="Note acquisto" className="md:col-span-3">
+                  <Textarea
+                    value={form.note_acquisto ?? ""}
+                    onChange={(e) => set("note_acquisto", e.target.value || null)}
+                    rows={2}
+                    placeholder="Condizioni di acquisto, sconti, trasporto…"
+                  />
+                </Field>
 
                 <Field label="Note" className="md:col-span-3">
                   <Textarea

@@ -1,0 +1,1 @@
+ALTER TABLE public.articoli ADD COLUMN IF NOT EXISTS note_acquisto text;
