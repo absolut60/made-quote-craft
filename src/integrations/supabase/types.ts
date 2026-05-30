@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      _staging_cat_note: {
+        Row: {
+          art_for: string | null
+          categoria: string | null
+          codice: string | null
+          note: string | null
+        }
+        Insert: {
+          art_for?: string | null
+          categoria?: string | null
+          codice?: string | null
+          note?: string | null
+        }
+        Update: {
+          art_for?: string | null
+          categoria?: string | null
+          codice?: string | null
+          note?: string | null
+        }
+        Relationships: []
+      }
       agenti: {
         Row: {
           created_at: string
