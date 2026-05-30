@@ -49,7 +49,7 @@ export function NuovoKitDialog({
         famiglia,
        spessore: spessore ? parseNumeroIt(spessore) : null,
         tipo_struttura: tipoStruttura || null,
-        h_max: hMax ? Number(hMax) : null,
+        h_max: hMax ? parseNumeroIt(hMax) : null,
         isolante: isolante || null,
         descrizione_tecnica: descrizione || null,
         um_base: umBase || "mq",
