@@ -240,10 +240,11 @@ function KitEditorPage() {
             <div className="grid gap-1.5">
               <Label className="text-xs">H. max (m)</Label>
               <Input
-                type="number"
-                defaultValue={kit.h_max ?? ""}
+                type="text"
+                inputMode="decimal"
+                defaultValue={kit.h_max == null ? "" : String(kit.h_max).replace(".",",")}
                 onBlur={(e) => {
-                  const v = e.target.value === "" ? null : Number(e.target.value);
+                  const v = e.target.value === "" ? null : parseNumeroIt(e.target.value);
                   if (v !== (kit.h_max == null ? null : Number(kit.h_max))) {
                     saveKit.mutate({ h_max: v });
                   }
