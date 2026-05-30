@@ -660,10 +660,10 @@ function BloccoCard({
             <div className="grid w-24 gap-1">
               <Label className="text-[10px] uppercase">Quantità</Label>
               <Input
-                type="number" step="0.01"
-                defaultValue={blocco.quantita_base ?? 0}
+                type="text" inputMode="decimal"
+                defaultValue={String(blocco.quantita_base ?? 0).replace(".",",")}
                 onBlur={(e) => {
-                  const v = e.target.value === "" ? null : Number(e.target.value);
+                  const v = e.target.value === "" ? null : parseNumeroIt(e.target.value);
                   if (v !== (blocco.quantita_base == null ? null : Number(blocco.quantita_base)))
                     recalcQta.mutate(v);
                 }}
