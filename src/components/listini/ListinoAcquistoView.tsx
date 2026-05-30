@@ -30,6 +30,7 @@ interface ListinoRow extends ListinoAcquisto {}
 const ANY = "__any";
 
 export function ListinoAcquistoView() {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [dSearch, setDSearch] = useState("");
