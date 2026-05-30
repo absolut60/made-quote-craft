@@ -215,10 +215,11 @@ function KitEditorPage() {
             <div className="grid gap-1.5">
               <Label className="text-xs">Spessore (mm)</Label>
               <Input
-                type="number"
-                defaultValue={kit.spessore ?? ""}
+                type="text"
+                inputMode="decimal"
+                defaultValue={kit.spessore == null ? "" : String(kit.spessore).replace(".",",")}
                 onBlur={(e) => {
-                  const v = e.target.value === "" ? null : Number(e.target.value);
+                  const v = e.target.value === "" ? null : parseNumeroIt(e.target.value);
                   if (v !== (kit.spessore == null ? null : Number(kit.spessore))) {
                     saveKit.mutate({ spessore: v });
                   }
