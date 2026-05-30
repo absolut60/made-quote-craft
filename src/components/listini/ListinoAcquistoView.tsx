@@ -256,9 +256,18 @@ export function ListinoAcquistoView() {
               const l = byArt.get(a.id);
               const live = l ? calcCosto(l) : { prezzo_scontato: 0, trasporto_eur: 0, trasporto_perc: 0, costo_netto: 0 };
               return (
-                <tr key={a.id} className="border-b hover:bg-muted/30">
-                  <td className="px-3 py-1 font-mono">{a.cod_gamma ?? "—"}</td>
-                  <td className="px-3 py-1 max-w-[28ch] truncate" title={a.descrizione}>
+                <tr key={a.id} className="border-b hover:bg-muted/50">
+                  <td
+                    className="px-3 py-1 font-mono cursor-pointer"
+                    onClick={() => navigate({ to: "/articoli/$id", params: { id: a.id }, search: { tab: "acquisto" } })}
+                  >
+                    {a.cod_gamma ?? "—"}
+                  </td>
+                  <td
+                    className="px-3 py-1 max-w-[28ch] truncate cursor-pointer"
+                    title={a.descrizione}
+                    onClick={() => navigate({ to: "/articoli/$id", params: { id: a.id }, search: { tab: "acquisto" } })}
+                  >
                     {a.descrizione}
                   </td>
                   <td className="px-3 py-1">
