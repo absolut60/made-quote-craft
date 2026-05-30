@@ -139,7 +139,7 @@ export function ListinoVenditaView() {
   });
 
   const { data: facets } = useQuery({
-    queryKey: ["articoli-facets"],
+    queryKey: ["listini-vendita-categorie"],
     queryFn: async () => {
       const { data } = await supabase.from("articoli").select("categoria").limit(5000);
       const s = new Set<string>();
@@ -147,6 +147,7 @@ export function ListinoVenditaView() {
       return [...s].sort();
     },
   });
+  const categorie = Array.isArray(facets) ? facets : [];
 
   const articoli = data?.articoli ?? [];
   const costoByArt = data?.costoByArt ?? new Map<string, number>();
@@ -271,7 +272,7 @@ export function ListinoVenditaView() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ANY}>Tutte le categorie</SelectItem>
-                {(facets ?? []).map((c) => (
+                {categorie.map((c) => (
                   <SelectItem key={c} value={c}>
                     {c}
                   </SelectItem>
