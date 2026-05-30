@@ -66,6 +66,11 @@ function ArticoloDetailPage() {
     queryFn: () => fetchListiniAcquisto(id),
   });
 
+  const { data: allegati = [] } = useQuery({
+    queryKey: ["allegati_articolo", id],
+    queryFn: () => fetchAllegatiArticolo(id),
+  });
+
   const [form, setForm] = useState<Partial<Articolo>>({});
 
   const activeAcq = listiniAcq[0];
