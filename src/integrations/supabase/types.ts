@@ -505,14 +505,13 @@ export type Database = {
         Row: {
           articolo_id: string
           condizioni: string | null
-          costo: number | null
           costo_netto: number | null
-          costo_parziale: number | null
           created_at: string
           data_validita: string | null
           id: string
           listino_for: string | null
           note: string | null
+          prezzo_scontato: number | null
           sc1: number | null
           sc2: number | null
           sc3: number | null
@@ -525,14 +524,13 @@ export type Database = {
         Insert: {
           articolo_id: string
           condizioni?: string | null
-          costo?: number | null
           costo_netto?: number | null
-          costo_parziale?: number | null
           created_at?: string
           data_validita?: string | null
           id?: string
           listino_for?: string | null
           note?: string | null
+          prezzo_scontato?: number | null
           sc1?: number | null
           sc2?: number | null
           sc3?: number | null
@@ -545,14 +543,13 @@ export type Database = {
         Update: {
           articolo_id?: string
           condizioni?: string | null
-          costo?: number | null
           costo_netto?: number | null
-          costo_parziale?: number | null
           created_at?: string
           data_validita?: string | null
           id?: string
           listino_for?: string | null
           note?: string | null
+          prezzo_scontato?: number | null
           sc1?: number | null
           sc2?: number | null
           sc3?: number | null
