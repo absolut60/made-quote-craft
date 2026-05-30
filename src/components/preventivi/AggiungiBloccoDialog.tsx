@@ -93,7 +93,7 @@ export function AggiungiBloccoDialog({
               </div>
               <div className="grid gap-1.5">
                 <Label>Quantità base</Label>
-                <Input type="number" step="0.01" value={quantita} onChange={(e) => setQuantita(e.target.value)} />
+                <Input type="text" inputMode="decimal" value={quantita} onChange={(e) => setQuantita(e.target.value.replace(/[^0-9.,]/g, ""))} />
               </div>
             </div>
             <div className="max-h-72 overflow-auto rounded border">
