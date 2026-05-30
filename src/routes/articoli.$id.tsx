@@ -232,13 +232,9 @@ function ArticoloDetailPage() {
                   />
                 </Field>
                 <Field label="Peso unitario">
-                  <Input
-                    type="number"
-                    step="0.001"
-                    value={form.peso_unit ?? ""}
-                    onChange={(e) =>
-                      set("peso_unit", e.target.value === "" ? null : Number(e.target.value))
-                    }
+                  <NumberInputIt
+                    value={form.peso_unit ?? null}
+                    onChange={(v) => set("peso_unit", v)}
                     className="font-mono"
                   />
                 </Field>
