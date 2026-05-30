@@ -3,7 +3,7 @@
 // Il logo "sistema MADE" è allegato inline (Content-ID "logo-made") nel riquadro navy.
 
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
-import { LOGO_WHITE_B64 } from "./logo.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -77,8 +77,20 @@ function buildHtml(messaggioUtente: string): string {
 
         <tr><td style="padding:16px 0;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background-color:#0d1f3c;border-radius:6px;">
-            <tr><td style="padding:18px 24px;" align="center">
-              <img src="cid:logo-made" alt="sistema MADE" width="240" style="display:block;width:240px;height:auto;border:0;outline:none;text-decoration:none;"/>
+            <tr><td style="padding:18px 22px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+                <tr>
+                  <td style="font-family:Arial,Helvetica,sans-serif;color:#ffffff;font-size:22px;font-weight:300;vertical-align:middle;padding-right:8px;line-height:1;">sistema</td>
+                  <td style="font-family:Arial,Helvetica,sans-serif;color:#ffffff;font-size:30px;font-weight:800;letter-spacing:1px;vertical-align:middle;line-height:1;">MADE</td>
+                  <td style="vertical-align:middle;padding-left:10px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
+                      <td style="width:7px;height:30px;background-color:#009246;font-size:0;line-height:0;">&nbsp;</td>
+                      <td style="width:7px;height:30px;background-color:#ffffff;font-size:0;line-height:0;">&nbsp;</td>
+                      <td style="width:7px;height:30px;background-color:#ce2b37;font-size:0;line-height:0;">&nbsp;</td>
+                    </tr></table>
+                  </td>
+                </tr>
+              </table>
             </td></tr>
           </table>
         </td></tr>
