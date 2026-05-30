@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
+import { NumberInputIt } from "@/components/ui/number-input-it";
 import { Button } from "@/components/ui/button";
 import {
   fetchListiniAcquisto,
