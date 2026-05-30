@@ -10,7 +10,9 @@ import {
   type FasciaListino,
 } from "@/lib/articoli-api";
 import { Input } from "@/components/ui/input";
+import { NumberInputIt } from "@/components/ui/number-input-it";
 import { Button } from "@/components/ui/button";
+import { parseNumeroIt } from "@/lib/numero-it";
 import { toast } from "sonner";
 
 interface Row {
@@ -61,8 +63,8 @@ export function ListinoVenditaSection({
     setRows((prev) => {
       const next = [...prev];
       const r = { ...next[idx], ricarico: val, dirty: true };
-      const ric = Number(val);
-      if (val !== "" && Number.isFinite(ric) && costoNetto) {
+      const ric = parseNumeroIt(val);
+      if (val !== "" && ric !== null && costoNetto) {
         const p = prezzoFromRicarico(costoNetto, ric);
         r.prezzo = String(p);
         r.margine = String(margineFromPrezzo(costoNetto, p));
@@ -76,8 +78,8 @@ export function ListinoVenditaSection({
     setRows((prev) => {
       const next = [...prev];
       const r = { ...next[idx], prezzo: val, dirty: true };
-      const p = Number(val);
-      if (val !== "" && Number.isFinite(p) && costoNetto) {
+      const p = parseNumeroIt(val);
+      if (val !== "" && p !== null && costoNetto) {
         r.ricarico = String(ricaricoFromPrezzo(costoNetto, p));
         r.margine = String(margineFromPrezzo(costoNetto, p));
       }
@@ -91,9 +93,9 @@ export function ListinoVenditaSection({
       upsertListinoVendita({
         articolo_id: articoloId,
         fascia: row.fascia,
-        ricarico: row.ricarico === "" ? null : Number(row.ricarico),
-        prezzo: row.prezzo === "" ? null : Number(row.prezzo),
-        margine: row.margine === "" ? null : Number(row.margine),
+        ricarico: row.ricarico === "" ? null : parseNumeroIt(row.ricarico),
+        prezzo: row.prezzo === "" ? null : parseNumeroIt(row.prezzo),
+        margine: row.margine === "" ? null : parseNumeroIt(row.margine),
       }),
     onSuccess: () => {
       toast.success("Salvato");
@@ -126,21 +128,17 @@ export function ListinoVenditaSection({
               <tr key={r.fascia} className="border-t">
                 <td className="px-3 py-1.5 font-bold">{r.fascia}</td>
                 <td className="px-3 py-1.5 text-right">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={r.ricarico}
-                    onChange={(e) => updateRicarico(i, e.target.value)}
+                  <NumberInputIt
+                    value={r.ricarico === "" ? null : r.ricarico}
+                    onChange={(v) => updateRicarico(i, v == null ? "" : String(v))}
                     className="h-8 text-right font-mono text-xs"
                     disabled={!costoNetto}
                   />
                 </td>
                 <td className="px-3 py-1.5 text-right">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={r.prezzo}
-                    onChange={(e) => updatePrezzo(i, e.target.value)}
+                  <NumberInputIt
+                    value={r.prezzo === "" ? null : r.prezzo}
+                    onChange={(v) => updatePrezzo(i, v == null ? "" : String(v))}
                     className="h-8 text-right font-mono text-xs"
                     disabled={!costoNetto}
                   />

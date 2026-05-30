@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NumberInputIt } from "@/components/ui/number-input-it";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
@@ -231,13 +232,9 @@ function ArticoloDetailPage() {
                   />
                 </Field>
                 <Field label="Peso unitario">
-                  <Input
-                    type="number"
-                    step="0.001"
-                    value={form.peso_unit ?? ""}
-                    onChange={(e) =>
-                      set("peso_unit", e.target.value === "" ? null : Number(e.target.value))
-                    }
+                  <NumberInputIt
+                    value={form.peso_unit ?? null}
+                    onChange={(v) => set("peso_unit", v)}
                     className="font-mono"
                   />
                 </Field>
@@ -257,24 +254,16 @@ function ArticoloDetailPage() {
                 </Field>
 
                 <Field label="Q.tà cliente">
-                  <Input
-                    type="number"
-                    step="0.001"
-                    value={form.qta_cliente ?? ""}
-                    onChange={(e) =>
-                      set("qta_cliente", e.target.value === "" ? null : Number(e.target.value))
-                    }
+                  <NumberInputIt
+                    value={form.qta_cliente ?? null}
+                    onChange={(v) => set("qta_cliente", v)}
                     className="font-mono"
                   />
                 </Field>
                 <Field label="Q.tà fornitore">
-                  <Input
-                    type="number"
-                    step="0.001"
-                    value={form.qta_fornitore ?? ""}
-                    onChange={(e) =>
-                      set("qta_fornitore", e.target.value === "" ? null : Number(e.target.value))
-                    }
+                  <NumberInputIt
+                    value={form.qta_fornitore ?? null}
+                    onChange={(v) => set("qta_fornitore", v)}
                     className="font-mono"
                   />
                 </Field>

@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { parseNumeroIt } from "@/lib/numero-it";
 
 /**
  * Cella numerica editabile in stile foglio di calcolo.
+ * Accetta decimali con virgola (formato italiano).
  * Commit on blur o Enter; rollback su Escape.
  */
 export function EditableNumberCell({
   value,
   onCommit,
   className,
-  step = 0.01,
   disabled,
   placeholder,
   suffix,
@@ -22,21 +23,24 @@ export function EditableNumberCell({
   placeholder?: string;
   suffix?: string;
 }) {
-  const [local, setLocal] = useState<string>(value == null ? "" : String(value));
+  const toDisplay = (v: number | null | undefined) =>
+    v == null ? "" : String(v).replace(".", ",");
+
+  const [local, setLocal] = useState<string>(toDisplay(value));
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!editing) setLocal(value == null ? "" : String(value));
+    if (!editing) setLocal(toDisplay(value));
   }, [value, editing]);
 
   async function commit() {
     setEditing(false);
-    const trimmed = local.trim().replace(",", ".");
+    const trimmed = local.trim();
     if (trimmed === "" && (value == null || Number.isNaN(value as number))) return;
-    const num = trimmed === "" ? null : Number(trimmed);
-    if (num !== null && !Number.isFinite(num)) {
-      setLocal(value == null ? "" : String(value));
+    const num = trimmed === "" ? null : parseNumeroIt(trimmed);
+    if (trimmed !== "" && num === null) {
+      setLocal(toDisplay(value));
       return;
     }
     if (num === value) return;
@@ -50,15 +54,14 @@ export function EditableNumberCell({
 
   return (
     <input
-      type="number"
+      type="text"
       inputMode="decimal"
-      step={step}
       value={local}
       placeholder={placeholder ?? "—"}
       disabled={disabled || busy}
       onChange={(e) => {
         setEditing(true);
-        setLocal(e.target.value);
+        setLocal(e.target.value.replace(/[^0-9.,\-]/g, ""));
       }}
       onFocus={(e) => e.currentTarget.select()}
       onBlur={commit}
@@ -67,7 +70,7 @@ export function EditableNumberCell({
           e.preventDefault();
           (e.currentTarget as HTMLInputElement).blur();
         } else if (e.key === "Escape") {
-          setLocal(value == null ? "" : String(value));
+          setLocal(toDisplay(value));
           setEditing(false);
           (e.currentTarget as HTMLInputElement).blur();
         }

@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
+import { NumberInputIt } from "@/components/ui/number-input-it";
 import { Button } from "@/components/ui/button";
 import {
   fetchListiniAcquisto,
@@ -213,11 +214,9 @@ export function ListinoAcquistoSection({
         <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
           <div>
             <label className="text-[11px] uppercase text-muted-foreground">Listino fornitore</label>
-            <Input
-              type="number"
-              step="0.0001"
-              value={draft.listino_for ?? ""}
-              onChange={(e) => setDraft({ ...draft, listino_for: e.target.value || null })}
+            <NumberInputIt
+              value={draft.listino_for ?? null}
+              onChange={(v) => setDraft({ ...draft, listino_for: v == null ? null : String(v) })}
               className="h-8 font-mono text-xs"
             />
           </div>
@@ -290,11 +289,9 @@ function NumField({
   return (
     <div>
       <label className="text-[11px] uppercase text-muted-foreground">{label}</label>
-      <Input
-        type="number"
-        step="0.01"
-        value={value ?? ""}
-        onChange={(e) => onChange(e.target.value === "" ? null : Number(e.target.value))}
+      <NumberInputIt
+        value={value ?? null}
+        onChange={onChange}
         className="h-8 font-mono text-xs"
       />
     </div>

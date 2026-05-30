@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { parseNumeroIt } from "@/lib/numero-it";
 import {
   Select,
   SelectContent,
@@ -46,9 +47,9 @@ export function NuovoKitDialog({
       createKit({
         nome: nome.trim(),
         famiglia,
-        spessore: spessore ? Number(spessore) : null,
+       spessore: spessore ? parseNumeroIt(spessore) : null,
         tipo_struttura: tipoStruttura || null,
-        h_max: hMax ? Number(hMax) : null,
+        h_max: hMax ? parseNumeroIt(hMax) : null,
         isolante: isolante || null,
         descrizione_tecnica: descrizione || null,
         um_base: umBase || "mq",
@@ -93,7 +94,7 @@ export function NuovoKitDialog({
           <div className="grid grid-cols-3 gap-3">
             <div className="grid gap-1.5">
               <Label>Spessore (mm)</Label>
-              <Input type="number" value={spessore} onChange={(e) => setSpessore(e.target.value)} />
+              <Input type="text" inputMode="decimal" value={spessore} onChange={(e) => setSpessore(e.target.value.replace(/[^0-9.,]/g, ""))} />
             </div>
             <div className="grid gap-1.5">
               <Label>Tipo struttura</Label>
@@ -101,7 +102,7 @@ export function NuovoKitDialog({
             </div>
             <div className="grid gap-1.5">
               <Label>H. max (m)</Label>
-              <Input type="number" value={hMax} onChange={(e) => setHMax(e.target.value)} />
+              <Input type="text" inputMode="decimal" value={hMax} onChange={(e) => setHMax(e.target.value.replace(/[^0-9.,]/g, ""))} />
             </div>
           </div>
           <div className="grid gap-1.5">

@@ -34,6 +34,7 @@ import {
 } from "@/lib/pricing";
 import { EditableNumberCell } from "./EditableNumberCell";
 import { toast } from "sonner";
+import { parseNumeroIt } from "@/lib/numero-it";
 import { Search, Wand2, Eye, SlidersHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -459,10 +460,10 @@ function BulkVenditaDialog({
           <div>
             <Label>Delta ricarico (%)</Label>
             <Input
-              type="number"
-              step="0.1"
+              type="text"
+              inputMode="decimal"
               value={delta}
-              onChange={(e) => setDelta(e.target.value)}
+              onChange={(e) => setDelta(e.target.value.replace(/[^0-9.,\-]/g, ""))}
               className="font-mono"
             />
           </div>
@@ -476,7 +477,7 @@ function BulkVenditaDialog({
             onClick={async () => {
               setBusy(true);
               try {
-                await onApply(Number(delta));
+                await onApply(parseNumeroIt(delta) ?? 0);
               } finally {
                 setBusy(false);
               }

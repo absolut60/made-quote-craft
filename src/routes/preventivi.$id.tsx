@@ -37,6 +37,7 @@ import {
 
 import { FASCE, type FasciaListino } from "@/lib/articoli-api";
 import { round2 } from "@/lib/pricing";
+import { parseNumeroIt } from "@/lib/numero-it";
 import { cn } from "@/lib/utils";
 import { AggiungiBloccoDialog } from "@/components/preventivi/AggiungiBloccoDialog";
 import { RigheTable } from "@/components/preventivi/RigheTable";
@@ -439,10 +440,10 @@ function PreventivoEditorPage() {
                       </div>
                       <div className="grid gap-1.5">
                         <Label className="text-xs">IVA %</Label>
-                        <Input type="number" step="0.01" defaultValue={prev.iva_perc ?? 22}
+                        <Input type="text" inputMode="decimal" defaultValue={String(prev.iva_perc ?? 22).replace(".",",")}
                           onBlur={(e) => {
-                            const v = Number(e.target.value);
-                            if (Number.isFinite(v) && v !== Number(prev.iva_perc ?? 22)) save.mutate({ iva_perc: v });
+                            const v = parseNumeroIt(e.target.value);
+                            if (v !== null && v !== Number(prev.iva_perc ?? 22)) save.mutate({ iva_perc: v });
                           }} />
                       </div>
                       <div className="grid gap-1.5 md:col-span-2">
@@ -509,17 +510,15 @@ function PreventivoEditorPage() {
                     <Label className="text-sm text-muted-foreground" htmlFor="sconto-piede">Sconto a piede %</Label>
                     <Input
                       id="sconto-piede"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="100"
+                      type="text"
+                      inputMode="decimal"
                       disabled={!editMode || applicaSconto.isPending}
-                      defaultValue={Number(prev.sconto_piede_perc ?? 0)}
+                      defaultValue={String(Number(prev.sconto_piede_perc ?? 0)).replace(".",",")}
                       key={`scp-${prev.sconto_piede_perc ?? 0}`}
                       className="h-8 w-28 text-right font-mono"
                       onBlur={(e) => {
-                        const v = Number(e.target.value);
-                        if (Number.isFinite(v) && v !== Number(prev.sconto_piede_perc ?? 0)) {
+                        const v = parseNumeroIt(e.target.value);
+                        if (v !== null && v !== Number(prev.sconto_piede_perc ?? 0)) {
                           applicaSconto.mutate(v);
                         }
                       }}
@@ -661,10 +660,10 @@ function BloccoCard({
             <div className="grid w-24 gap-1">
               <Label className="text-[10px] uppercase">Quantità</Label>
               <Input
-                type="number" step="0.01"
-                defaultValue={blocco.quantita_base ?? 0}
+                type="text" inputMode="decimal"
+                defaultValue={String(blocco.quantita_base ?? 0).replace(".",",")}
                 onBlur={(e) => {
-                  const v = e.target.value === "" ? null : Number(e.target.value);
+                  const v = e.target.value === "" ? null : parseNumeroIt(e.target.value);
                   if (v !== (blocco.quantita_base == null ? null : Number(blocco.quantita_base)))
                     recalcQta.mutate(v);
                 }}

@@ -15,6 +15,7 @@ import { FAMIGLIE_KIT, FAMIGLIA_LABEL } from "@/lib/incidenza";
 import { addBloccoDaKit, addBloccoVuoto, fractionalOrder } from "@/lib/preventivi-api";
 import type { FasciaListino } from "@/lib/articoli-api";
 import { toast } from "sonner";
+import { parseNumeroIt } from "@/lib/numero-it";
 
 export function AggiungiBloccoDialog({
   open, onOpenChange, preventivoId, fascia, lastOrdine,
@@ -44,7 +45,7 @@ export function AggiungiBloccoDialog({
       addBloccoDaKit({
         preventivo_id: preventivoId,
         kit_id: kitId!,
-        quantita_base: Number(quantita) || 0,
+        quantita_base: parseNumeroIt(quantita) ?? 0,
         fascia,
         ordine: fractionalOrder(lastOrdine, null),
       }),
@@ -92,7 +93,7 @@ export function AggiungiBloccoDialog({
               </div>
               <div className="grid gap-1.5">
                 <Label>Quantità base</Label>
-                <Input type="number" step="0.01" value={quantita} onChange={(e) => setQuantita(e.target.value)} />
+                <Input type="text" inputMode="decimal" value={quantita} onChange={(e) => setQuantita(e.target.value.replace(/[^0-9.,]/g, ""))} />
               </div>
             </div>
             <div className="max-h-72 overflow-auto rounded border">
