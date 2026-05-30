@@ -460,10 +460,10 @@ function BulkVenditaDialog({
           <div>
             <Label>Delta ricarico (%)</Label>
             <Input
-              type="number"
-              step="0.1"
+              type="text"
+              inputMode="decimal"
               value={delta}
-              onChange={(e) => setDelta(e.target.value)}
+              onChange={(e) => setDelta(e.target.value.replace(/[^0-9.,\-]/g, ""))}
               className="font-mono"
             />
           </div>
