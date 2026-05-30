@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ArrowLeft, Copy, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { parseNumeroIt } from "@/lib/numero-it";
 import {
   calcolaRigaKit,
   calcolaTotaliKit,
