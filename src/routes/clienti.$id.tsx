@@ -86,6 +86,7 @@ function ClienteDetailPage() {
         comune_id: cliente.comune_id,
         agente_id: cliente.agente_id,
         fascia_listino_default: cliente.fascia_listino_default,
+        email: (cliente as typeof cliente & { email?: string | null }).email ?? null,
       });
     }
   }, [cliente]);
@@ -222,6 +223,14 @@ function ClienteDetailPage() {
                   <Input
                     value={form.filiale ?? ""}
                     onChange={(e) => set("filiale", e.target.value || null)}
+                  />
+                </Field>
+                <Field label="Email" className="md:col-span-6">
+                  <Input
+                    type="email"
+                    value={(form as typeof form & { email?: string | null }).email ?? ""}
+                    onChange={(e) => set("email" as never, (e.target.value || null) as never)}
+                    placeholder="cliente@esempio.it"
                   />
                 </Field>
                 <Field label="Agente" className="md:col-span-6">
