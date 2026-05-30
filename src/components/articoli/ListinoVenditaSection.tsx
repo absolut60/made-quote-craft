@@ -10,7 +10,9 @@ import {
   type FasciaListino,
 } from "@/lib/articoli-api";
 import { Input } from "@/components/ui/input";
+import { NumberInputIt } from "@/components/ui/number-input-it";
 import { Button } from "@/components/ui/button";
+import { parseNumeroIt } from "@/lib/numero-it";
 import { toast } from "sonner";
 
 interface Row {
