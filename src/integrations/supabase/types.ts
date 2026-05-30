@@ -308,6 +308,7 @@ export type Database = {
           cap: string | null
           comune_id: string | null
           created_at: string
+          email: string | null
           fascia_listino_default:
             | Database["public"]["Enums"]["fascia_listino"]
             | null
@@ -325,6 +326,7 @@ export type Database = {
           cap?: string | null
           comune_id?: string | null
           created_at?: string
+          email?: string | null
           fascia_listino_default?:
             | Database["public"]["Enums"]["fascia_listino"]
             | null
@@ -342,6 +344,7 @@ export type Database = {
           cap?: string | null
           comune_id?: string | null
           created_at?: string
+          email?: string | null
           fascia_listino_default?:
             | Database["public"]["Enums"]["fascia_listino"]
             | null
