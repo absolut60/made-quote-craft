@@ -114,22 +114,24 @@ export function ListinoAcquistoView() {
     patch: Partial<ListinoRow>,
   ) {
     const merged: Partial<ListinoRow> = { ...(existing ?? {}), ...patch };
+    // Se l'utente ha toccato trasporto € o %, l'altro va azzerato per ricalcolo coerente
+    if ("trasporto_eur" in patch) merged.trasporto_perc = null;
+    if ("trasporto_perc" in patch) merged.trasporto_eur = null;
     const calc = calcCosto(merged);
     const payload = {
       articolo_id: articoloId,
-      costo: merged.costo ?? null,
+      listino_for: merged.listino_for ?? null,
       sc1: merged.sc1 ?? null,
       sc2: merged.sc2 ?? null,
       sc3: merged.sc3 ?? null,
       sc4: merged.sc4 ?? null,
       sc5: merged.sc5 ?? null,
-      trasporto_eur: merged.trasporto_eur ?? null,
-      trasporto_perc: merged.trasporto_perc ?? null,
-      data_validita: merged.data_validita ?? null,
-      listino_for: merged.listino_for ?? null,
-      condizioni: merged.condizioni ?? null,
-      costo_parziale: calc.costo_parziale,
+      trasporto_eur: calc.trasporto_eur || null,
+      trasporto_perc: calc.trasporto_perc || null,
+      prezzo_scontato: calc.prezzo_scontato,
       costo_netto: calc.costo_netto,
+      data_validita: merged.data_validita ?? null,
+      condizioni: merged.condizioni ?? null,
     };
     try {
       if (existing) {
@@ -235,12 +237,13 @@ export function ListinoAcquistoView() {
               <th className="px-3 py-2 text-left">Cod. GAMMA</th>
               <th className="px-3 py-2 text-left">Descrizione</th>
               <th className="px-3 py-2 text-left">Fornitore</th>
-              <th className="px-2 py-2 text-right">Costo</th>
+              <th className="px-2 py-2 text-right">List. for.</th>
               <th className="px-2 py-2 text-right">SC1</th>
               <th className="px-2 py-2 text-right">SC2</th>
               <th className="px-2 py-2 text-right">SC3</th>
               <th className="px-2 py-2 text-right">SC4</th>
               <th className="px-2 py-2 text-right">SC5</th>
+              <th className="px-2 py-2 text-right">Prezzo scont.</th>
               <th className="px-2 py-2 text-right">Trasp.€</th>
               <th className="px-2 py-2 text-right">Trasp.%</th>
               <th className="px-2 py-2 text-right bg-navy/80">COSTO NETTO</th>
@@ -251,7 +254,7 @@ export function ListinoAcquistoView() {
           <tbody>
             {articoli.map((a) => {
               const l = byArt.get(a.id);
-              const live = l ? calcCosto(l) : { costo_parziale: 0, costo_netto: 0 };
+              const live = l ? calcCosto(l) : { prezzo_scontato: 0, trasporto_eur: 0, trasporto_perc: 0, costo_netto: 0 };
               return (
                 <tr key={a.id} className="border-b hover:bg-muted/30">
                   <td className="px-3 py-1 font-mono">{a.cod_gamma ?? "—"}</td>
@@ -263,8 +266,8 @@ export function ListinoAcquistoView() {
                   </td>
                   <td className="px-1 py-0.5">
                     <EditableNumberCell
-                      value={l?.costo ?? null}
-                      onCommit={(v) => patchOrInsert(a.id, l, { costo: v })}
+                      value={l?.listino_for != null ? Number(l.listino_for) : null}
+                      onCommit={(v) => patchOrInsert(a.id, l, { listino_for: v == null ? null : String(v) })}
                     />
                   </td>
                   {(["sc1", "sc2", "sc3", "sc4", "sc5"] as const).map((k) => (
@@ -275,6 +278,9 @@ export function ListinoAcquistoView() {
                       />
                     </td>
                   ))}
+                  <td className="px-2 py-1 text-right font-mono text-muted-foreground">
+                    {live.prezzo_scontato ? live.prezzo_scontato.toFixed(4) : "—"}
+                  </td>
                   <td className="px-1 py-0.5">
                     <EditableNumberCell
                       value={l?.trasporto_eur ?? null}
@@ -288,7 +294,7 @@ export function ListinoAcquistoView() {
                     />
                   </td>
                   <td className="px-2 py-1 text-right font-mono font-bold bg-muted/30">
-                    {live.costo_netto ? `€ ${live.costo_netto.toFixed(2)}` : "—"}
+                    {live.costo_netto ? `€ ${live.costo_netto.toFixed(4)}` : "—"}
                   </td>
                   <td className="px-2 py-1 font-mono text-[11px]">{l?.data_validita ?? "—"}</td>
                   <td className="px-2 py-1 text-right">
