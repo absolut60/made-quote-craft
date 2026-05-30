@@ -39,6 +39,15 @@ export function NuovoPreventivoDialog({
 
   const { data: agenti = [] } = useQuery({ queryKey: ["agenti"], queryFn: fetchAgenti });
 
+  // All'apertura del dialog: proponi il prossimo numero progressivo (anteprima
+  // di sola lettura, senza consumare il contatore).
+  useEffect(() => {
+    if (!open) return;
+    anteprimaProssimoNumero()
+      .then((n) => setNumero(n))
+      .catch((e) => console.warn("[NuovoPreventivoDialog] anteprima numero:", e));
+  }, [open]);
+
   // Quando cambia il cliente: precompila fascia, agente, filiale
   useEffect(() => {
     if (!clienteId) return;
