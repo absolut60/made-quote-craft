@@ -2,16 +2,19 @@
  * Motore di calcolo prezzi — UNICA FONTE DI VERITÀ.
  * Usato da: scheda articolo, vista Listini, esplosione kit, righe preventivo.
  *
- * REGOLA UFFICIALE (MADE):
- *   costo_parziale = costo × (1-sc1/100) × (1-sc2/100) × (1-sc3/100) × (1-sc4/100) × (1-sc5/100)
- *   costo_netto    = costo_parziale + trasporto_eur + (costo_parziale × trasporto_perc/100)
- *   prezzo         = costo_netto × (1 + ricarico/100)
- *   margine%       = (prezzo - costo_netto) / prezzo × 100
- *   ricarico%      = (prezzo - costo_netto) / costo_netto × 100
+ * SCHEMA NUOVO (catena lineare):
+ *   prezzo_scontato = listino_for × (1 - sc1/100) × ... × (1 - sc5/100)
+ *   trasporto       = € OPPURE % (alternativi, coerenti tra loro):
+ *                       se € → trasporto_perc = (trasporto_eur / prezzo_scontato) × 100
+ *                       se % → trasporto_eur  = prezzo_scontato × trasporto_perc / 100
+ *   costo_netto     = prezzo_scontato + trasporto_eur     ← COSTO VERO (base margini)
+ *   prezzo_vendita  = costo_netto × (1 + ricarico/100)
+ *   margine%        = (prezzo - costo_netto) / prezzo × 100
+ *   ricarico%       = (prezzo - costo_netto) / costo_netto × 100
  */
 
 export interface CostoInput {
-  costo?: number | string | null;
+  listino_for?: number | string | null;
   sc1?: number | string | null;
   sc2?: number | string | null;
   sc3?: number | string | null;
@@ -22,13 +25,18 @@ export interface CostoInput {
 }
 
 export interface CostoOutput {
-  costo_parziale: number;
+  prezzo_scontato: number;
+  trasporto_eur: number;
+  trasporto_perc: number;
   costo_netto: number;
 }
 
 const n = (v: unknown): number => {
   if (v === null || v === undefined || v === "") return 0;
-  const x = typeof v === "number" ? v : Number(String(v).replace(",", "."));
+  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+  // listino_for può essere text in DB: rimuovi caratteri non numerici
+  const cleaned = String(v).replace(/[^0-9.,\-]/g, "").replace(",", ".");
+  const x = Number(cleaned);
   return Number.isFinite(x) ? x : 0;
 };
 
@@ -36,21 +44,38 @@ export function round2(x: number): number {
   return Math.round(x * 100) / 100;
 }
 
+function round4(x: number): number {
+  return Math.round(x * 10000) / 10000;
+}
+
 export function calcCosto(input: CostoInput): CostoOutput {
-  const costo = n(input.costo);
-  if (!costo) return { costo_parziale: 0, costo_netto: 0 };
-
+  const base = n(input.listino_for);
+  if (!base) {
+    return { prezzo_scontato: 0, trasporto_eur: 0, trasporto_perc: 0, costo_netto: 0 };
+  }
   const sc = [input.sc1, input.sc2, input.sc3, input.sc4, input.sc5].map(n);
-  let parziale = costo;
-  for (const s of sc) parziale = parziale * (1 - s / 100);
+  let ps = base;
+  for (const s of sc) ps = ps * (1 - s / 100);
+  ps = round4(ps);
 
-  const trasportoEur = n(input.trasporto_eur);
-  const trasportoPerc = n(input.trasporto_perc);
-  const netto = parziale + trasportoEur + (parziale * trasportoPerc) / 100;
+  const te = n(input.trasporto_eur);
+  const tp = n(input.trasporto_perc);
+  let trasportoEur = 0;
+  let trasportoPerc = 0;
+  if (te > 0) {
+    trasportoEur = round4(te);
+    trasportoPerc = ps > 0 ? round4((te / ps) * 100) : 0;
+  } else if (tp > 0) {
+    trasportoPerc = round4(tp);
+    trasportoEur = ps > 0 ? round4((ps * tp) / 100) : 0;
+  }
 
+  const netto = round4(ps + trasportoEur);
   return {
-    costo_parziale: round2(parziale),
-    costo_netto: round2(netto),
+    prezzo_scontato: ps,
+    trasporto_eur: trasportoEur,
+    trasporto_perc: trasportoPerc,
+    costo_netto: netto,
   };
 }
 
@@ -70,7 +95,6 @@ export function margineFromPrezzo(costoNetto: number, prezzo: number): number {
   return round2(((p - n(costoNetto)) / p) * 100);
 }
 
-/** Applica un delta percentuale al ricarico (es. +2 → ricarico+2). */
 export function applyRicaricoDelta(costoNetto: number, ricarico: number, delta: number) {
   const newRic = n(ricarico) + n(delta);
   const prezzo = prezzoFromRicarico(costoNetto, newRic);
