@@ -128,21 +128,17 @@ export function ListinoVenditaSection({
               <tr key={r.fascia} className="border-t">
                 <td className="px-3 py-1.5 font-bold">{r.fascia}</td>
                 <td className="px-3 py-1.5 text-right">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={r.ricarico}
-                    onChange={(e) => updateRicarico(i, e.target.value)}
+                  <NumberInputIt
+                    value={r.ricarico === "" ? null : r.ricarico}
+                    onChange={(v) => updateRicarico(i, v == null ? "" : String(v))}
                     className="h-8 text-right font-mono text-xs"
                     disabled={!costoNetto}
                   />
                 </td>
                 <td className="px-3 py-1.5 text-right">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={r.prezzo}
-                    onChange={(e) => updatePrezzo(i, e.target.value)}
+                  <NumberInputIt
+                    value={r.prezzo === "" ? null : r.prezzo}
+                    onChange={(v) => updatePrezzo(i, v == null ? "" : String(v))}
                     className="h-8 text-right font-mono text-xs"
                     disabled={!costoNetto}
                   />
