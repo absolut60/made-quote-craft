@@ -319,9 +319,18 @@ export function ListinoVenditaView() {
               const cn = costoByArt.get(a.id) ?? 0;
               const v = vendByArt.get(a.id);
               return (
-                <tr key={a.id} className="border-b hover:bg-muted/30">
-                  <td className="px-3 py-1 font-mono">{a.cod_gamma ?? "—"}</td>
-                  <td className="px-3 py-1 max-w-[36ch] truncate" title={a.descrizione}>
+                <tr key={a.id} className="border-b hover:bg-muted/50">
+                  <td
+                    className="px-3 py-1 font-mono cursor-pointer"
+                    onClick={() => navigate({ to: "/articoli/$id", params: { id: a.id }, search: { tab: "vendita" } })}
+                  >
+                    {a.cod_gamma ?? "—"}
+                  </td>
+                  <td
+                    className="px-3 py-1 max-w-[36ch] truncate cursor-pointer"
+                    title={a.descrizione}
+                    onClick={() => navigate({ to: "/articoli/$id", params: { id: a.id }, search: { tab: "vendita" } })}
+                  >
                     {a.descrizione}
                   </td>
                   <td className="px-3 py-1">{a.categoria ?? "—"}</td>
@@ -344,15 +353,6 @@ export function ListinoVenditaView() {
                   </td>
                   <td className="px-2 py-1 text-right font-mono text-muted-foreground">
                     {v?.margine != null ? `${Number(v.margine).toFixed(1)}%` : "—"}
-                  </td>
-                  <td className="px-2 py-1 text-right">
-                    <Link
-                      to="/articoli/$id"
-                      params={{ id: a.id }}
-                      className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-navy hover:bg-muted"
-                    >
-                      <Eye className="h-3 w-3" /> Apri
-                    </Link>
                   </td>
                 </tr>
               );
