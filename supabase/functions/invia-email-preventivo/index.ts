@@ -77,7 +77,7 @@ function buildHtml(messaggioUtente: string): string {
         </td></tr>
 
         <tr><td style="padding:16px 0;">
-          <img src="data:image/jpeg;base64,${LOGO_NAVY_JPEG_B64}" width="280" alt="sistema MADE" style="display:block;width:280px;max-width:280px;height:auto;border:0;outline:none;text-decoration:none;"/>
+          <img src="data:image/jpeg;base64,${LOGO_NAVY_JPEG_B64}" width="280" height="60" alt="sistema MADE" style="display:block;width:280px;height:60px;border:0;outline:none;text-decoration:none;"/>
         </td></tr>
 
         <tr><td style="padding-top:8px;font-size:10px;line-height:1.4;color:#888888;text-align:justify;">
