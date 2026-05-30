@@ -14,7 +14,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { ClientePicker } from "./ClientePicker";
 import { CantierePicker } from "./CantierePicker";
 import {
-  createPreventivo, fetchAgenti, fetchCliente, TIPI_DOC, TIPI_DOC_LABEL,
+  createPreventivo, fetchAgenti, fetchCliente, anteprimaProssimoNumero,
+  TIPI_DOC, TIPI_DOC_LABEL,
   type TipoDoc,
 } from "@/lib/preventivi-api";
 import { FASCE, type FasciaListino } from "@/lib/articoli-api";
