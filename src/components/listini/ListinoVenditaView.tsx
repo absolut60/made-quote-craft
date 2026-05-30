@@ -34,6 +34,7 @@ import {
 } from "@/lib/pricing";
 import { EditableNumberCell } from "./EditableNumberCell";
 import { toast } from "sonner";
+import { parseNumeroIt } from "@/lib/numero-it";
 import { Search, Wand2, Eye, SlidersHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
