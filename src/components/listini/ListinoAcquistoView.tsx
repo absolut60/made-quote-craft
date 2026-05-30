@@ -13,7 +13,7 @@ import { fetchFornitori, type ListinoAcquisto } from "@/lib/articoli-api";
 import { calcCosto } from "@/lib/pricing";
 import { EditableNumberCell } from "./EditableNumberCell";
 import { toast } from "sonner";
-import { Search, Eye, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
