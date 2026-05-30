@@ -101,7 +101,7 @@ export function NuovoKitDialog({
             </div>
             <div className="grid gap-1.5">
               <Label>H. max (m)</Label>
-              <Input type="number" value={hMax} onChange={(e) => setHMax(e.target.value)} />
+              <Input type="text" inputMode="decimal" value={hMax} onChange={(e) => setHMax(e.target.value.replace(/[^0-9.,]/g, ""))} />
             </div>
           </div>
           <div className="grid gap-1.5">
