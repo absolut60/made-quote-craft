@@ -5,7 +5,7 @@ import { Topbar } from "./Topbar";
 import { AuthGate } from "@/components/auth/AuthGate";
 import type { AppRole } from "@/hooks/use-auth";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import logo from "@/assets/logo-made.png";
+import logo from "@/assets/logo-made-white.png";
 
 export function AppShell({
   children,
@@ -42,7 +42,7 @@ export function AppShell({
                 </SheetContent>
               </Sheet>
 
-              <img src={logo} alt="Sistema MADE" className="h-7 w-auto" />
+              <img src={logo} alt="sistema MADE" className="h-6 w-auto" />
 
               <div className="w-9" />
             </div>
