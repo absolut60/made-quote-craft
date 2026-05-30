@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, FileText, Package, Tags, Wrench, Users, UserCog,
 } from "lucide-react";
-import logo from "@/assets/logo-made.png";
+import logo from "@/assets/logo-made-white.png";
 import { useAuth } from "@/hooks/use-auth";
 
 type NavItem = {
@@ -31,7 +31,7 @@ export function SidebarBody({ onNavigate }: { onNavigate?: () => void } = {}) {
   return (
     <div className="flex h-full w-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="px-5 pt-5 pb-4">
-        <img src={logo} alt="Sistema MADE" className="h-8 w-auto" />
+        <img src={logo} alt="sistema MADE" className="w-40 h-auto" />
         <div className="tricolor-bar mt-3 h-[3px] w-24 rounded-sm" />
         <p className="mt-3 text-[11px] uppercase tracking-widest text-sidebar-foreground/60">
           Preventivatore
