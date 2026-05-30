@@ -47,7 +47,7 @@ export function NuovoKitDialog({
       createKit({
         nome: nome.trim(),
         famiglia,
-        spessore: spessore ? Number(spessore) : null,
+       spessore: spessore ? parseNumeroIt(spessore) : null,
         tipo_struttura: tipoStruttura || null,
         h_max: hMax ? Number(hMax) : null,
         isolante: isolante || null,
