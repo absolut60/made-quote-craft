@@ -289,11 +289,9 @@ function NumField({
   return (
     <div>
       <label className="text-[11px] uppercase text-muted-foreground">{label}</label>
-      <Input
-        type="number"
-        step="0.01"
-        value={value ?? ""}
-        onChange={(e) => onChange(e.target.value === "" ? null : Number(e.target.value))}
+      <NumberInputIt
+        value={value ?? null}
+        onChange={onChange}
         className="h-8 font-mono text-xs"
       />
     </div>
