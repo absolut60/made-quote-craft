@@ -90,6 +90,7 @@ export type Database = {
           fornitore_id: string | null
           id: string
           note: string | null
+          note_acquisto: string | null
           peso_unit: number | null
           qta_cliente: number | null
           qta_fornitore: number | null
@@ -108,6 +109,7 @@ export type Database = {
           fornitore_id?: string | null
           id?: string
           note?: string | null
+          note_acquisto?: string | null
           peso_unit?: number | null
           qta_cliente?: number | null
           qta_fornitore?: number | null
@@ -126,6 +128,7 @@ export type Database = {
           fornitore_id?: string | null
           id?: string
           note?: string | null
+          note_acquisto?: string | null
           peso_unit?: number | null
           qta_cliente?: number | null
           qta_fornitore?: number | null
