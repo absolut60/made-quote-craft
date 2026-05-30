@@ -3,6 +3,7 @@
 // Il logo "sistema MADE" è allegato inline (Content-ID "logo-made") nel riquadro navy.
 
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { LOGO_NAVY_JPEG_B64 } from "./logo.ts";
 
 
 const corsHeaders = {
