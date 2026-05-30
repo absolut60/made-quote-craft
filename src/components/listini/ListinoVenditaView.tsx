@@ -477,7 +477,7 @@ function BulkVenditaDialog({
             onClick={async () => {
               setBusy(true);
               try {
-                await onApply(Number(delta));
+                await onApply(parseNumeroIt(delta) ?? 0);
               } finally {
                 setBusy(false);
               }
