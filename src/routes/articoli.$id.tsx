@@ -33,11 +33,18 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/articoli/$id")({
   head: () => ({ meta: [{ title: "Scheda articolo — Sistema MADE" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    tab:
+      s.tab === "acquisto" || s.tab === "vendita" || s.tab === "anagrafica"
+        ? (s.tab as "acquisto" | "vendita" | "anagrafica")
+        : undefined,
+  }),
   component: ArticoloDetailPage,
 });
 
 function ArticoloDetailPage() {
   const { id } = Route.useParams();
+  const { tab: tabParam } = Route.useSearch();
   const qc = useQueryClient();
   const navigate = useNavigate();
 
@@ -155,7 +162,7 @@ function ArticoloDetailPage() {
         </div>
 
         <div className="flex-1 overflow-auto p-3 md:p-4 lg:p-6">
-          <Tabs defaultValue="anagrafica">
+          <Tabs value={tabParam ?? "anagrafica"} onValueChange={(v) => navigate({ to: "/articoli/$id", params: { id }, search: { tab: v as "anagrafica" | "acquisto" | "vendita" }, replace: true })}>
             <TabsList>
               <TabsTrigger value="anagrafica">Anagrafica</TabsTrigger>
               <TabsTrigger value="acquisto">Listino acquisto</TabsTrigger>

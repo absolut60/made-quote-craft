@@ -13,11 +13,11 @@ import { fetchFornitori, type ListinoAcquisto } from "@/lib/articoli-api";
 import { calcCosto } from "@/lib/pricing";
 import { EditableNumberCell } from "./EditableNumberCell";
 import { toast } from "sonner";
-import { Search, Eye, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 interface ArticoloLite {
   id: string;
@@ -30,6 +30,7 @@ interface ListinoRow extends ListinoAcquisto {}
 const ANY = "__any";
 
 export function ListinoAcquistoView() {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [dSearch, setDSearch] = useState("");
@@ -248,7 +249,6 @@ export function ListinoAcquistoView() {
               <th className="px-2 py-2 text-right">Trasp.%</th>
               <th className="px-2 py-2 text-right bg-navy/80">COSTO NETTO</th>
               <th className="px-2 py-2 text-left">Data</th>
-              <th className="px-2 py-2 text-right"></th>
             </tr>
           </thead>
           <tbody>
@@ -256,9 +256,18 @@ export function ListinoAcquistoView() {
               const l = byArt.get(a.id);
               const live = l ? calcCosto(l) : { prezzo_scontato: 0, trasporto_eur: 0, trasporto_perc: 0, costo_netto: 0 };
               return (
-                <tr key={a.id} className="border-b hover:bg-muted/30">
-                  <td className="px-3 py-1 font-mono">{a.cod_gamma ?? "—"}</td>
-                  <td className="px-3 py-1 max-w-[28ch] truncate" title={a.descrizione}>
+                <tr key={a.id} className="border-b hover:bg-muted/50">
+                  <td
+                    className="px-3 py-1 font-mono cursor-pointer"
+                    onClick={() => navigate({ to: "/articoli/$id", params: { id: a.id }, search: { tab: "acquisto" } })}
+                  >
+                    {a.cod_gamma ?? "—"}
+                  </td>
+                  <td
+                    className="px-3 py-1 max-w-[28ch] truncate cursor-pointer"
+                    title={a.descrizione}
+                    onClick={() => navigate({ to: "/articoli/$id", params: { id: a.id }, search: { tab: "acquisto" } })}
+                  >
                     {a.descrizione}
                   </td>
                   <td className="px-3 py-1">
@@ -297,28 +306,19 @@ export function ListinoAcquistoView() {
                     {live.costo_netto ? `€ ${live.costo_netto.toFixed(4)}` : "—"}
                   </td>
                   <td className="px-2 py-1 font-mono text-[11px]">{l?.data_validita ?? "—"}</td>
-                  <td className="px-2 py-1 text-right">
-                    <Link
-                      to="/articoli/$id"
-                      params={{ id: a.id }}
-                      className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-navy hover:bg-muted"
-                    >
-                      <Eye className="h-3 w-3" /> Apri
-                    </Link>
-                  </td>
                 </tr>
               );
             })}
             {error && (
               <tr>
-                <td colSpan={14} className="px-3 py-6 text-center text-red-600 font-mono text-xs">
+                <td colSpan={13} className="px-3 py-6 text-center text-red-600 font-mono text-xs">
                   Errore caricamento: {error instanceof Error ? error.message : String(error)}
                 </td>
               </tr>
             )}
             {!isLoading && !error && !articoli.length && (
               <tr>
-                <td colSpan={14} className="px-3 py-12 text-center text-muted-foreground">
+                <td colSpan={13} className="px-3 py-12 text-center text-muted-foreground">
                   Nessun articolo
                 </td>
               </tr>

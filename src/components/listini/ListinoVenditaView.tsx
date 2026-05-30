@@ -35,10 +35,10 @@ import {
 import { EditableNumberCell } from "./EditableNumberCell";
 import { toast } from "sonner";
 import { parseNumeroIt } from "@/lib/numero-it";
-import { Search, Wand2, Eye, SlidersHorizontal } from "lucide-react";
+import { Search, Wand2, SlidersHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 interface ArticoloLite {
   id: string;
@@ -52,6 +52,7 @@ interface ArticoloLite {
 const ANY = "__any";
 
 export function ListinoVenditaView() {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [fascia, setFascia] = useState<FasciaListino>("A");
   const [search, setSearch] = useState("");
@@ -311,7 +312,6 @@ export function ListinoVenditaView() {
               <th className="px-2 py-2 text-right">Ricarico %</th>
               <th className="px-2 py-2 text-right bg-navy/80">Prezzo €</th>
               <th className="px-2 py-2 text-right">Margine %</th>
-              <th className="px-2 py-2 text-right"></th>
             </tr>
           </thead>
           <tbody>
@@ -319,9 +319,18 @@ export function ListinoVenditaView() {
               const cn = costoByArt.get(a.id) ?? 0;
               const v = vendByArt.get(a.id);
               return (
-                <tr key={a.id} className="border-b hover:bg-muted/30">
-                  <td className="px-3 py-1 font-mono">{a.cod_gamma ?? "—"}</td>
-                  <td className="px-3 py-1 max-w-[36ch] truncate" title={a.descrizione}>
+                <tr key={a.id} className="border-b hover:bg-muted/50">
+                  <td
+                    className="px-3 py-1 font-mono cursor-pointer"
+                    onClick={() => navigate({ to: "/articoli/$id", params: { id: a.id }, search: { tab: "vendita" } })}
+                  >
+                    {a.cod_gamma ?? "—"}
+                  </td>
+                  <td
+                    className="px-3 py-1 max-w-[36ch] truncate cursor-pointer"
+                    title={a.descrizione}
+                    onClick={() => navigate({ to: "/articoli/$id", params: { id: a.id }, search: { tab: "vendita" } })}
+                  >
                     {a.descrizione}
                   </td>
                   <td className="px-3 py-1">{a.categoria ?? "—"}</td>
@@ -345,28 +354,19 @@ export function ListinoVenditaView() {
                   <td className="px-2 py-1 text-right font-mono text-muted-foreground">
                     {v?.margine != null ? `${Number(v.margine).toFixed(1)}%` : "—"}
                   </td>
-                  <td className="px-2 py-1 text-right">
-                    <Link
-                      to="/articoli/$id"
-                      params={{ id: a.id }}
-                      className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-navy hover:bg-muted"
-                    >
-                      <Eye className="h-3 w-3" /> Apri
-                    </Link>
-                  </td>
                 </tr>
               );
             })}
             {error && (
               <tr>
-                <td colSpan={8} className="px-3 py-6 text-center text-red-600 font-mono text-xs">
+                <td colSpan={7} className="px-3 py-6 text-center text-red-600 font-mono text-xs">
                   Errore caricamento: {error instanceof Error ? error.message : String(error)}
                 </td>
               </tr>
             )}
             {!isLoading && !error && !articoli.length && (
               <tr>
-                <td colSpan={8} className="px-3 py-12 text-center text-muted-foreground">
+                <td colSpan={7} className="px-3 py-12 text-center text-muted-foreground">
                   Nessun articolo
                 </td>
               </tr>
