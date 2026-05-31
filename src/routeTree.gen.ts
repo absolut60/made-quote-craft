@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UtentiRouteImport } from './routes/utenti'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as OrdineVocaleRouteImport } from './routes/ordine-vocale'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ListiniRouteImport } from './routes/listini'
 import { Route as IndexRouteImport } from './routes/index'
@@ -32,6 +33,11 @@ const UtentiRoute = UtentiRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdineVocaleRoute = OrdineVocaleRouteImport.update({
+  id: '/ordine-vocale',
+  path: '/ordine-vocale',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/listini': typeof ListiniRoute
   '/login': typeof LoginRoute
+  '/ordine-vocale': typeof OrdineVocaleRoute
   '/reset-password': typeof ResetPasswordRoute
   '/utenti': typeof UtentiRoute
   '/articoli/$id': typeof ArticoliIdRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/listini': typeof ListiniRoute
   '/login': typeof LoginRoute
+  '/ordine-vocale': typeof OrdineVocaleRoute
   '/reset-password': typeof ResetPasswordRoute
   '/utenti': typeof UtentiRoute
   '/articoli/$id': typeof ArticoliIdRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/listini': typeof ListiniRoute
   '/login': typeof LoginRoute
+  '/ordine-vocale': typeof OrdineVocaleRoute
   '/reset-password': typeof ResetPasswordRoute
   '/utenti': typeof UtentiRoute
   '/articoli/$id': typeof ArticoliIdRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/'
     | '/listini'
     | '/login'
+    | '/ordine-vocale'
     | '/reset-password'
     | '/utenti'
     | '/articoli/$id'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/listini'
     | '/login'
+    | '/ordine-vocale'
     | '/reset-password'
     | '/utenti'
     | '/articoli/$id'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/'
     | '/listini'
     | '/login'
+    | '/ordine-vocale'
     | '/reset-password'
     | '/utenti'
     | '/articoli/$id'
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ListiniRoute: typeof ListiniRoute
   LoginRoute: typeof LoginRoute
+  OrdineVocaleRoute: typeof OrdineVocaleRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   UtentiRoute: typeof UtentiRoute
   ArticoliIdRoute: typeof ArticoliIdRoute
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ordine-vocale': {
+      id: '/ordine-vocale'
+      path: '/ordine-vocale'
+      fullPath: '/ordine-vocale'
+      preLoaderRoute: typeof OrdineVocaleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -319,6 +339,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ListiniRoute: ListiniRoute,
   LoginRoute: LoginRoute,
+  OrdineVocaleRoute: OrdineVocaleRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   UtentiRoute: UtentiRoute,
   ArticoliIdRoute: ArticoliIdRoute,
