@@ -50,7 +50,9 @@ import { EvasioneBadge } from "@/components/preventivi/EvasioneBadge";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, FileText, Pencil, Plus, Save, Trash2 } from "lucide-react";
+
 
 import { toast } from "sonner";
 
