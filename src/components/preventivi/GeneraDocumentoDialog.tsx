@@ -20,28 +20,32 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Modalita = "PREVENTIVO" | "PROPOSTA_RAPIDA" | "LISTA_MATERIALI" | "LISTA_FORNITORE";
 
-const MODI: { id: Modalita; label: string; desc: string; icon: typeof FileText; excel: boolean }[] = [
-  {
-    id: "PREVENTIVO", label: "Preventivo",
-    desc: "PDF ufficiale per il cliente: intestazione MADE, dati cantiere, blocchi con materiali, totali e IVA.",
-    icon: FileText, excel: false,
-  },
-  {
-    id: "PROPOSTA_RAPIDA", label: "Proposta rapida",
-    desc: "Versione sintetica: solo Rif., descrizione, prezzo/mq e importo per ogni blocco.",
-    icon: FileBarChart, excel: false,
-  },
-  {
-    id: "LISTA_MATERIALI", label: "Lista materiali",
-    desc: "Elenco materiali con quantità teoriche totali (somma incidenze × quantità) raggruppato per articolo.",
-    icon: Package, excel: true,
-  },
-  {
-    id: "LISTA_FORNITORE", label: "Lista mat. fornitore",
-    desc: "Conferma d'ordine: quantità arrotondate ai minimi di vendita (confezioni/bancali interi), raggruppate per fornitore.",
-    icon: Truck, excel: true,
-  },
-];
+function buildModi(isOrdine: boolean): { id: Modalita; label: string; desc: string; icon: typeof FileText; excel: boolean }[] {
+  return [
+    {
+      id: "PREVENTIVO", label: isOrdine ? "Ordine" : "Preventivo",
+      desc: isOrdine
+        ? "PDF ufficiale per il cliente: intestazione MADE, dati cantiere, blocchi con materiali, totali e IVA."
+        : "PDF ufficiale per il cliente: intestazione MADE, dati cantiere, blocchi con materiali, totali e IVA.",
+      icon: FileText, excel: false,
+    },
+    {
+      id: "PROPOSTA_RAPIDA", label: "Proposta rapida",
+      desc: "Versione sintetica: solo Rif., descrizione, prezzo/mq e importo per ogni blocco.",
+      icon: FileBarChart, excel: false,
+    },
+    {
+      id: "LISTA_MATERIALI", label: "Lista materiali",
+      desc: "Elenco materiali con quantità teoriche totali (somma incidenze × quantità) raggruppato per articolo.",
+      icon: Package, excel: true,
+    },
+    {
+      id: "LISTA_FORNITORE", label: "Lista mat. fornitore",
+      desc: "Conferma d'ordine: quantità arrotondate ai minimi di vendita (confezioni/bancali interi), raggruppate per fornitore.",
+      icon: Truck, excel: true,
+    },
+  ];
+}
 
 const COLONNE_LABEL: { key: keyof ColonneRighePdf; label: string }[] = [
   { key: "um", label: "U.M." },
