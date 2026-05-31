@@ -287,6 +287,11 @@ function PreventivoEditorPage() {
             <Button size="sm" variant="outline" onClick={() => setOutputOpen(true)}>
               <FileDown className="mr-1 h-4 w-4" /> Genera documento
             </Button>
+            {prev.tipo === "preventivo" && (
+              <Button size="sm" onClick={() => setTrasformaOpen(true)}>
+                <ShoppingCart className="mr-1 h-4 w-4" /> Trasforma in ordine
+              </Button>
+            )}
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button size="sm" variant="ghost" className="text-destructive">
