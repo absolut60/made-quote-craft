@@ -16,14 +16,14 @@ import { CantierePicker } from "./CantierePicker";
 import {
   createPreventivo, fetchAgenti, fetchCliente, anteprimaProssimoNumero,
   TIPI_DOC, TIPI_DOC_LABEL,
-  type TipoDoc,
+  type TipoDoc, type TipoDocumento,
 } from "@/lib/preventivi-api";
 import { FASCE, type FasciaListino } from "@/lib/articoli-api";
 import { toast } from "sonner";
 
 export function NuovoPreventivoDialog({
-  open, onOpenChange,
-}: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  open, onOpenChange, tipo = "preventivo",
+}: { open: boolean; onOpenChange: (v: boolean) => void; tipo?: TipoDocumento }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
@@ -39,14 +39,18 @@ export function NuovoPreventivoDialog({
 
   const { data: agenti = [] } = useQuery({ queryKey: ["agenti"], queryFn: fetchAgenti });
 
+  const isOrdine = tipo === "ordine";
+  const labelDoc = isOrdine ? "ordine" : "preventivo";
+  const labelDocCap = isOrdine ? "Ordine" : "Preventivo";
+
   // All'apertura del dialog: proponi il prossimo numero progressivo (anteprima
   // di sola lettura, senza consumare il contatore).
   useEffect(() => {
     if (!open) return;
-    anteprimaProssimoNumero()
+    anteprimaProssimoNumero(undefined, tipo)
       .then((n) => setNumero(n))
       .catch((e) => console.warn("[NuovoPreventivoDialog] anteprima numero:", e));
-  }, [open]);
+  }, [open, tipo]);
 
   // Quando cambia il cliente: precompila fascia, agente, filiale
   useEffect(() => {
@@ -73,6 +77,7 @@ export function NuovoPreventivoDialog({
         filiale: filiale || null,
         fascia_listino: fasciaFinal,
         tipo_doc: tipoDocFinal,
+        tipo,
         numero: numeroFinal,
         data: dataFinal,
         validita: validita || null,
@@ -83,21 +88,21 @@ export function NuovoPreventivoDialog({
       if (numeroRiassegnato) {
         toast.warning(`Numero già impegnato — assegnato il successivo: ${numeroRiassegnato}`);
       } else {
-        toast.success("Preventivo creato");
+        toast.success(`${labelDocCap} creato`);
       }
       onOpenChange(false);
       navigate({ to: "/preventivi/$id", params: { id: preventivo.id } });
     },
     onError: (e: unknown) => {
       console.error("[NuovoPreventivoDialog] create error:", e);
-      toast.error((e as Error).message || "Errore creazione preventivo");
+      toast.error((e as Error).message || `Errore creazione ${labelDoc}`);
     },
   });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
-        <DialogHeader><DialogTitle>Nuovo preventivo</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Nuovo {labelDoc}</DialogTitle></DialogHeader>
         <div className="grid gap-3">
           <div className="grid gap-1.5">
             <Label>Cliente *</Label>
@@ -134,17 +139,19 @@ export function NuovoPreventivoDialog({
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-1.5">
-              <Label>Tipo documento</Label>
-              <Select value={tipoDoc} onValueChange={(v) => setTipoDoc(v as TipoDoc)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {TIPI_DOC.map((t) => (
-                    <SelectItem key={t} value={t}>{TIPI_DOC_LABEL[t]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {!isOrdine && (
+              <div className="grid gap-1.5">
+                <Label>Tipo documento</Label>
+                <Select value={tipoDoc} onValueChange={(v) => setTipoDoc(v as TipoDoc)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TIPI_DOC.map((t) => (
+                      <SelectItem key={t} value={t}>{TIPI_DOC_LABEL[t]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="grid gap-1.5">
@@ -164,7 +171,7 @@ export function NuovoPreventivoDialog({
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Annulla</Button>
           <Button onClick={() => create.mutate()} disabled={!clienteId || create.isPending}>
-            Crea preventivo
+            Crea {labelDoc}
           </Button>
         </DialogFooter>
       </DialogContent>

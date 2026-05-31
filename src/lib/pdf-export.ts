@@ -217,7 +217,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
   const col: ColonneRighePdf = { ...COLONNE_RIGHE_DEFAULT, ...(opzioni.colonne ?? {}) };
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const w = doc.internal.pageSize.getWidth();
-  drawHeader(doc, "Preventivo", prev);
+  drawHeader(doc, prev.tipo === "ordine" ? "Ordine" : "Preventivo", prev);
 
   const blocchi = buildBlocchiOutput(prev);
   const USABLE = w - 28;

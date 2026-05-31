@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, FileText, Package, Tags, Wrench, Users, UserCog,
+  LayoutDashboard, FileText, ShoppingCart, Package, Tags, Wrench, Users, UserCog,
 } from "lucide-react";
 import logo from "@/assets/logo-made-white.png";
 import { useAuth } from "@/hooks/use-auth";
@@ -16,6 +16,7 @@ type NavItem = {
 const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/preventivi", label: "Preventivi", icon: FileText },
+  { to: "/ordini", label: "Ordini", icon: ShoppingCart },
   { to: "/articoli", label: "Articoli", icon: Package },
   { to: "/listini", label: "Listini", icon: Tags },
   { to: "/kit", label: "Kit / Lavorazioni", icon: Wrench },
