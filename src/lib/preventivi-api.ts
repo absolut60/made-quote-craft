@@ -77,12 +77,21 @@ export interface PreventiviFilters {
 export interface PreventivoListItem extends Preventivo {
   cliente: { id: string; ragione_sociale: string } | null;
   cantiere: { id: string; nome: string } | null;
+  /** Righe ridotte usate per derivare lo stato di evasione. */
+  blocchi?: {
+    righe: { tipo_riga: string; quantita: number | null; qta_ordinata: number | null }[];
+  }[];
 }
 
 export async function fetchPreventivi(f: PreventiviFilters): Promise<PreventivoListItem[]> {
   let q = supabase
     .from("preventivi")
-    .select("*, cliente:clienti(id, ragione_sociale), cantiere:cantieri(id, nome)")
+    .select(
+      `*,
+       cliente:clienti(id, ragione_sociale),
+       cantiere:cantieri(id, nome),
+       blocchi:blocchi_preventivo(righe:righe_preventivo(tipo_riga, quantita, qta_ordinata))`,
+    )
     .order("data", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(500);
@@ -98,6 +107,7 @@ export async function fetchPreventivi(f: PreventiviFilters): Promise<PreventivoL
   if (error) throw error;
   return (data ?? []) as unknown as PreventivoListItem[];
 }
+
 
 export type Cliente = Database["public"]["Tables"]["clienti"]["Row"];
 export type Cantiere = Database["public"]["Tables"]["cantieri"]["Row"];
