@@ -391,17 +391,15 @@ function PreventivoEditorPage() {
                         {cliente.id_cliente && (
                           <div className="font-mono text-xs text-[#2b5ea7]">Cliente n. {cliente.id_cliente}</div>
                         )}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setClienteDialogOpen(true);
-                          }}
-                          title="Apri dettaglio cliente"
+                        <Link
+                          to="/clienti/$id"
+                          params={{ id: cliente.id }}
+                          onClick={(e) => e.stopPropagation()}
+                          title="Apri scheda cliente"
                           className="cursor-pointer self-start bg-transparent p-0 text-left text-base font-bold leading-tight text-[#0d1f3c] hover:text-[#2b5ea7] hover:underline"
                         >
                           {cliente.ragione_sociale}
-                        </button>
+                        </Link>
                         {cliente.piva && (
                           <div className="text-sm leading-snug text-[#0d1f3c]/80">P.IVA {cliente.piva}</div>
                         )}
