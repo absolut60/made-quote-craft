@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, FileText, ShoppingCart, Package, Tags, Wrench, Users, UserCog, Mic,
+  LayoutDashboard, FileText, ShoppingCart, Package, Tags, Wrench, Users, UserCog, Mic, Sparkles,
 } from "lucide-react";
 import logo from "@/assets/logo-made-white.png";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,6 +22,7 @@ const nav: NavItem[] = [
   { to: "/kit", label: "Kit / Lavorazioni", icon: Wrench },
   { to: "/clienti", label: "Clienti", icon: Users },
   { to: "/ordine-vocale", label: "Ordine vocale (beta)", icon: Mic },
+  { to: "/assistente-prodotti", label: "Assistente prodotti (beta)", icon: Sparkles },
   { to: "/utenti", label: "Utenti", icon: UserCog, adminOnly: true },
 ];
 

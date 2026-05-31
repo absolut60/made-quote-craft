@@ -14,6 +14,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as OrdineVocaleRouteImport } from './routes/ordine-vocale'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ListiniRouteImport } from './routes/listini'
+import { Route as AssistenteProdottiRouteImport } from './routes/assistente-prodotti'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PreventiviIndexRouteImport } from './routes/preventivi.index'
 import { Route as OrdiniIndexRouteImport } from './routes/ordini.index'
@@ -48,6 +49,11 @@ const LoginRoute = LoginRouteImport.update({
 const ListiniRoute = ListiniRouteImport.update({
   id: '/listini',
   path: '/listini',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssistenteProdottiRoute = AssistenteProdottiRouteImport.update({
+  id: '/assistente-prodotti',
+  path: '/assistente-prodotti',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -103,6 +109,7 @@ const ArticoliIdRoute = ArticoliIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/assistente-prodotti': typeof AssistenteProdottiRoute
   '/listini': typeof ListiniRoute
   '/login': typeof LoginRoute
   '/ordine-vocale': typeof OrdineVocaleRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/assistente-prodotti': typeof AssistenteProdottiRoute
   '/listini': typeof ListiniRoute
   '/login': typeof LoginRoute
   '/ordine-vocale': typeof OrdineVocaleRoute
@@ -138,6 +146,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/assistente-prodotti': typeof AssistenteProdottiRoute
   '/listini': typeof ListiniRoute
   '/login': typeof LoginRoute
   '/ordine-vocale': typeof OrdineVocaleRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/assistente-prodotti'
     | '/listini'
     | '/login'
     | '/ordine-vocale'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/assistente-prodotti'
     | '/listini'
     | '/login'
     | '/ordine-vocale'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/assistente-prodotti'
     | '/listini'
     | '/login'
     | '/ordine-vocale'
@@ -209,6 +221,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AssistenteProdottiRoute: typeof AssistenteProdottiRoute
   ListiniRoute: typeof ListiniRoute
   LoginRoute: typeof LoginRoute
   OrdineVocaleRoute: typeof OrdineVocaleRoute
@@ -260,6 +273,13 @@ declare module '@tanstack/react-router' {
       path: '/listini'
       fullPath: '/listini'
       preLoaderRoute: typeof ListiniRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assistente-prodotti': {
+      id: '/assistente-prodotti'
+      path: '/assistente-prodotti'
+      fullPath: '/assistente-prodotti'
+      preLoaderRoute: typeof AssistenteProdottiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -337,6 +357,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AssistenteProdottiRoute: AssistenteProdottiRoute,
   ListiniRoute: ListiniRoute,
   LoginRoute: LoginRoute,
   OrdineVocaleRoute: OrdineVocaleRoute,
