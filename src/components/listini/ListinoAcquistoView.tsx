@@ -232,23 +232,39 @@ export function ListinoAcquistoView() {
 
       {/* Table */}
       <div className="flex-1 overflow-auto">
-        <table className="w-full text-xs">
+        <table className="w-full text-xs table-fixed">
+          <colgroup>
+            <col style={{ width: "104px" }} />
+            <col />
+            <col style={{ width: "140px" }} />
+            <col style={{ width: "80px" }} />
+            <col style={{ width: "56px" }} />
+            <col style={{ width: "56px" }} />
+            <col style={{ width: "56px" }} />
+            <col style={{ width: "56px" }} />
+            <col style={{ width: "56px" }} />
+            <col style={{ width: "88px" }} />
+            <col style={{ width: "68px" }} />
+            <col style={{ width: "68px" }} />
+            <col style={{ width: "104px" }} />
+            <col style={{ width: "88px" }} />
+          </colgroup>
           <thead className="sticky top-0 z-10 bg-navy text-navy-foreground">
             <tr className="text-[11px] uppercase tracking-wide">
-              <th className="px-3 py-2 text-left">Cod. GAMMA</th>
+              <th className="px-2 py-2 text-left">Cod. GAMMA</th>
               <th className="px-3 py-2 text-left">Descrizione</th>
-              <th className="px-3 py-2 text-left">Fornitore</th>
-              <th className="px-2 py-2 text-right">List. for.</th>
-              <th className="px-2 py-2 text-right">SC1</th>
-              <th className="px-2 py-2 text-right">SC2</th>
-              <th className="px-2 py-2 text-right">SC3</th>
-              <th className="px-2 py-2 text-right">SC4</th>
-              <th className="px-2 py-2 text-right">SC5</th>
-              <th className="px-2 py-2 text-right">Prezzo scont.</th>
-              <th className="px-2 py-2 text-right">Trasp.€</th>
-              <th className="px-2 py-2 text-right">Trasp.%</th>
-              <th className="px-2 py-2 text-right bg-navy/80">COSTO NETTO</th>
-              <th className="px-2 py-2 text-left">Data</th>
+              <th className="px-2 py-2 text-left">Fornitore</th>
+              <th className="px-1 py-2 text-right">List. for.</th>
+              <th className="px-1 py-2 text-right">SC1</th>
+              <th className="px-1 py-2 text-right">SC2</th>
+              <th className="px-1 py-2 text-right">SC3</th>
+              <th className="px-1 py-2 text-right">SC4</th>
+              <th className="px-1 py-2 text-right">SC5</th>
+              <th className="px-1 py-2 text-right">Prezzo sc.</th>
+              <th className="px-1 py-2 text-right">Trasp.€</th>
+              <th className="px-1 py-2 text-right">Trasp.%</th>
+              <th className="px-1 py-2 text-right bg-navy/80">COSTO NETTO</th>
+              <th className="px-1 py-2 text-left">Data</th>
             </tr>
           </thead>
           <tbody>
@@ -258,19 +274,20 @@ export function ListinoAcquistoView() {
               return (
                 <tr key={a.id} className="border-b hover:bg-muted/50">
                   <td
-                    className="px-3 py-1 font-mono cursor-pointer"
+                    className="px-2 py-1 font-mono truncate cursor-pointer"
+                    title={a.cod_gamma ?? ""}
                     onClick={() => navigate({ to: "/articoli/$id", params: { id: a.id }, search: { tab: "acquisto" } })}
                   >
                     {a.cod_gamma ?? "—"}
                   </td>
                   <td
-                    className="px-3 py-1 max-w-[28ch] truncate cursor-pointer"
+                    className="px-3 py-1 truncate cursor-pointer"
                     title={a.descrizione}
                     onClick={() => navigate({ to: "/articoli/$id", params: { id: a.id }, search: { tab: "acquisto" } })}
                   >
                     {a.descrizione}
                   </td>
-                  <td className="px-3 py-1">
+                  <td className="px-2 py-1 truncate" title={a.fornitore_id ? fornitoriById.get(a.fornitore_id) ?? "" : ""}>
                     {a.fornitore_id ? fornitoriById.get(a.fornitore_id) ?? "—" : "—"}
                   </td>
                   <td className="px-1 py-0.5">
