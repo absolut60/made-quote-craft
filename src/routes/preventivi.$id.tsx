@@ -546,8 +546,10 @@ function PreventivoEditorPage() {
                       key={`scp-${prev.sconto_piede_perc ?? 0}`}
                       className="h-8 w-28 text-right font-mono"
                       onBlur={(e) => {
-                        const v = parseNumeroIt(e.target.value);
-                        if (v !== null && v !== Number(prev.sconto_piede_perc ?? 0)) {
+                        const raw = e.target.value.trim();
+                        const parsed = raw === "" ? 0 : parseNumeroIt(raw);
+                        const v = parsed === null ? 0 : Math.max(0, parsed);
+                        if (v !== Number(prev.sconto_piede_perc ?? 0)) {
                           applicaSconto.mutate(v);
                         }
                       }}
