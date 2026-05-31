@@ -483,9 +483,14 @@ function PreventivoEditorPage() {
                   Corpo · Blocchi ({prev.blocchi.length})
                 </div>
                 {editMode && (
-                  <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
-                    <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" onClick={handleAddEmptyBlocco} disabled={addEmptyBlocco.isPending}>
+                      <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setAddBloccoOpen(true)}>
+                      Da Kit
+                    </Button>
+                  </div>
                 )}
               </div>
 
