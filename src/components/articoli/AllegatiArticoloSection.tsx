@@ -220,6 +220,18 @@ export function AllegatiArticoloSection({
         onDownload={handleDownload}
         onPrint={handlePrint}
       />
+
+      <InviaEmailDialog
+        open={emailTarget !== null}
+        onOpenChange={(v) => { if (!v) setEmailTarget(null); }}
+        blob={emailTarget?.blob ?? null}
+        fileName={emailTarget?.allegato.nome_file ?? ""}
+        mimeType={emailTarget?.allegato.mime_type ?? undefined}
+        defaultTo=""
+        defaultSubject={emailSubject}
+        defaultBody={emailBody}
+        title="Invia allegato per email"
+      />
     </div>
   );
 }
