@@ -250,7 +250,7 @@ export async function createPreventivo(
       );
     }
     // numero già impegnato → riassegna il successivo e ritenta
-    numero = await assegnaProssimoNumero(anno);
+    numero = await assegnaProssimoNumero(anno, tipo);
     reassignedTo = numero;
   }
   throw new Error("Impossibile assegnare un numero libero dopo 5 tentativi");
