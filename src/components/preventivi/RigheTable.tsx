@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ArticoloDettaglioDialog } from "@/components/preventivi/ArticoloDettaglioDialog";
 import {
   DndContext,
@@ -34,7 +34,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
   DropdownMenuSeparator, DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { QuickArticoloSearch } from "@/components/preventivi/QuickArticoloSearch";
+import { QuickArticoloSearch, type QuickArticoloSearchHandle } from "@/components/preventivi/QuickArticoloSearch";
 import type { ArticoloConListini } from "@/lib/kit-api";
 import { EditableNumberCell } from "@/components/listini/EditableNumberCell";
 import { ArticoloPicker } from "@/components/kit/ArticoloPicker";
@@ -60,8 +60,20 @@ export function RigheTable({
   readOnly?: boolean;
 }) {
   const [openArticoloId, setOpenArticoloId] = useState<string | null>(null);
+  const quickRef = useRef<QuickArticoloSearchHandle>(null);
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["preventivo", preventivoId] });
+
+  function focusQuickSearch() {
+    requestAnimationFrame(() => {
+      try {
+        quickRef.current?.focus();
+      } catch {
+        /* noop */
+      }
+    });
+  }
+
 
   const calcs = useMemo(() => calcolaBlocco(blocco.righe), [blocco.righe]);
   const calcMap = useMemo(() => new Map(calcs.righe.map((r) => [r.id, r.calc])), [calcs]);
