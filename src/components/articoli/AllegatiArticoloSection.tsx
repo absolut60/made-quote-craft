@@ -113,6 +113,22 @@ export function AllegatiArticoloSection({
   async function handlePrint(a: AllegatoArticolo) {
     try { await printAllegato(a); } catch (e) { toast.error((e as Error).message); }
   }
+  async function handleEmail(a: AllegatoArticolo) {
+    try {
+      const { data, error } = await supabase.storage.from(BUCKET_ARTICOLO).download(a.storage_path);
+      if (error) throw error;
+      setEmailTarget({ allegato: a, blob: data });
+    } catch (e) {
+      toast.error("Impossibile caricare il file: " + (e as Error).message);
+    }
+  }
+
+  const emailSubject = emailTarget
+    ? `${CATEGORIE_ARTICOLO_LABEL[emailTarget.allegato.categoria]} - ${emailContext?.codGamma ?? ""}${emailContext?.descrizione ? ` ${emailContext.descrizione}` : ""} - Sistema MADE`.replace(/\s+/g, " ").trim()
+    : "";
+  const emailBody = emailTarget
+    ? `Buongiorno,\n\nin allegato trovate il documento "${emailTarget.allegato.nome_file}"${emailContext?.codGamma || emailContext?.descrizione ? ` relativo all'articolo ${emailContext?.codGamma ?? ""}${emailContext?.descrizione ? ` — ${emailContext.descrizione}` : ""}` : ""}.\nRestiamo a disposizione per qualsiasi chiarimento.\n\nCordiali saluti,\nSistema MADE`
+    : "";
 
   return (
     <div className="space-y-3 rounded-lg border bg-card p-4 md:p-6">
@@ -159,6 +175,9 @@ export function AllegatiArticoloSection({
                       </Button>
                       <Button size="icon" variant="ghost" onClick={() => handlePrint(a)} title="Stampa" className="hidden sm:inline-flex">
                         <Printer className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => handleEmail(a)} title="Invia per email" className="hidden sm:inline-flex">
+                        <Mail className="h-4 w-4" />
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
