@@ -245,9 +245,15 @@ function PreventivoEditorPage() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
-              <Link to="/preventivi"><ArrowLeft className="mr-1 h-4 w-4" /> Preventivi</Link>
+              {prev.tipo === "ordine" ? (
+                <Link to="/ordini"><ArrowLeft className="mr-1 h-4 w-4" /> Ordini</Link>
+              ) : (
+                <Link to="/preventivi"><ArrowLeft className="mr-1 h-4 w-4" /> Preventivi</Link>
+              )}
             </Button>
-            <h1 className="text-xl font-semibold">{prev.numero ?? "Nuovo preventivo"}</h1>
+            <h1 className="text-xl font-semibold">
+              {prev.numero ?? (prev.tipo === "ordine" ? "Nuovo ordine" : "Nuovo preventivo")}
+            </h1>
             <Badge variant={prev.stato === "confermato" ? "default" : prev.stato === "inviato" ? "secondary" : "outline"}>
               {STATI_LABEL[prev.stato]}
             </Badge>
