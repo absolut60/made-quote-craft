@@ -65,14 +65,20 @@ export function GeneraDocumentoDialog({
   const [emailOpen, setEmailOpen] = useState(false);
   const [colonne, setColonne] = useState<ColonneRighePdf>(COLONNE_RIGHE_DEFAULT);
 
+  const isOrdine = prev.tipo === "ordine";
+  const docCap = isOrdine ? "Ordine" : "Preventivo";
+  const docLow = isOrdine ? "ordine" : "preventivo";
+  const docDa = isOrdine ? "dall'ordine" : "dal preventivo";
+  const MODI = buildModi(isOrdine);
+
   const clienteEmail = (prev.cliente as (typeof prev.cliente & { email?: string | null }) | null)?.email ?? null;
   const ragSoc = prev.cliente?.ragione_sociale ?? "";
   const cantiereNome = prev.cantiere?.nome ?? "";
   const numero = prev.numero ?? "";
-  const defaultSubject = `Preventivo ${numero}${ragSoc ? ` - ${ragSoc}` : ""} - Sistema MADE`;
+  const defaultSubject = `${docCap} ${numero}${ragSoc ? ` - ${ragSoc}` : ""} - Sistema MADE`;
   const defaultBody =
     `Gentile Cliente,\n\n` +
-    `in allegato trovate il preventivo ${numero}${cantiereNome ? ` relativo a ${cantiereNome}` : ""}.\n` +
+    `in allegato trovate ${isOrdine ? "l'ordine" : "il preventivo"} ${numero}${cantiereNome ? ` relativo a ${cantiereNome}` : ""}.\n` +
     `Restiamo a disposizione per qualsiasi chiarimento.\n\n` +
     `Cordiali saluti,\nSistema MADE`;
 
