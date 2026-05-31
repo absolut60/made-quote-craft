@@ -19,6 +19,7 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   ArrowDown,
   ArrowUp,
+  ChevronDown,
   GripVertical,
   Plus,
   Trash2,
@@ -33,6 +34,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
   DropdownMenuSeparator, DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { QuickArticoloSearch } from "@/components/preventivi/QuickArticoloSearch";
+import type { ArticoloConListini } from "@/lib/kit-api";
 import { EditableNumberCell } from "@/components/listini/EditableNumberCell";
 import { ArticoloPicker } from "@/components/kit/ArticoloPicker";
 import {
