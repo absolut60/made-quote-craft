@@ -77,6 +77,7 @@ export function NuovoPreventivoDialog({
         filiale: filiale || null,
         fascia_listino: fasciaFinal,
         tipo_doc: tipoDocFinal,
+        tipo,
         numero: numeroFinal,
         data: dataFinal,
         validita: validita || null,
@@ -87,14 +88,14 @@ export function NuovoPreventivoDialog({
       if (numeroRiassegnato) {
         toast.warning(`Numero già impegnato — assegnato il successivo: ${numeroRiassegnato}`);
       } else {
-        toast.success("Preventivo creato");
+        toast.success(`${labelDocCap} creato`);
       }
       onOpenChange(false);
       navigate({ to: "/preventivi/$id", params: { id: preventivo.id } });
     },
     onError: (e: unknown) => {
       console.error("[NuovoPreventivoDialog] create error:", e);
-      toast.error((e as Error).message || "Errore creazione preventivo");
+      toast.error((e as Error).message || `Errore creazione ${labelDoc}`);
     },
   });
 
