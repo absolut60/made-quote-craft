@@ -139,17 +139,19 @@ export function NuovoPreventivoDialog({
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-1.5">
-              <Label>Tipo documento</Label>
-              <Select value={tipoDoc} onValueChange={(v) => setTipoDoc(v as TipoDoc)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {TIPI_DOC.map((t) => (
-                    <SelectItem key={t} value={t}>{TIPI_DOC_LABEL[t]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {!isOrdine && (
+              <div className="grid gap-1.5">
+                <Label>Tipo documento</Label>
+                <Select value={tipoDoc} onValueChange={(v) => setTipoDoc(v as TipoDoc)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TIPI_DOC.map((t) => (
+                      <SelectItem key={t} value={t}>{TIPI_DOC_LABEL[t]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="grid gap-1.5">
