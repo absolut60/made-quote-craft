@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { PreventivoConDettagli } from "./preventivi-api";
-import { calcolaTotaliPreventivo } from "./preventivi-api";
+import { calcolaTotaliPreventivo, calcolaBlocco } from "./preventivi-api";
 import {
   aggregaMateriali, arricchisciMateriali, arrotondaPerFornitore, buildBlocchiOutput,
   fetchArticoliPerOrdine,
@@ -268,22 +268,111 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
     if (col.prezzo_scontato) colDefs.push({ head: col.prezzo_unit ? "Prezzo scontato" : "Prezzo", width: 24, halign: "right", font: "courier" });
     if (col.importo) colDefs.push({ head: "Importo", width: 24, halign: "right", font: "courier", bold: true });
 
-    const body: (string | number)[][] = [];
+    type CellSpec = string | number | {
+      content: string;
+      colSpan?: number;
+      styles?: Record<string, unknown>;
+    };
+    const body: CellSpec[][] = [];
+    const ncols = colDefs.length;
+    const lastIdx = ncols - 1;
+    // Calcolo subtotali coerente con la vista (somma del segmento sopra fino al precedente sotto_totale)
+    const calcBl = calcolaBlocco(b.righe);
+    const subMap = new Map<string, number>();
+    for (const x of calcBl.righe) subMap.set(x.id, x.calc.importoEffettivo);
+
     for (const r of b.righe) {
-      if (r.tipo_riga === "nota" || r.tipo_riga === "separatore" || r.tipo_riga === "sotto_totale") continue;
+      // NOTA: testo libero, una sola cella su tutta la larghezza, corsivo grigio
+      if (r.tipo_riga === "nota") {
+        body.push([{
+          content: r.descrizione ?? "",
+          colSpan: ncols,
+          styles: {
+            fontStyle: "italic",
+            textColor: GRIGIO as unknown as number[],
+            fillColor: [255, 255, 255] as unknown as number[],
+            fontSize: 7,
+            cellPadding: { top: 1.4, right: 2, bottom: 1.4, left: 2 },
+          },
+        }]);
+        continue;
+      }
+      // SEPARATORE: riga sottile a tutta larghezza (linea di divisione)
+      if (r.tipo_riga === "separatore") {
+        body.push([{
+          content: r.descrizione ?? "",
+          colSpan: ncols,
+          styles: {
+            fillColor: GRIGIO_BD as unknown as number[],
+            textColor: GRIGIO as unknown as number[],
+            fontSize: 5,
+            halign: "center",
+            cellPadding: { top: 0.4, right: 2, bottom: 0.4, left: 2 },
+            minCellHeight: 1,
+          },
+        }]);
+        continue;
+      }
+      // SOTTO-TOTALE: etichetta a sinistra (colspan fino alla penultima), importo a destra in grassetto
+      if (r.tipo_riga === "sotto_totale") {
+        const sub = subMap.get(r.id) ?? 0;
+        if (ncols >= 2 && col.importo) {
+          body.push([
+            {
+              content: r.descrizione || "Subtotale",
+              colSpan: lastIdx,
+              styles: {
+                fontStyle: "bold",
+                halign: "right",
+                fillColor: GRIGIO_LT as unknown as number[],
+                textColor: NAVY as unknown as number[],
+                fontSize: 7.5,
+              },
+            },
+            {
+              content: fmtEur(sub),
+              styles: {
+                fontStyle: "bold",
+                halign: "right",
+                font: "courier",
+                fillColor: GRIGIO_LT as unknown as number[],
+                textColor: NAVY as unknown as number[],
+                fontSize: 7.5,
+              },
+            },
+          ]);
+        } else {
+          // Fallback: una sola cella su tutta larghezza
+          body.push([{
+            content: `${r.descrizione || "Subtotale"}   ${fmtEur(sub)}`,
+            colSpan: ncols,
+            styles: {
+              fontStyle: "bold",
+              halign: "right",
+              fillColor: GRIGIO_LT as unknown as number[],
+              textColor: NAVY as unknown as number[],
+              fontSize: 7.5,
+            },
+          }]);
+        }
+        continue;
+      }
+      // ARTICOLO / KIT / MANUALE: riga normale (manuale può avere cod_gamma vuoto)
       const prezzo = Number(r.prezzo_unit ?? 0);
       const sc = Number(r.sconto_perc ?? 0);
       const prezzoScontato = prezzo * (1 - sc / 100);
-      const row: (string | number)[] = [
+      const hasQta = r.quantita != null && Number(r.quantita) !== 0;
+      const hasPrezzo = r.prezzo_unit != null && Number(r.prezzo_unit) !== 0;
+      const row: CellSpec[] = [
         r.articolo?.cod_gamma ?? "",
         r.descrizione ?? r.articolo?.descrizione ?? "",
       ];
       if (col.um) row.push(r.um ?? r.articolo?.um ?? "");
-      if (col.quantita) row.push(fmtNum(Number(r.quantita ?? 0), 2));
-      if (col.prezzo_unit) row.push(fmtEur(prezzo));
+      if (col.quantita) row.push(hasQta ? fmtNum(Number(r.quantita), 2) : "");
+      if (col.prezzo_unit) row.push(hasPrezzo ? fmtEur(prezzo) : "");
       if (col.sconto) row.push(sc > 0 ? `${fmtNum(sc, 2)}%` : "—");
-      if (col.prezzo_scontato) row.push(fmtEur(prezzoScontato));
-      if (col.importo) row.push(fmtEur(Number(r.importo ?? 0)));
+      if (col.prezzo_scontato) row.push(hasPrezzo ? fmtEur(prezzoScontato) : "");
+      if (col.importo) row.push(r.importo != null ? fmtEur(Number(r.importo)) : "");
       body.push(row);
     }
     if (body.length) {
