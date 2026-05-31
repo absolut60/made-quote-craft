@@ -688,3 +688,55 @@ export function fractionalOrder(prev: number | null, next: number | null): numbe
   if (next == null) return prev + 1;
   return (prev + next) / 2;
 }
+
+// =========================================================================
+// FASE 2 ORDINI: trasformazione preventivo → ordine
+// =========================================================================
+
+export interface SelezioneTrasformazione {
+  blocco_id: string;
+  righe: { riga_id: string; quantita: number }[];
+}
+
+/**
+ * Trasforma (in modo atomico, lato DB) un preventivo in un nuovo ordine.
+ * Aggiorna `qta_ordinata` sulle righe origine e valorizza `riga_origine_id`
+ * sulle righe d'ordine. Ritorna l'id del nuovo ordine.
+ */
+export async function trasformaPreventivoInOrdine(
+  preventivoId: string,
+  selezione: SelezioneTrasformazione[],
+): Promise<string> {
+  const { data, error } = await supabase.rpc("trasforma_preventivo_in_ordine", {
+    p_preventivo_id: preventivoId,
+    p_selezione: selezione as unknown as never,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+/** Lista degli ordini collegati a un preventivo (preventivo_origine_id = id). */
+export async function fetchOrdiniCollegati(preventivoId: string): Promise<PreventivoListItem[]> {
+  const { data, error } = await supabase
+    .from("preventivi")
+    .select("*, cliente:clienti(id, ragione_sociale), cantiere:cantieri(id, nome)")
+    .eq("tipo", "ordine")
+    .eq("preventivo_origine_id", preventivoId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as unknown as PreventivoListItem[];
+}
+
+/** Preventivo di origine di un ordine (lookup minimale). */
+export async function fetchPreventivoOrigine(
+  preventivoOrigineId: string,
+): Promise<{ id: string; numero: string | null } | null> {
+  const { data, error } = await supabase
+    .from("preventivi")
+    .select("id, numero")
+    .eq("id", preventivoOrigineId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
