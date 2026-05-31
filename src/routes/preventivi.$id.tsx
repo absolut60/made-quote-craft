@@ -677,7 +677,7 @@ function BloccoCard({
                 defaultValue={blocco.rif_capitolato ?? ""}
                 onBlur={(e) => { if ((e.target.value || null) !== blocco.rif_capitolato) upd.mutate({ rif_capitolato: e.target.value || null }); }}
                 className="h-8 font-mono font-semibold"
-                placeholder="PA.AR.08"
+                placeholder="Rif. (facoltativo)"
               />
             </div>
             <div className="grid flex-1 min-w-[200px] gap-1">
