@@ -36,6 +36,9 @@ import {
   updateBlocco, updatePreventivo,
   type BloccoConRighe, type StatoPreventivo, type TipoDoc,
 } from "@/lib/preventivi-api";
+import { computeEvasione } from "@/lib/evasione";
+import { EvasioneBadge } from "@/components/preventivi/EvasioneBadge";
+
 
 import { FASCE, type FasciaListino } from "@/lib/articoli-api";
 import { round2 } from "@/lib/pricing";
