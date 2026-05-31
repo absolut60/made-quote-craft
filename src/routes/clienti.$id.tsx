@@ -45,6 +45,9 @@ import {
   type FasciaListino,
 } from "@/lib/clienti-api";
 import { STATI_LABEL, TIPI_DOC_LABEL, type StatoPreventivo, type TipoDoc } from "@/lib/preventivi-api";
+import { computeEvasione } from "@/lib/evasione";
+import { EvasioneBadge } from "@/components/preventivi/EvasioneBadge";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileText, Pencil, Plus, Save, Trash2 } from "lucide-react";
