@@ -271,10 +271,19 @@ function PreventivoEditorPage() {
             <h1 className="text-xl font-semibold">
               {prev.numero ?? (prev.tipo === "ordine" ? "Nuovo ordine" : "Nuovo preventivo")}
             </h1>
-            <Badge variant={prev.stato === "confermato" ? "default" : prev.stato === "inviato" ? "secondary" : "outline"}>
-              {STATI_LABEL[prev.stato]}
-            </Badge>
+            {prev.tipo === "preventivo" ? (
+              <EvasioneBadge
+                stato={computeEvasione(
+                  prev.blocchi.flatMap((b) => b.righe ?? []),
+                )}
+              />
+            ) : (
+              <Badge variant={prev.stato === "confermato" ? "default" : prev.stato === "inviato" ? "secondary" : "outline"}>
+                {STATI_LABEL[prev.stato]}
+              </Badge>
+            )}
           </div>
+
           <div className="flex flex-wrap items-center gap-2">
             <Button
               size="sm"
