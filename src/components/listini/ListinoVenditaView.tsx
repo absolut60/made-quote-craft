@@ -302,15 +302,24 @@ export function ListinoVenditaView() {
 
       {/* Table */}
       <div className="flex-1 overflow-auto">
-        <table className="w-full text-xs">
+        <table className="w-full text-xs table-fixed">
+          <colgroup>
+            <col style={{ width: "104px" }} />
+            <col />
+            <col style={{ width: "140px" }} />
+            <col style={{ width: "96px" }} />
+            <col style={{ width: "88px" }} />
+            <col style={{ width: "96px" }} />
+            <col style={{ width: "80px" }} />
+          </colgroup>
           <thead className="sticky top-0 z-10 bg-navy text-navy-foreground">
             <tr className="text-[11px] uppercase tracking-wide">
-              <th className="px-3 py-2 text-left">Cod. GAMMA</th>
+              <th className="px-2 py-2 text-left">Cod. GAMMA</th>
               <th className="px-3 py-2 text-left">Descrizione</th>
-              <th className="px-3 py-2 text-left">Categoria</th>
+              <th className="px-2 py-2 text-left">Categoria</th>
               <th className="px-2 py-2 text-right">Costo netto</th>
-              <th className="px-2 py-2 text-right">Ricarico %</th>
-              <th className="px-2 py-2 text-right bg-navy/80">Prezzo €</th>
+              <th className="px-1 py-2 text-right">Ricarico %</th>
+              <th className="px-1 py-2 text-right bg-navy/80">Prezzo €</th>
               <th className="px-2 py-2 text-right">Margine %</th>
             </tr>
           </thead>
@@ -321,19 +330,21 @@ export function ListinoVenditaView() {
               return (
                 <tr key={a.id} className="border-b hover:bg-muted/50">
                   <td
-                    className="px-3 py-1 font-mono cursor-pointer"
+                    className="px-2 py-1 font-mono truncate cursor-pointer"
+                    title={a.cod_gamma ?? ""}
                     onClick={() => navigate({ to: "/articoli/$id", params: { id: a.id }, search: { tab: "vendita" } })}
                   >
                     {a.cod_gamma ?? "—"}
                   </td>
                   <td
-                    className="px-3 py-1 max-w-[36ch] truncate cursor-pointer"
+                    className="px-3 py-1 truncate cursor-pointer"
                     title={a.descrizione}
                     onClick={() => navigate({ to: "/articoli/$id", params: { id: a.id }, search: { tab: "vendita" } })}
                   >
                     {a.descrizione}
                   </td>
-                  <td className="px-3 py-1">{a.categoria ?? "—"}</td>
+                  <td className="px-2 py-1 truncate" title={a.categoria ?? ""}>{a.categoria ?? "—"}</td>
+
                   <td className="px-2 py-1 text-right font-mono">
                     {cn ? `€ ${cn.toFixed(2)}` : "—"}
                   </td>
