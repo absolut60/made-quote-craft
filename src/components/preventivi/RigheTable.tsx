@@ -456,13 +456,34 @@ function RigaRow({
         )}
       </td>
       <td className="px-1 text-right">
-        {isCompact || isSubtotal ? null : (
-          <EditableNumberCell
-            value={row.quantita == null ? null : Number(row.quantita)}
-            step={0.01}
-            onCommit={(v) => onPatch({ quantita: v })}
-          />
-        )}
+        {isCompact || isSubtotal ? null : (() => {
+          const qOrd = Number((row as unknown as { qta_ordinata?: number }).qta_ordinata ?? 0);
+          const qTot = Number(row.quantita ?? 0);
+          const evasa = qOrd > 0 && qOrd >= qTot;
+          const parziale = qOrd > 0 && qOrd < qTot;
+          return (
+            <div className="flex flex-col items-end gap-0.5">
+              <EditableNumberCell
+                value={row.quantita == null ? null : Number(row.quantita)}
+                step={0.01}
+                onCommit={(v) => onPatch({ quantita: v })}
+                {...(evasa ? { disabled: true } : {})}
+              />
+              {(parziale || evasa) && (
+                <span
+                  className={cn(
+                    "text-[9px] font-semibold",
+                    evasa ? "text-[#009246]" : "text-amber-600",
+                  )}
+                  title={evasa ? "Riga completamente evasa" : "Ordinato parzialmente"}
+                >
+                  {evasa ? "✓ Evasa " : "Ord. "}
+                  {qOrd.toLocaleString("it-IT")}/{qTot.toLocaleString("it-IT")}
+                </span>
+              )}
+            </div>
+          );
+        })()}
       </td>
       <td className="px-1 text-right">
         {isCompact || isSubtotal ? null : (
