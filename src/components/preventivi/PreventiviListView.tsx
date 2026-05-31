@@ -179,13 +179,20 @@ export function PreventiviListView({ tipo }: { tipo: TipoDocumento }) {
                     <TableCell className="font-mono text-xs">{r.data}</TableCell>
                     {!isOrdine && <TableCell className="text-xs">{TIPI_DOC_LABEL[r.tipo_doc]}</TableCell>}
                     <TableCell>
-                      <Badge variant={r.stato === "confermato" ? "default" : r.stato === "inviato" ? "secondary" : "outline"}>
-                        {STATI_LABEL[r.stato]}
-                      </Badge>
+                      {isOrdine ? (
+                        <Badge variant={r.stato === "confermato" ? "default" : r.stato === "inviato" ? "secondary" : "outline"}>
+                          {STATI_LABEL[r.stato]}
+                        </Badge>
+                      ) : (
+                        <EvasioneBadge
+                          stato={computeEvasione((r.blocchi ?? []).flatMap((b) => b.righe ?? []))}
+                        />
+                      )}
                     </TableCell>
                     <TableCell className="text-right font-mono">€ {Number(r.totale ?? 0).toFixed(2)}</TableCell>
                   </TableRow>
                 ))
+
               )}
             </TableBody>
           </Table>
