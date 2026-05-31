@@ -24,13 +24,13 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  ArrowLeft, Check, FileDown, GripVertical, Pencil, Plus, Trash2,
+  ArrowLeft, Check, FileDown, GripVertical, Pencil, Plus, ShoppingCart, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   addBloccoVuoto,
   applicaScontoPiedeARighe,
-  calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, fetchAgenti, fetchCliente, fetchPreventivo,
+  calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, fetchAgenti, fetchCliente, fetchOrdiniCollegati, fetchPreventivo, fetchPreventivoOrigine,
   fractionalOrder,
   reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
   updateBlocco, updatePreventivo,
@@ -49,6 +49,7 @@ import { CantierePicker } from "@/components/preventivi/CantierePicker";
 import { AllegatiSection } from "@/components/preventivi/AllegatiSection";
 import { fetchAllegati } from "@/lib/allegati-api";
 import { ClienteDettaglioDialog } from "@/components/preventivi/ClienteDettaglioDialog";
+import { TrasformaInOrdineDialog } from "@/components/preventivi/TrasformaInOrdineDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/preventivi/$id")({
