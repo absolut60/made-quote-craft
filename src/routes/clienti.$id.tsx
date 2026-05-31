@@ -600,7 +600,7 @@ function PreventiviSection({ clienteId, tipo = "preventivo" }: { clienteId: stri
       <div className="flex items-center justify-between border-b px-4 py-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-navy">
           <FileText className="h-4 w-4" />
-          Preventivi ({filtered.length}{filtered.length !== preventivi.length ? `/${preventivi.length}` : ""})
+          {titoloSezione} ({filtered.length}{filtered.length !== preventivi.length ? `/${preventivi.length}` : ""})
         </h2>
       </div>
 
@@ -634,11 +634,11 @@ function PreventiviSection({ clienteId, tipo = "preventivo" }: { clienteId: stri
         <div className="px-3 py-6 text-center text-sm text-muted-foreground">Caricamento…</div>
       ) : preventivi.length === 0 ? (
         <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-          Nessun preventivo per questo cliente
+          {emptyMsg}
         </div>
       ) : filtered.length === 0 ? (
         <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-          Nessun preventivo trovato
+          {notFoundMsg}
         </div>
       ) : (
         <>
