@@ -87,14 +87,15 @@ function ClienteDetailPage() {
     queryKey: ["cantieri", id],
     queryFn: () => fetchCantieri(id),
   });
-  const { data: preventiviList = [] } = useQuery({
-    queryKey: ["preventivi-cliente", id, "preventivo"],
-    queryFn: () => fetchPreventiviClienteCount(id, "preventivo"),
+  const { data: preventiviCount = 0 } = useQuery({
+    queryKey: ["preventivi-cliente-count", id, "preventivo"],
+    queryFn: () => fetchDocumentiCount(id, "preventivo"),
   });
-  const { data: ordiniList = [] } = useQuery({
-    queryKey: ["preventivi-cliente", id, "ordine"],
-    queryFn: () => fetchPreventiviClienteCount(id, "ordine"),
+  const { data: ordiniCount = 0 } = useQuery({
+    queryKey: ["preventivi-cliente-count", id, "ordine"],
+    queryFn: () => fetchDocumentiCount(id, "ordine"),
   });
+
 
 
   const [form, setForm] = useState<ClienteUpdate>({});
