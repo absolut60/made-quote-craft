@@ -28,8 +28,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  addBloccoVuoto,
   applicaScontoPiedeARighe,
   calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, fetchAgenti, fetchCliente, fetchPreventivo,
+  fractionalOrder,
   reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
   updateBlocco, updatePreventivo,
   type BloccoConRighe, type StatoPreventivo, type TipoDoc,
@@ -112,6 +114,23 @@ function PreventivoEditorPage() {
     },
     onError: (e: unknown) => toast.error((e as Error).message),
   });
+
+  const addEmptyBlocco = useMutation({
+    mutationFn: (ordine: number) => addBloccoVuoto(id, ordine),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Blocco aggiunto");
+    },
+    onError: (e: unknown) => toast.error((e as Error).message),
+  });
+
+  function handleAddEmptyBlocco() {
+    if (!prev) return;
+    const last = prev.blocchi.length
+      ? Number(prev.blocchi[prev.blocchi.length - 1].ordine ?? 0)
+      : 0;
+    addEmptyBlocco.mutate(fractionalOrder(last, null));
+  }
 
   const totali = useMemo(() => {
     if (!prev) return { imponibile: 0, imponibile_lordo: 0, sconto_perc: 0, importo_sconto: 0, imponibile_netto: 0, iva: 0, totale: 0 };
@@ -464,9 +483,14 @@ function PreventivoEditorPage() {
                   Corpo · Blocchi ({prev.blocchi.length})
                 </div>
                 {editMode && (
-                  <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
-                    <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" onClick={handleAddEmptyBlocco} disabled={addEmptyBlocco.isPending}>
+                      <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setAddBloccoOpen(true)}>
+                      Da Kit
+                    </Button>
+                  </div>
                 )}
               </div>
 
@@ -478,9 +502,14 @@ function PreventivoEditorPage() {
                         <CardContent className="flex flex-col items-center gap-2 p-12 text-center">
                           <p className="text-sm text-muted-foreground">Nessun blocco. {editMode ? "Aggiungine uno per iniziare." : "Premi Modifica per aggiungerne."}</p>
                           {editMode && (
-                            <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
-                              <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button size="sm" onClick={handleAddEmptyBlocco} disabled={addEmptyBlocco.isPending}>
+                                <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => setAddBloccoOpen(true)}>
+                                Da Kit
+                              </Button>
+                            </div>
                           )}
                         </CardContent>
                       </Card>
