@@ -20,6 +20,7 @@ interface Payload {
   corpo: string;
   pdf_base64: string;
   nome_file: string;
+  mime_type?: string;
 }
 
 function isValidEmail(e: string): boolean {
