@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { chiediAssistente } from "@/lib/product-assistant.functions";
+import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
+import { MicButton } from "@/components/voice/MicButton";
 
 export const Route = createFileRoute("/assistente-prodotti")({
   component: AssistentePage,
