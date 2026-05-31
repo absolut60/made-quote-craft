@@ -171,7 +171,7 @@ export function NuovoPreventivoDialog({
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Annulla</Button>
           <Button onClick={() => create.mutate()} disabled={!clienteId || create.isPending}>
-            Crea preventivo
+            Crea {labelDoc}
           </Button>
         </DialogFooter>
       </DialogContent>
