@@ -407,6 +407,7 @@ function RigaRow({
       <td className="px-1 py-0.5">
         {(tipo === "articolo_singolo" || tipo === "da_kit") ? (
           <ArticoloPicker
+            autoOpen={autoOpenPicker}
             value={row.articolo_id}
             onChange={(articolo_id, articolo) => {
               const listino = articolo?.listini_vendita?.find((l) => l.fascia === fascia);
