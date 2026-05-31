@@ -46,11 +46,25 @@ export const NumberInputIt = React.forwardRef<HTMLInputElement, NumberInputItPro
           setFocused(true);
           e.currentTarget.select();
         }}
+        onDragStart={(e) => e.preventDefault()}
+        onDrop={(e) => e.preventDefault()}
         onBlur={(e) => {
           setFocused(false);
           const parsed = parseNumeroIt(local);
+          // Conferma se si sta azzerando/svuotando un valore precedente > 0
+          const prev = typeof value === "number" ? value : value == null || value === "" ? NaN : Number(value);
+          const sta_azzerando = (parsed === null || parsed === 0) && Number.isFinite(prev) && prev !== 0;
+          if (sta_azzerando) {
+            const ok = window.confirm(
+              `Vuoi davvero azzerare questo valore? (era ${String(prev).replace(".", ",")})`,
+            );
+            if (!ok) {
+              setLocal(externalString);
+              onBlur?.(e);
+              return;
+            }
+          }
           onChange(parsed);
-          // Riallinea la stringa al valore normalizzato
           setLocal(parsed === null ? "" : String(parsed).replace(".", ","));
           onBlur?.(e);
         }}
