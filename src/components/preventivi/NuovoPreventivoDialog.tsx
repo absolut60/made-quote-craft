@@ -16,14 +16,14 @@ import { CantierePicker } from "./CantierePicker";
 import {
   createPreventivo, fetchAgenti, fetchCliente, anteprimaProssimoNumero,
   TIPI_DOC, TIPI_DOC_LABEL,
-  type TipoDoc,
+  type TipoDoc, type TipoDocumento,
 } from "@/lib/preventivi-api";
 import { FASCE, type FasciaListino } from "@/lib/articoli-api";
 import { toast } from "sonner";
 
 export function NuovoPreventivoDialog({
-  open, onOpenChange,
-}: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  open, onOpenChange, tipo = "preventivo",
+}: { open: boolean; onOpenChange: (v: boolean) => void; tipo?: TipoDocumento }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const today = new Date().toISOString().slice(0, 10);
