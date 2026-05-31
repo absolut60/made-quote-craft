@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -7,23 +7,40 @@ import type { ArticoloConListini } from "@/lib/kit-api";
 import { cn } from "@/lib/utils";
 
 const ARTICOLO_SELECT = `
-  id, cod_gamma, descrizione, um, peso_unit, qta_fornitore, qta_cliente,
+  id, cod_gamma, cod_fornitore, descrizione, um, peso_unit, qta_fornitore, qta_cliente,
   listini_acquisto:listini_acquisto(*),
   listini_vendita:listini_vendita(*)
 `;
 
-export function QuickArticoloSearch({
-  onPick,
-  placeholder = "Cerca articolo per codice o descrizione… (Invio per inserire)",
-}: {
-  onPick: (a: ArticoloConListini) => void | Promise<void>;
-  placeholder?: string;
-}) {
+export type QuickArticoloSearchHandle = {
+  focus: () => void;
+};
+
+export const QuickArticoloSearch = forwardRef<
+  QuickArticoloSearchHandle,
+  {
+    onPick: (a: ArticoloConListini) => void | Promise<void>;
+    placeholder?: string;
+  }
+>(function QuickArticoloSearch(
+  { onPick, placeholder = "Cerca articolo per codice o descrizione… (Invio per inserire)" },
+  ref,
+) {
   const [q, setQ] = useState("");
   const [highlighted, setHighlighted] = useState(0);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      try {
+        inputRef.current?.focus();
+      } catch {
+        /* noop */
+      }
+    },
+  }));
 
   const { data: items = [] } = useQuery({
     queryKey: ["articoli-quick", q],
@@ -68,7 +85,13 @@ export function QuickArticoloSearch({
       setOpen(false);
     } finally {
       setBusy(false);
-      requestAnimationFrame(() => inputRef.current?.focus());
+      requestAnimationFrame(() => {
+        try {
+          inputRef.current?.focus();
+        } catch {
+          /* noop */
+        }
+      });
     }
   }
 
@@ -76,7 +99,7 @@ export function QuickArticoloSearch({
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setOpen(true);
-      setHighlighted((h) => Math.min(h + 1, items.length - 1));
+      setHighlighted((h) => Math.min(h + 1, Math.max(0, items.length - 1)));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setHighlighted((h) => Math.max(h - 1, 0));
@@ -104,7 +127,7 @@ export function QuickArticoloSearch({
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          onBlur={() => window.setTimeout(() => setOpen(false), 150)}
           onKeyDown={onKey}
           placeholder={placeholder}
           disabled={busy}
@@ -141,4 +164,4 @@ export function QuickArticoloSearch({
       )}
     </div>
   );
-}
+});
