@@ -172,12 +172,10 @@ function AllegatiList({
     }
   }
 
-  const docCap = emailContext?.tipo === "ordine" ? "Ordine" : "Preventivo";
-  const emailSubject = emailTarget
-    ? `${docCap}${emailContext?.numero ? ` ${emailContext.numero}` : ""}${emailContext?.ragSoc ? ` - ${emailContext.ragSoc}` : ""} - ${emailTarget.allegato.nome_file} - Sistema MADE`
-    : "";
+  const catLabel = emailTarget ? CATEGORIE_LABEL[emailTarget.allegato.categoria] : "";
+  const emailSubject = emailTarget ? `${catLabel} - Sistema MADE` : "";
   const emailBody = emailTarget
-    ? `Gentile Cliente,\n\nin allegato trovate il documento "${emailTarget.allegato.nome_file}"${emailContext?.numero ? ` relativo a ${docCap.toLowerCase()} ${emailContext.numero}` : ""}.\nRestiamo a disposizione per qualsiasi chiarimento.\n\nCordiali saluti,\nSistema MADE`
+    ? `Gentile Cliente,\n\nin allegato trovate il documento (${catLabel.toLowerCase()}).\nRestiamo a disposizione per qualsiasi chiarimento.\n\nCordiali saluti,\nSistema MADE`
     : "";
 
   return (
