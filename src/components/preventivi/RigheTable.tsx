@@ -255,24 +255,46 @@ export function RigheTable({
   );
 }
 
-function AddRowMenu({ onPick }: { onPick: (tipo: TipoRiga) => void }) {
+function AddRowMenu({
+  onAddArticolo,
+  onPick,
+}: {
+  onAddArticolo: () => void;
+  onPick: (tipo: TipoRiga) => void;
+}) {
+  const secondaryTypes = TIPI_RIGA.filter((t) => t !== "articolo_singolo");
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button size="sm" variant="outline">
-          <Plus className="mr-1 h-3 w-3" /> Aggiungi riga
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuLabel className="text-xs">Tipo di riga</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {TIPI_RIGA.map((t) => (
-          <DropdownMenuItem key={t} onClick={() => onPick(t)}>
-            {TIPI_RIGA_LABEL[t]}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="inline-flex items-center">
+      <Button
+        size="sm"
+        variant="outline"
+        className="rounded-r-none border-r-0"
+        onClick={onAddArticolo}
+      >
+        <Plus className="mr-1 h-3 w-3" /> Aggiungi riga
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            size="sm"
+            variant="outline"
+            className="rounded-l-none px-1.5"
+            title="Altre opzioni di riga"
+          >
+            <ChevronDown className="h-3 w-3" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuLabel className="text-xs">Altri tipi di riga</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {secondaryTypes.map((t) => (
+            <DropdownMenuItem key={t} onClick={() => onPick(t)}>
+              {TIPI_RIGA_LABEL[t]}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
 
