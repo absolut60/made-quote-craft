@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
             filename: nome_file,
             content: pdfBytes,
             encoding: "binary",
-            contentType: "application/pdf",
+            contentType: payload.mime_type || "application/pdf",
           },
         ],
       });

@@ -30,19 +30,25 @@ export function InviaEmailDialog({
   onOpenChange,
   blob,
   fileName,
+  mimeType,
   defaultTo,
   defaultSubject,
   defaultBody,
   preventivoId,
+  title,
+  description,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   blob: Blob | null;
   fileName: string;
+  mimeType?: string;
   defaultTo?: string | null;
   defaultSubject?: string;
   defaultBody?: string;
   preventivoId?: string;
+  title?: string;
+  description?: string;
 }) {
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
