@@ -45,7 +45,10 @@ async function fetchDashboardStats(): Promise<DashStats> {
   const now = new Date();
   const inizioMese = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
 
-  const baseCount = (tipo: "preventivo" | "ordine", stato: string) =>
+  const baseCount = (
+    tipo: "preventivo" | "ordine",
+    stato: "bozza" | "inviato" | "confermato",
+  ) =>
     supabase
       .from("preventivi")
       .select("id", { count: "exact", head: true })
