@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { callClaude, extractText, extractToolUse } from "./ai-claude.server";
 
 const ChiediInput = z.object({
   domanda: z.string().min(1).max(2000),
@@ -37,45 +38,36 @@ type Fonte = {
   costo_netto: number | null;
 };
 
-const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL_EXTRACT = "google/gemini-2.5-flash";
-const MODEL_ANSWER = "google/gemini-2.5-pro";
-
-async function callAI(apiKey: string, body: unknown): Promise<unknown> {
-  const resp = await fetch(GATEWAY, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  if (!resp.ok) {
-    if (resp.status === 429) throw new Error("Troppi tentativi, riprova tra poco.");
-    if (resp.status === 402) throw new Error("Crediti AI esauriti per il workspace.");
-    const t = await resp.text();
-    console.error("AI gateway error", resp.status, t);
-    throw new Error(`AI gateway error ${resp.status}`);
-  }
-  return resp.json();
-}
-
 const EXTRACT_SYSTEM = `Sei un assistente che interpreta domande in italiano su un catalogo di prodotti edilizia/cartongesso.
-Estrai dalla domanda i criteri di filtro. Rispondi SOLO chiamando "extract_criteri".
+Estrai dalla domanda i criteri di filtro. Rispondi SOLO chiamando lo strumento "extract_criteri".
 - fornitore: nome se citato (Knauf, Rockwool, Siniat, Saint-Gobain, ...), altrimenti null
 - categoria: codice (A, B, C, I, M, ...) se la domanda nomina chiaramente una categoria nota; altrimenti null
 - termini: parole chiave utili per cercare nella descrizione (escluso fornitore/categoria già riconosciuti). Includi sigle prodotto, tipologie (ignifuga, idro, fonoassorbente), materiali.
 - spessore_min / spessore_max: in mm se la domanda specifica un range (es. "sopra i 12mm" → spessore_min: 12), altrimenti null.`;
 
+const EXTRACT_TOOL = {
+  name: "extract_criteri",
+  description: "Estrae i criteri di filtro dalla domanda",
+  input_schema: {
+    type: "object",
+    properties: {
+      fornitore: { type: ["string", "null"] },
+      categoria: { type: ["string", "null"] },
+      termini: { type: "array", items: { type: "string" } },
+      spessore_min: { type: ["number", "null"] },
+      spessore_max: { type: ["number", "null"] },
+    },
+    required: ["termini"],
+  },
+};
+
 export const chiediAssistente = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => ChiediInput.parse(d))
   .handler(async ({ data, context }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY non configurata");
     const { supabase } = context;
 
-    // --- Carica contesto leggero: fornitori + matrice ricarichi (categorie) ---
+    // --- Carica contesto leggero: fornitori + matrice ricarichi ---
     const [fornRes, matRes] = await Promise.all([
       supabase.from("fornitori").select("ragione_sociale").limit(500),
       supabase
@@ -86,11 +78,10 @@ export const chiediAssistente = createServerFn({ method: "POST" })
     const fornitori = (fornRes.data ?? []).map((f) => f.ragione_sociale).filter(Boolean);
     const matrice = matRes.data ?? [];
 
-    // --- Step 1: estrazione criteri ---
-    const extractBody = {
-      model: MODEL_EXTRACT,
+    // --- Step 1: estrazione criteri con Claude (tool use) ---
+    const extractResp = await callClaude({
+      system: EXTRACT_SYSTEM,
       messages: [
-        { role: "system", content: EXTRACT_SYSTEM },
         {
           role: "user",
           content: `Fornitori noti: ${fornitori.join(", ")}
@@ -99,53 +90,19 @@ Categorie note: ${matrice.map((c) => `${c.categoria}=${c.descrizione_categoria ?
 Domanda: "${data.domanda}"`,
         },
       ],
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "extract_criteri",
-            description: "Estrae i criteri di filtro dalla domanda",
-            parameters: {
-              type: "object",
-              properties: {
-                fornitore: { type: ["string", "null"] },
-                categoria: { type: ["string", "null"] },
-                termini: { type: "array", items: { type: "string" } },
-                spessore_min: { type: ["number", "null"] },
-                spessore_max: { type: ["number", "null"] },
-              },
-              required: ["termini"],
-              additionalProperties: false,
-            },
-          },
-        },
-      ],
-      tool_choice: { type: "function", function: { name: "extract_criteri" } },
-    };
+      max_tokens: 512,
+      tools: [EXTRACT_TOOL],
+      tool_choice: { type: "tool", name: "extract_criteri" },
+    });
 
-    const extractJson = (await callAI(apiKey, extractBody)) as {
-      choices?: Array<{ message?: { tool_calls?: Array<{ function?: { arguments?: string } }> } }>;
+    const parsed = extractToolUse<Partial<CriteriEstratti>>(extractResp, "extract_criteri");
+    const criteri: CriteriEstratti = {
+      fornitore: parsed?.fornitore ?? null,
+      categoria: parsed?.categoria ?? null,
+      termini: Array.isArray(parsed?.termini) ? parsed!.termini! : [],
+      spessore_min: typeof parsed?.spessore_min === "number" ? parsed.spessore_min : null,
+      spessore_max: typeof parsed?.spessore_max === "number" ? parsed.spessore_max : null,
     };
-    const extractCall = extractJson?.choices?.[0]?.message?.tool_calls?.[0];
-    let criteri: CriteriEstratti = {
-      fornitore: null,
-      categoria: null,
-      termini: [],
-      spessore_min: null,
-      spessore_max: null,
-    };
-    try {
-      const parsed = JSON.parse(extractCall?.function?.arguments ?? "{}");
-      criteri = {
-        fornitore: parsed.fornitore ?? null,
-        categoria: parsed.categoria ?? null,
-        termini: Array.isArray(parsed.termini) ? parsed.termini : [],
-        spessore_min: typeof parsed.spessore_min === "number" ? parsed.spessore_min : null,
-        spessore_max: typeof parsed.spessore_max === "number" ? parsed.spessore_max : null,
-      };
-    } catch {
-      // ignore, criteri vuoti
-    }
 
     // --- Step 2: query articoli ---
     let q = supabase
@@ -204,7 +161,7 @@ Domanda: "${data.domanda}"`,
       };
     });
 
-    // --- Step 3: risposta finale ---
+    // --- Step 3: risposta finale con Claude ---
     const datiCompatti = fonti
       .map(
         (f) =>
@@ -231,20 +188,17 @@ ${categorieDesc}
 Prodotti rilevanti (max 40, filtrati dai criteri estratti):
 ${datiCompatti || "(nessun prodotto trovato con questi criteri)"}`;
 
-    const history = (data.storico ?? []).map((m) => ({ role: m.role, content: m.content }));
-    const answerBody = {
-      model: MODEL_ANSWER,
-      messages: [
-        { role: "system", content: answerSystem },
-        ...history,
-        { role: "user", content: data.domanda },
-      ],
-    };
-    const answerJson = (await callAI(apiKey, answerBody)) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const risposta =
-      answerJson?.choices?.[0]?.message?.content ?? "Nessuna risposta generata.";
+    const history = (data.storico ?? []).map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    const answerResp = await callClaude({
+      system: answerSystem,
+      messages: [...history, { role: "user", content: data.domanda }],
+      max_tokens: 1500,
+    });
+    const risposta = extractText(answerResp) || "Nessuna risposta generata.";
 
     return { risposta, criteri, fonti, totale_trovati: arts?.length ?? 0 };
   });
