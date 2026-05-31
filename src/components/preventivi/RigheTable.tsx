@@ -60,19 +60,20 @@ export function RigheTable({
   readOnly?: boolean;
 }) {
   const [openArticoloId, setOpenArticoloId] = useState<string | null>(null);
-  const quickRef = useRef<QuickArticoloSearchHandle>(null);
+  const [pendingPickerId, setPendingPickerId] = useState<string | null>(null);
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["preventivo", preventivoId] });
 
-  function focusQuickSearch() {
-    requestAnimationFrame(() => {
-      try {
-        quickRef.current?.focus();
-      } catch {
-        /* noop */
-      }
-    });
-  }
+  // Pulisce il flag dopo che la nuova riga è stata renderizzata col picker aperto.
+  useEffect(() => {
+    if (!pendingPickerId) return;
+    const exists = blocco.righe.some((r) => r.id === pendingPickerId);
+    if (exists) {
+      const t = window.setTimeout(() => setPendingPickerId(null), 600);
+      return () => window.clearTimeout(t);
+    }
+  }, [pendingPickerId, blocco.righe]);
+
 
 
   const calcs = useMemo(() => calcolaBlocco(blocco.righe), [blocco.righe]);
@@ -123,32 +124,30 @@ export function RigheTable({
     });
   }
 
-  async function addArticoloRow(a: ArticoloConListini) {
+  async function addArticoloEmptyAndOpen() {
     const ordine = fractionalOrder(
       blocco.righe.length ? Number(blocco.righe[blocco.righe.length - 1].ordine ?? 0) : null,
       null,
     );
-    const listino = a.listini_vendita?.find((l) => l.fascia === fascia);
-    const acquistoRecente = a.listini_acquisto?.[0];
-    const prezzo = listino?.prezzo == null ? null : Number(listino.prezzo);
-    const costo = acquistoRecente?.costo_netto == null ? null : Number(acquistoRecente.costo_netto);
-    await insertRiga({
-      blocco_id: blocco.id,
-      tipo_riga: "articolo_singolo",
-      ordine,
-      segno: 1,
-      articolo_id: a.id,
-      descrizione: a.descrizione ?? null,
-      um: a.um ?? null,
-      quantita: 1,
-      prezzo_unit: prezzo,
-      costo,
-      vendita: prezzo,
-      peso: a.peso_unit == null ? null : Number(a.peso_unit),
-      sconto_perc: 0,
-    });
-    invalidate();
+    try {
+      const nuova = await insertRiga({
+        blocco_id: blocco.id,
+        tipo_riga: "articolo_singolo",
+        ordine,
+        segno: 1,
+        quantita: 1,
+        sconto_perc: 0,
+      });
+      setPendingPickerId(nuova.id);
+      invalidate();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   }
+
+  // Mantenuto per compatibilità futura — non usato qui.
+  void ({} as ArticoloConListini);
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
