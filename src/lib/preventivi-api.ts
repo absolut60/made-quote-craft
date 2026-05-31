@@ -19,6 +19,7 @@ export type RigaUpdate = Database["public"]["Tables"]["righe_preventivo"]["Updat
 export type TipoDoc = Database["public"]["Enums"]["tipo_doc_preventivo"];
 export type StatoPreventivo = Database["public"]["Enums"]["stato_preventivo"];
 export type TipoRiga = Database["public"]["Enums"]["tipo_riga_preventivo"];
+export type TipoDocumento = Database["public"]["Enums"]["tipo_documento"]; // 'preventivo' | 'ordine'
 
 export const TIPI_DOC: TipoDoc[] = [
   "PREVENTIVO",
