@@ -205,7 +205,9 @@ export function RigheTable({
                     idx={idx}
                     fascia={fascia}
                     readOnly={readOnly}
+                    autoOpenPicker={r.id === pendingPickerId}
                     onOpenArticolo={(aid) => setOpenArticoloId(aid)}
+
                     calc={calcMap.get(r.id)!}
                     onPatch={(patch) => upd.mutate({ id: r.id, patch })}
                     onDelete={() => del.mutate(r.id)}
@@ -274,41 +276,56 @@ function AddRowMenu({
   const secondaryTypes = TIPI_RIGA.filter((t) => t !== "articolo_singolo");
   if (readOnly) return null;
   return (
-    <div className="inline-flex items-center">
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
-        className="rounded-r-none border-r-0"
-        onClick={onAddArticolo}
-      >
-        <Plus className="mr-1 h-3 w-3" /> Aggiungi riga
-      </Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="rounded-l-none px-1.5"
-            title="Altre opzioni di riga"
-          >
-            <ChevronDown className="h-3 w-3" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <DropdownMenuLabel className="text-xs">Altri tipi di riga</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {secondaryTypes.map((t) => (
-            <DropdownMenuItem key={t} onSelect={() => onPick(t)}>
-              {TIPI_RIGA_LABEL[t]}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <TooltipProvider delayDuration={200}>
+      <div className="inline-flex items-center">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="rounded-r-none border-r-0"
+              onClick={onAddArticolo}
+            >
+              <Plus className="mr-1 h-3 w-3" /> Aggiungi riga
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">Aggiungi una riga articolo (selettore articolo aperto)</TooltipContent>
+        </Tooltip>
+        <DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="rounded-l-none px-1.5"
+                  aria-label="Scegli tipo di riga"
+                >
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              Scegli il tipo di riga: Articolo (predefinito), Kit, Riga manuale
+            </TooltipContent>
+          </Tooltip>
+          <DropdownMenuContent align="start">
+            <DropdownMenuLabel className="text-xs">Altri tipi di riga</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {secondaryTypes.map((t) => (
+              <DropdownMenuItem key={t} onSelect={() => onPick(t)}>
+                {TIPI_RIGA_LABEL[t]}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </TooltipProvider>
   );
 }
+
 
 
 function RigaRow({
