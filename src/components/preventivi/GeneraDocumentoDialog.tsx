@@ -142,7 +142,7 @@ export function GeneraDocumentoDialog({
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Genera documento</DialogTitle>
-            <DialogDescription>Scegli la modalità di output dal preventivo {prev.numero ?? ""}.</DialogDescription>
+            <DialogDescription>Scegli la modalità di output {docDa} {prev.numero ?? ""}.</DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
