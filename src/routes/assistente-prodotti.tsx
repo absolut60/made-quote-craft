@@ -208,19 +208,36 @@ function AssistentePage() {
           )}
         </div>
 
-        <div className="flex gap-2">
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Fai una domanda sui tuoi prodotti…"
-            className="min-h-[60px] resize-none"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                invia();
+        <div className="flex items-end gap-2">
+          <div className="relative flex-1">
+            <Textarea
+              value={input + (speech.interim ? ` ${speech.interim}` : "")}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                speech.listening
+                  ? "In ascolto… parla pure"
+                  : "Fai una domanda sui tuoi prodotti… (oppure premi il microfono)"
               }
-            }}
-            disabled={loading}
+              className="min-h-[60px] resize-none pr-2"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  invia();
+                }
+              }}
+              disabled={loading}
+            />
+            {!speech.supported && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Riconoscimento vocale non supportato su questo browser (usa Chrome).
+              </p>
+            )}
+          </div>
+          <MicButton
+            listening={speech.listening}
+            supported={speech.supported}
+            onToggle={speech.toggle}
+            size="lg"
           />
           <Button onClick={() => invia()} disabled={loading || !input.trim()} size="lg">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
