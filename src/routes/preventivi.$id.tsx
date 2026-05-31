@@ -24,13 +24,13 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  ArrowLeft, Check, FileDown, GripVertical, Pencil, Plus, Trash2,
+  ArrowLeft, Check, FileDown, GripVertical, Pencil, Plus, ShoppingCart, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   addBloccoVuoto,
   applicaScontoPiedeARighe,
-  calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, fetchAgenti, fetchCliente, fetchPreventivo,
+  calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, fetchAgenti, fetchCliente, fetchOrdiniCollegati, fetchPreventivo, fetchPreventivoOrigine,
   fractionalOrder,
   reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
   updateBlocco, updatePreventivo,
@@ -49,6 +49,7 @@ import { CantierePicker } from "@/components/preventivi/CantierePicker";
 import { AllegatiSection } from "@/components/preventivi/AllegatiSection";
 import { fetchAllegati } from "@/lib/allegati-api";
 import { ClienteDettaglioDialog } from "@/components/preventivi/ClienteDettaglioDialog";
+import { TrasformaInOrdineDialog } from "@/components/preventivi/TrasformaInOrdineDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/preventivi/$id")({
@@ -65,6 +66,7 @@ function PreventivoEditorPage() {
   const [editMode, setEditMode] = useState(false);
   const [editModeInitialized, setEditModeInitialized] = useState(false);
   const [clienteDialogOpen, setClienteDialogOpen] = useState(false);
+  const [trasformaOpen, setTrasformaOpen] = useState(false);
 
   const { data: prev, isLoading } = useQuery({
     queryKey: ["preventivo", id],
@@ -72,6 +74,18 @@ function PreventivoEditorPage() {
   });
 
   const { data: agenti = [] } = useQuery({ queryKey: ["agenti"], queryFn: fetchAgenti });
+
+  const { data: ordiniCollegati = [] } = useQuery({
+    queryKey: ["ordini-collegati", id],
+    queryFn: () => fetchOrdiniCollegati(id),
+    enabled: !!prev && prev.tipo === "preventivo",
+  });
+
+  const { data: preventivoOrigine } = useQuery({
+    queryKey: ["preventivo-origine", prev?.preventivo_origine_id],
+    queryFn: () => fetchPreventivoOrigine(prev!.preventivo_origine_id!),
+    enabled: !!prev?.preventivo_origine_id,
+  });
 
   async function onChangeCliente(nuovoId: string | null) {
     if (!nuovoId) {
@@ -273,6 +287,11 @@ function PreventivoEditorPage() {
             <Button size="sm" variant="outline" onClick={() => setOutputOpen(true)}>
               <FileDown className="mr-1 h-4 w-4" /> Genera documento
             </Button>
+            {prev.tipo === "preventivo" && (
+              <Button size="sm" onClick={() => setTrasformaOpen(true)}>
+                <ShoppingCart className="mr-1 h-4 w-4" /> Trasforma in ordine
+              </Button>
+            )}
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button size="sm" variant="ghost" className="text-destructive">
@@ -292,6 +311,46 @@ function PreventivoEditorPage() {
             </AlertDialog>
           </div>
         </div>
+
+        {/* Link incrociati preventivo ↔ ordini */}
+        {(ordiniCollegati.length > 0 || preventivoOrigine) && (
+          <Card className="border-[#0d1f3c]/15 bg-[#f4f7fb]">
+            <CardContent className="flex flex-wrap items-center gap-x-4 gap-y-1 p-3 text-xs">
+              {preventivoOrigine && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-muted-foreground">Generato da preventivo:</span>
+                  <Link
+                    to="/preventivi/$id"
+                    params={{ id: preventivoOrigine.id }}
+                    className="font-mono font-semibold text-[#2b5ea7] hover:underline"
+                  >
+                    {preventivoOrigine.numero ?? "—"}
+                  </Link>
+                </div>
+              )}
+              {ordiniCollegati.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-muted-foreground">
+                    Ordini collegati ({ordiniCollegati.length}):
+                  </span>
+                  {ordiniCollegati.map((o) => (
+                    <Link
+                      key={o.id}
+                      to="/preventivi/$id"
+                      params={{ id: o.id }}
+                      className="rounded bg-white px-1.5 py-0.5 font-mono text-[#2b5ea7] hover:underline"
+                    >
+                      {o.numero ?? "—"}{" "}
+                      <span className="text-[10px] text-muted-foreground">
+                        ({STATI_LABEL[o.stato]})
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="preventivo" className="w-full">
           <TabsList>
@@ -619,6 +678,13 @@ function PreventivoEditorPage() {
         open={clienteDialogOpen}
         onOpenChange={setClienteDialogOpen}
       />
+      {prev.tipo === "preventivo" && (
+        <TrasformaInOrdineDialog
+          open={trasformaOpen}
+          onOpenChange={setTrasformaOpen}
+          prev={prev}
+        />
+      )}
     </AppShell>
   );
 }

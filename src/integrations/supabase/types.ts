@@ -856,8 +856,10 @@ export type Database = {
           ordine: number
           peso: number | null
           prezzo_unit: number | null
+          qta_ordinata: number
           quantita: number | null
           ricarico: number | null
+          riga_origine_id: string | null
           sconto_perc: number | null
           segno: number
           tipo_riga: Database["public"]["Enums"]["tipo_riga_preventivo"]
@@ -878,8 +880,10 @@ export type Database = {
           ordine?: number
           peso?: number | null
           prezzo_unit?: number | null
+          qta_ordinata?: number
           quantita?: number | null
           ricarico?: number | null
+          riga_origine_id?: string | null
           sconto_perc?: number | null
           segno?: number
           tipo_riga?: Database["public"]["Enums"]["tipo_riga_preventivo"]
@@ -900,8 +904,10 @@ export type Database = {
           ordine?: number
           peso?: number | null
           prezzo_unit?: number | null
+          qta_ordinata?: number
           quantita?: number | null
           ricarico?: number | null
+          riga_origine_id?: string | null
           sconto_perc?: number | null
           segno?: number
           tipo_riga?: Database["public"]["Enums"]["tipo_riga_preventivo"]
@@ -922,6 +928,13 @@ export type Database = {
             columns: ["blocco_id"]
             isOneToOne: false
             referencedRelation: "blocchi_preventivo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "righe_preventivo_riga_origine_id_fkey"
+            columns: ["riga_origine_id"]
+            isOneToOne: false
+            referencedRelation: "righe_preventivo"
             referencedColumns: ["id"]
           },
         ]
@@ -965,6 +978,10 @@ export type Database = {
       prossimo_numero_preventivo: { Args: { p_anno: number }; Returns: number }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      trasforma_preventivo_in_ordine: {
+        Args: { p_preventivo_id: string; p_selezione: Json }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "commerciale" | "lettura"
