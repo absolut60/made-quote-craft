@@ -401,14 +401,17 @@ export type Database = {
       contatori_preventivo: {
         Row: {
           anno: number
+          tipo: Database["public"]["Enums"]["tipo_documento"]
           ultimo_numero: number
         }
         Insert: {
           anno: number
+          tipo?: Database["public"]["Enums"]["tipo_documento"]
           ultimo_numero?: number
         }
         Update: {
           anno?: number
+          tipo?: Database["public"]["Enums"]["tipo_documento"]
           ultimo_numero?: number
         }
         Relationships: []
@@ -719,8 +722,10 @@ export type Database = {
           iva_perc: number | null
           note: string | null
           numero: string | null
+          preventivo_origine_id: string | null
           sconto_piede_perc: number
           stato: Database["public"]["Enums"]["stato_preventivo"]
+          tipo: Database["public"]["Enums"]["tipo_documento"]
           tipo_doc: Database["public"]["Enums"]["tipo_doc_preventivo"]
           totale: number | null
           totale_imponibile: number | null
@@ -740,8 +745,10 @@ export type Database = {
           iva_perc?: number | null
           note?: string | null
           numero?: string | null
+          preventivo_origine_id?: string | null
           sconto_piede_perc?: number
           stato?: Database["public"]["Enums"]["stato_preventivo"]
+          tipo?: Database["public"]["Enums"]["tipo_documento"]
           tipo_doc?: Database["public"]["Enums"]["tipo_doc_preventivo"]
           totale?: number | null
           totale_imponibile?: number | null
@@ -761,8 +768,10 @@ export type Database = {
           iva_perc?: number | null
           note?: string | null
           numero?: string | null
+          preventivo_origine_id?: string | null
           sconto_piede_perc?: number
           stato?: Database["public"]["Enums"]["stato_preventivo"]
+          tipo?: Database["public"]["Enums"]["tipo_documento"]
           tipo_doc?: Database["public"]["Enums"]["tipo_doc_preventivo"]
           totale?: number | null
           totale_imponibile?: number | null
@@ -789,6 +798,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clienti"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preventivi_preventivo_origine_id_fkey"
+            columns: ["preventivo_origine_id"]
+            isOneToOne: false
+            referencedRelation: "preventivi"
             referencedColumns: ["id"]
           },
         ]
@@ -936,6 +952,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      anteprima_numero_ordine: { Args: { p_anno: number }; Returns: number }
       anteprima_numero_preventivo: { Args: { p_anno: number }; Returns: number }
       has_role: {
         Args: {
@@ -944,6 +961,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      prossimo_numero_ordine: { Args: { p_anno: number }; Returns: number }
       prossimo_numero_preventivo: { Args: { p_anno: number }; Returns: number }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
@@ -986,6 +1004,7 @@ export type Database = {
         | "PROPOSTA_RAPIDA"
         | "LISTA_MATERIALI"
         | "LISTA_MAT_FORNITORE"
+      tipo_documento: "preventivo" | "ordine"
       tipo_driver: "CONSUMO" | "PASSO" | "LATI" | "INCIDENZA_FISSA"
       tipo_riga_preventivo:
         | "da_kit"
@@ -1162,6 +1181,7 @@ export const Constants = {
         "LISTA_MATERIALI",
         "LISTA_MAT_FORNITORE",
       ],
+      tipo_documento: ["preventivo", "ordine"],
       tipo_driver: ["CONSUMO", "PASSO", "LATI", "INCIDENZA_FISSA"],
       tipo_riga_preventivo: [
         "da_kit",
