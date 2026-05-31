@@ -162,9 +162,23 @@ function AllegatiList({
   async function handlePrint(a: Allegato) {
     try { await printAllegato(a); } catch (e) { toast.error((e as Error).message); }
   }
-  function handleEmail() {
-    toast.info("Invio email disponibile a breve");
+  async function handleEmail(a: Allegato) {
+    try {
+      const { data, error } = await supabase.storage.from(BUCKET).download(a.storage_path);
+      if (error) throw error;
+      setEmailTarget({ allegato: a, blob: data });
+    } catch (e) {
+      toast.error("Impossibile caricare il file: " + (e as Error).message);
+    }
   }
+
+  const docCap = emailContext?.tipo === "ordine" ? "Ordine" : "Preventivo";
+  const emailSubject = emailTarget
+    ? `${docCap}${emailContext?.numero ? ` ${emailContext.numero}` : ""}${emailContext?.ragSoc ? ` - ${emailContext.ragSoc}` : ""} - ${emailTarget.allegato.nome_file} - Sistema MADE`
+    : "";
+  const emailBody = emailTarget
+    ? `Gentile Cliente,\n\nin allegato trovate il documento "${emailTarget.allegato.nome_file}"${emailContext?.numero ? ` relativo a ${docCap.toLowerCase()} ${emailContext.numero}` : ""}.\nRestiamo a disposizione per qualsiasi chiarimento.\n\nCordiali saluti,\nSistema MADE`
+    : "";
 
   return (
     <div className="space-y-3">
