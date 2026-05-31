@@ -58,6 +58,12 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/clienti/$id")({
   head: () => ({ meta: [{ title: "Scheda cliente — Sistema MADE" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    tab:
+      s.tab === "cantieri" || s.tab === "preventivi" || s.tab === "ordini" || s.tab === "anagrafica"
+        ? (s.tab as "anagrafica" | "cantieri" | "preventivi" | "ordini")
+        : undefined,
+  }),
   component: ClienteDetailPage,
 });
 
@@ -65,6 +71,7 @@ const NONE = "__none";
 
 function ClienteDetailPage() {
   const { id } = Route.useParams();
+  const { tab: tabParam } = Route.useSearch();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
@@ -74,6 +81,21 @@ function ClienteDetailPage() {
   });
 
   const { data: agenti = [] } = useQuery({ queryKey: ["agenti"], queryFn: fetchAgenti });
+
+  // Conteggi per i badge dei tab (stessi queryKey delle sezioni → cache dedupe)
+  const { data: cantieriList = [] } = useQuery({
+    queryKey: ["cantieri", id],
+    queryFn: () => fetchCantieri(id),
+  });
+  const { data: preventiviList = [] } = useQuery({
+    queryKey: ["preventivi-cliente", id, "preventivo"],
+    queryFn: () => fetchPreventiviClienteCount(id, "preventivo"),
+  });
+  const { data: ordiniList = [] } = useQuery({
+    queryKey: ["preventivi-cliente", id, "ordine"],
+    queryFn: () => fetchPreventiviClienteCount(id, "ordine"),
+  });
+
 
   const [form, setForm] = useState<ClienteUpdate>({});
   const [confirmDel, setConfirmDel] = useState(false);
