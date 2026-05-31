@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ListiniRouteImport } from './routes/listini'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PreventiviIndexRouteImport } from './routes/preventivi.index'
+import { Route as OrdiniIndexRouteImport } from './routes/ordini.index'
 import { Route as KitIndexRouteImport } from './routes/kit.index'
 import { Route as ClientiIndexRouteImport } from './routes/clienti.index'
 import { Route as ArticoliIndexRouteImport } from './routes/articoli.index'
@@ -51,6 +52,11 @@ const IndexRoute = IndexRouteImport.update({
 const PreventiviIndexRoute = PreventiviIndexRouteImport.update({
   id: '/preventivi/',
   path: '/preventivi/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdiniIndexRoute = OrdiniIndexRouteImport.update({
+  id: '/ordini/',
+  path: '/ordini/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KitIndexRoute = KitIndexRouteImport.update({
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/articoli/': typeof ArticoliIndexRoute
   '/clienti/': typeof ClientiIndexRoute
   '/kit/': typeof KitIndexRoute
+  '/ordini/': typeof OrdiniIndexRoute
   '/preventivi/': typeof PreventiviIndexRoute
 }
 export interface FileRoutesByTo {
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/articoli': typeof ArticoliIndexRoute
   '/clienti': typeof ClientiIndexRoute
   '/kit': typeof KitIndexRoute
+  '/ordini': typeof OrdiniIndexRoute
   '/preventivi': typeof PreventiviIndexRoute
 }
 export interface FileRoutesById {
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/articoli/': typeof ArticoliIndexRoute
   '/clienti/': typeof ClientiIndexRoute
   '/kit/': typeof KitIndexRoute
+  '/ordini/': typeof OrdiniIndexRoute
   '/preventivi/': typeof PreventiviIndexRoute
 }
 export interface FileRouteTypes {
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/articoli/'
     | '/clienti/'
     | '/kit/'
+    | '/ordini/'
     | '/preventivi/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/articoli'
     | '/clienti'
     | '/kit'
+    | '/ordini'
     | '/preventivi'
   id:
     | '__root__'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/articoli/'
     | '/clienti/'
     | '/kit/'
+    | '/ordini/'
     | '/preventivi/'
   fileRoutesById: FileRoutesById
 }
@@ -196,6 +208,7 @@ export interface RootRouteChildren {
   ArticoliIndexRoute: typeof ArticoliIndexRoute
   ClientiIndexRoute: typeof ClientiIndexRoute
   KitIndexRoute: typeof KitIndexRoute
+  OrdiniIndexRoute: typeof OrdiniIndexRoute
   PreventiviIndexRoute: typeof PreventiviIndexRoute
 }
 
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/preventivi'
       fullPath: '/preventivi/'
       preLoaderRoute: typeof PreventiviIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ordini/': {
+      id: '/ordini/'
+      path: '/ordini'
+      fullPath: '/ordini/'
+      preLoaderRoute: typeof OrdiniIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kit/': {
@@ -308,8 +328,19 @@ const rootRouteChildren: RootRouteChildren = {
   ArticoliIndexRoute: ArticoliIndexRoute,
   ClientiIndexRoute: ClientiIndexRoute,
   KitIndexRoute: KitIndexRoute,
+  OrdiniIndexRoute: OrdiniIndexRoute,
   PreventiviIndexRoute: PreventiviIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
