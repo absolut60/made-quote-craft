@@ -50,19 +50,39 @@ import { EvasioneBadge } from "@/components/preventivi/EvasioneBadge";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, FileText, Pencil, Plus, Save, Trash2 } from "lucide-react";
+
 
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/clienti/$id")({
   head: () => ({ meta: [{ title: "Scheda cliente — Sistema MADE" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    tab:
+      s.tab === "cantieri" || s.tab === "preventivi" || s.tab === "ordini" || s.tab === "anagrafica"
+        ? (s.tab as "anagrafica" | "cantieri" | "preventivi" | "ordini")
+        : undefined,
+  }),
   component: ClienteDetailPage,
 });
 
 const NONE = "__none";
 
+async function fetchDocumentiCount(clienteId: string, tipo: "preventivo" | "ordine"): Promise<number> {
+  const { count, error } = await supabase
+    .from("preventivi")
+    .select("id", { count: "exact", head: true })
+    .eq("cliente_id", clienteId)
+    .eq("tipo", tipo);
+  if (error) throw error;
+  return count ?? 0;
+}
+
+
 function ClienteDetailPage() {
   const { id } = Route.useParams();
+  const { tab: tabParam } = Route.useSearch();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
@@ -72,6 +92,22 @@ function ClienteDetailPage() {
   });
 
   const { data: agenti = [] } = useQuery({ queryKey: ["agenti"], queryFn: fetchAgenti });
+
+  // Conteggi per i badge dei tab (stessi queryKey delle sezioni → cache dedupe)
+  const { data: cantieriList = [] } = useQuery({
+    queryKey: ["cantieri", id],
+    queryFn: () => fetchCantieri(id),
+  });
+  const { data: preventiviCount = 0 } = useQuery({
+    queryKey: ["preventivi-cliente-count", id, "preventivo"],
+    queryFn: () => fetchDocumentiCount(id, "preventivo"),
+  });
+  const { data: ordiniCount = 0 } = useQuery({
+    queryKey: ["preventivi-cliente-count", id, "ordine"],
+    queryFn: () => fetchDocumentiCount(id, "ordine"),
+  });
+
+
 
   const [form, setForm] = useState<ClienteUpdate>({});
   const [confirmDel, setConfirmDel] = useState(false);
@@ -165,120 +201,158 @@ function ClienteDetailPage() {
         </div>
 
         <div className="flex-1 overflow-auto p-3 md:p-4 lg:p-6">
-          <div className="mx-auto max-w-5xl space-y-6">
-            {/* Anagrafica */}
-            <section className="rounded-lg border bg-card p-4">
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-navy">
-                Anagrafica
-              </h2>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
-                <Field label="Ragione sociale *" className="md:col-span-8">
-                  <Input
-                    value={form.ragione_sociale ?? ""}
-                    onChange={(e) => set("ragione_sociale", e.target.value)}
-                  />
-                </Field>
-                <Field label="ID cliente" className="md:col-span-4">
-                  <Input
-                    value={form.id_cliente ?? ""}
-                    onChange={(e) => set("id_cliente", e.target.value || null)}
-                    className="font-mono"
-                  />
-                </Field>
-                <Field label="P.IVA" className="md:col-span-4">
-                  <Input
-                    value={form.piva ?? ""}
-                    onChange={(e) => set("piva", e.target.value || null)}
-                    className="font-mono"
-                  />
-                </Field>
-                <Field label="Indirizzo" className="md:col-span-8">
-                  <Input
-                    value={form.indirizzo ?? ""}
-                    onChange={(e) => set("indirizzo", e.target.value || null)}
-                  />
-                </Field>
-                <Field label="Comune" className="md:col-span-6">
-                  <ComunePicker
-                    value={form.comune_id ?? null}
-                    onChange={(id, prov) => {
-                      set("comune_id", id);
-                      if (prov) set("prov", prov);
-                    }}
-                  />
-                </Field>
-                <Field label="Prov" className="md:col-span-2">
-                  <Input
-                    value={form.prov ?? ""}
-                    onChange={(e) => set("prov", e.target.value.toUpperCase() || null)}
-                    maxLength={2}
-                    className="font-mono"
-                  />
-                </Field>
-                <Field label="CAP" className="md:col-span-2">
-                  <Input
-                    value={form.cap ?? ""}
-                    onChange={(e) => set("cap", e.target.value || null)}
-                    className="font-mono"
-                  />
-                </Field>
-                <Field label="Filiale" className="md:col-span-2">
-                  <Input
-                    value={form.filiale ?? ""}
-                    onChange={(e) => set("filiale", e.target.value || null)}
-                  />
-                </Field>
-                <Field label="Email" className="md:col-span-6">
-                  <Input
-                    type="email"
-                    value={(form as typeof form & { email?: string | null }).email ?? ""}
-                    onChange={(e) => set("email" as never, (e.target.value || null) as never)}
-                    placeholder="cliente@esempio.it"
-                  />
-                </Field>
-                <Field label="Agente" className="md:col-span-6">
-                  <Select
-                    value={form.agente_id ?? NONE}
-                    onValueChange={(v) => set("agente_id", v === NONE ? null : v)}
-                  >
-                    <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={NONE}>— Nessuno —</SelectItem>
-                      {agenti.map((a) => (
-                        <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field label="Fascia listino default" className="md:col-span-6">
-                  <Select
-                    value={form.fascia_listino_default ?? NONE}
-                    onValueChange={(v) =>
-                      set("fascia_listino_default", v === NONE ? null : (v as FasciaListino))
-                    }
-                  >
-                    <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={NONE}>— Nessuna —</SelectItem>
-                      {FASCE.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </div>
-            </section>
+          <div className="mx-auto max-w-5xl">
+            <Tabs
+              value={tabParam ?? "anagrafica"}
+              onValueChange={(v) =>
+                navigate({
+                  to: "/clienti/$id",
+                  params: { id },
+                  search: { tab: v as "anagrafica" | "cantieri" | "preventivi" | "ordini" },
+                  replace: true,
+                })
+              }
+            >
+              <TabsList className="flex w-full flex-wrap justify-start gap-1 overflow-x-auto md:w-auto">
+                <TabsTrigger value="anagrafica">Anagrafica</TabsTrigger>
+                <TabsTrigger value="cantieri">
+                  Cantieri
+                  <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-[10px]">
+                    {cantieriList.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="preventivi">
+                  Preventivi
+                  <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-[10px]">
+                    {preventiviCount}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="ordini">
+                  Ordini
+                  <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-[10px]">
+                    {ordiniCount}
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Cantieri */}
-            <CantieriSection clienteId={id} />
+              <TabsContent value="anagrafica" className="mt-4">
+                <section className="rounded-lg border bg-card p-4">
+                  <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-navy">
+                    Anagrafica
+                  </h2>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
+                    <Field label="Ragione sociale *" className="md:col-span-8">
+                      <Input
+                        value={form.ragione_sociale ?? ""}
+                        onChange={(e) => set("ragione_sociale", e.target.value)}
+                      />
+                    </Field>
+                    <Field label="ID cliente" className="md:col-span-4">
+                      <Input
+                        value={form.id_cliente ?? ""}
+                        onChange={(e) => set("id_cliente", e.target.value || null)}
+                        className="font-mono"
+                      />
+                    </Field>
+                    <Field label="P.IVA" className="md:col-span-4">
+                      <Input
+                        value={form.piva ?? ""}
+                        onChange={(e) => set("piva", e.target.value || null)}
+                        className="font-mono"
+                      />
+                    </Field>
+                    <Field label="Indirizzo" className="md:col-span-8">
+                      <Input
+                        value={form.indirizzo ?? ""}
+                        onChange={(e) => set("indirizzo", e.target.value || null)}
+                      />
+                    </Field>
+                    <Field label="Comune" className="md:col-span-6">
+                      <ComunePicker
+                        value={form.comune_id ?? null}
+                        onChange={(id, prov) => {
+                          set("comune_id", id);
+                          if (prov) set("prov", prov);
+                        }}
+                      />
+                    </Field>
+                    <Field label="Prov" className="md:col-span-2">
+                      <Input
+                        value={form.prov ?? ""}
+                        onChange={(e) => set("prov", e.target.value.toUpperCase() || null)}
+                        maxLength={2}
+                        className="font-mono"
+                      />
+                    </Field>
+                    <Field label="CAP" className="md:col-span-2">
+                      <Input
+                        value={form.cap ?? ""}
+                        onChange={(e) => set("cap", e.target.value || null)}
+                        className="font-mono"
+                      />
+                    </Field>
+                    <Field label="Filiale" className="md:col-span-2">
+                      <Input
+                        value={form.filiale ?? ""}
+                        onChange={(e) => set("filiale", e.target.value || null)}
+                      />
+                    </Field>
+                    <Field label="Email" className="md:col-span-6">
+                      <Input
+                        type="email"
+                        value={(form as typeof form & { email?: string | null }).email ?? ""}
+                        onChange={(e) => set("email" as never, (e.target.value || null) as never)}
+                        placeholder="cliente@esempio.it"
+                      />
+                    </Field>
+                    <Field label="Agente" className="md:col-span-6">
+                      <Select
+                        value={form.agente_id ?? NONE}
+                        onValueChange={(v) => set("agente_id", v === NONE ? null : v)}
+                      >
+                        <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={NONE}>— Nessuno —</SelectItem>
+                          {agenti.map((a) => (
+                            <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field label="Fascia listino default" className="md:col-span-6">
+                      <Select
+                        value={form.fascia_listino_default ?? NONE}
+                        onValueChange={(v) =>
+                          set("fascia_listino_default", v === NONE ? null : (v as FasciaListino))
+                        }
+                      >
+                        <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={NONE}>— Nessuna —</SelectItem>
+                          {FASCE.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  </div>
+                </section>
+              </TabsContent>
 
-            {/* Preventivi */}
-            <PreventiviSection clienteId={id} tipo="preventivo" />
+              <TabsContent value="cantieri" className="mt-4">
+                <CantieriSection clienteId={id} />
+              </TabsContent>
 
-            {/* Ordini */}
-            <PreventiviSection clienteId={id} tipo="ordine" />
+              <TabsContent value="preventivi" className="mt-4">
+                <PreventiviSection clienteId={id} tipo="preventivo" />
+              </TabsContent>
 
+              <TabsContent value="ordini" className="mt-4">
+                <PreventiviSection clienteId={id} tipo="ordine" />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>
+
 
       <AlertDialog open={confirmDel} onOpenChange={setConfirmDel}>
         <AlertDialogContent>
