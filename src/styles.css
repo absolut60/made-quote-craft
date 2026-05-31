@@ -128,3 +128,11 @@
 .readonly-mode button:disabled {
   opacity: 0.85 !important;
 }
+
+/* Placeholder più tenue e coerente su tutti i campi (input, textarea, contenteditable). */
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
+  opacity: 1;
+  font-style: italic;
+}
