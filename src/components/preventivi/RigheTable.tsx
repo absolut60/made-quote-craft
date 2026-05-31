@@ -111,6 +111,33 @@ export function RigheTable({
     });
   }
 
+  async function addArticoloRow(a: ArticoloConListini) {
+    const ordine = fractionalOrder(
+      blocco.righe.length ? Number(blocco.righe[blocco.righe.length - 1].ordine ?? 0) : null,
+      null,
+    );
+    const listino = a.listini_vendita?.find((l) => l.fascia === fascia);
+    const acquistoRecente = a.listini_acquisto?.[0];
+    const prezzo = listino?.prezzo == null ? null : Number(listino.prezzo);
+    const costo = acquistoRecente?.costo_netto == null ? null : Number(acquistoRecente.costo_netto);
+    await insertRiga({
+      blocco_id: blocco.id,
+      tipo_riga: "articolo_singolo",
+      ordine,
+      segno: 1,
+      articolo_id: a.id,
+      descrizione: a.descrizione ?? null,
+      um: a.um ?? null,
+      quantita: 1,
+      prezzo_unit: prezzo,
+      costo,
+      vendita: prezzo,
+      peso: a.peso_unit == null ? null : Number(a.peso_unit),
+      sconto_perc: 0,
+    });
+    invalidate();
+  }
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
