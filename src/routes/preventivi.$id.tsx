@@ -66,6 +66,7 @@ function PreventivoEditorPage() {
   const [editMode, setEditMode] = useState(false);
   const [editModeInitialized, setEditModeInitialized] = useState(false);
   const [clienteDialogOpen, setClienteDialogOpen] = useState(false);
+  const [trasformaOpen, setTrasformaOpen] = useState(false);
 
   const { data: prev, isLoading } = useQuery({
     queryKey: ["preventivo", id],
@@ -73,6 +74,18 @@ function PreventivoEditorPage() {
   });
 
   const { data: agenti = [] } = useQuery({ queryKey: ["agenti"], queryFn: fetchAgenti });
+
+  const { data: ordiniCollegati = [] } = useQuery({
+    queryKey: ["ordini-collegati", id],
+    queryFn: () => fetchOrdiniCollegati(id),
+    enabled: !!prev && prev.tipo === "preventivo",
+  });
+
+  const { data: preventivoOrigine } = useQuery({
+    queryKey: ["preventivo-origine", prev?.preventivo_origine_id],
+    queryFn: () => fetchPreventivoOrigine(prev!.preventivo_origine_id!),
+    enabled: !!prev?.preventivo_origine_id,
+  });
 
   async function onChangeCliente(nuovoId: string | null) {
     if (!nuovoId) {
