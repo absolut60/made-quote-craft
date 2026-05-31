@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { supabase } from "@/integrations/supabase/client";
-import { FileText, Package, AlertCircle, Send, CheckCircle2, ShoppingCart } from "lucide-react";
+import { FileText, Package, AlertCircle, CheckCircle2, ShoppingCart, CircleDashed, CircleDot } from "lucide-react";
+import { computeEvasione, type StatoEvasione } from "@/lib/evasione";
+import { EvasioneBadge } from "@/components/preventivi/EvasioneBadge";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -15,6 +17,16 @@ export const Route = createFileRoute("/")({
   component: DashboardPage,
 });
 
+interface RigaMini {
+  tipo_riga: string;
+  quantita: number | null;
+  qta_ordinata: number | null;
+  prezzo_unit: number | null;
+  sconto_perc: number | null;
+  segno: number | null;
+}
+interface BloccoMini { righe: RigaMini[] | null }
+
 interface DocRecente {
   id: string;
   numero: string | null;
@@ -22,14 +34,15 @@ interface DocRecente {
   stato: string;
   totale: number | null;
   cliente: string | null;
+  evasione?: StatoEvasione;
 }
 
 interface DashStats {
-  // Preventivi
-  prevBozza: number;
-  prevInviati: number;
-  prevConfermati: number;
-  valoreOfferteMese: number;
+  // Preventivi - contatori per evasione
+  prevAperti: number;
+  prevParziali: number;
+  prevEvasi: number;
+  valoreOfferteMese: number; // residuo non ordinato dei preventivi del mese
   ultimiPreventivi: DocRecente[];
   // Ordini
   ordBozza: number;
@@ -41,45 +54,52 @@ interface DashStats {
   articoliPotenziali: number;
 }
 
+const RIGHE_SELECT =
+  "blocchi:blocchi_preventivo(righe:righe_preventivo(tipo_riga,quantita,qta_ordinata,prezzo_unit,sconto_perc,segno))";
+
+function flatten(blocchi: BloccoMini[] | null | undefined): RigaMini[] {
+  return (blocchi ?? []).flatMap((b) => b.righe ?? []);
+}
+
+/** Valore residuo non ordinato di un preventivo (imponibile). */
+function residuoPreventivo(righe: RigaMini[]): number {
+  let tot = 0;
+  for (const r of righe) {
+    if (r.tipo_riga !== "articolo_singolo" && r.tipo_riga !== "da_kit" && r.tipo_riga !== "manuale") continue;
+    const q = Number(r.quantita ?? 0);
+    const o = Number(r.qta_ordinata ?? 0);
+    const resQ = Math.max(0, q - o);
+    if (resQ <= 0) continue;
+    const pu = Number(r.prezzo_unit ?? 0);
+    const sc = Number(r.sconto_perc ?? 0);
+    const seg = Number(r.segno ?? 1);
+    tot += resQ * pu * (1 - sc / 100) * seg;
+  }
+  return tot;
+}
+
 async function fetchDashboardStats(): Promise<DashStats> {
   const now = new Date();
   const inizioMese = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
 
-  const baseCount = (
-    tipo: "preventivo" | "ordine",
-    stato: "bozza" | "inviato" | "confermato",
-  ) =>
-    supabase
-      .from("preventivi")
-      .select("id", { count: "exact", head: true })
-      .eq("tipo", tipo)
-      .eq("stato", stato);
-
   const [
-    { count: prevBozza },
-    { count: prevInviati },
-    { count: prevConfermati },
-    { count: ordBozza },
-    { count: ordConfermati },
     { count: articoliAttivi },
     { count: articoliPotenziali },
-    { data: prevMese },
+    { data: tuttiPrev },
     { data: ordMese },
     { data: ultimiPrev },
     { data: ultimiOrd },
   ] = await Promise.all([
-    baseCount("preventivo", "bozza"),
-    baseCount("preventivo", "inviato"),
-    baseCount("preventivo", "confermato"),
-    baseCount("ordine", "bozza"),
-    baseCount("ordine", "confermato"),
     supabase.from("articoli").select("id", { count: "exact", head: true }).eq("stato", "attivo"),
     supabase.from("articoli").select("id", { count: "exact", head: true }).eq("stato", "potenziale"),
-    supabase.from("preventivi").select("totale, data").eq("tipo", "preventivo").gte("data", inizioMese),
+    supabase
+      .from("preventivi")
+      .select(`id, data, ${RIGHE_SELECT}`)
+      .eq("tipo", "preventivo"),
     supabase.from("preventivi").select("totale, data").eq("tipo", "ordine").gte("data", inizioMese),
     supabase
       .from("preventivi")
-      .select("id, numero, data, stato, totale, clienti(ragione_sociale)")
+      .select(`id, numero, data, stato, totale, clienti(ragione_sociale), ${RIGHE_SELECT}`)
       .eq("tipo", "preventivo")
       .order("updated_at", { ascending: false })
       .limit(8),
@@ -91,10 +111,35 @@ async function fetchDashboardStats(): Promise<DashStats> {
       .limit(8),
   ]);
 
+  // Contatori evasione su TUTTI i preventivi
+  let prevAperti = 0, prevParziali = 0, prevEvasi = 0;
+  let valoreOfferteMese = 0;
+  for (const p of (tuttiPrev ?? []) as any[]) {
+    const righe = flatten(p.blocchi);
+    const stato = computeEvasione(righe);
+    if (stato === "aperto") prevAperti++;
+    else if (stato === "parziale") prevParziali++;
+    else prevEvasi++;
+    if (p.data >= inizioMese) {
+      valoreOfferteMese += residuoPreventivo(righe);
+    }
+  }
+
   const sumTotale = (rows: any[] | null) =>
     (rows ?? []).reduce((s, p: any) => s + Number(p.totale ?? 0), 0);
 
-  const mapDoc = (rows: any[] | null): DocRecente[] =>
+  const mapPrev = (rows: any[] | null): DocRecente[] =>
+    (rows ?? []).map((p: any) => ({
+      id: p.id,
+      numero: p.numero,
+      data: p.data,
+      stato: p.stato,
+      totale: p.totale,
+      cliente: p.clienti?.ragione_sociale ?? null,
+      evasione: computeEvasione(flatten(p.blocchi)),
+    }));
+
+  const mapOrd = (rows: any[] | null): DocRecente[] =>
     (rows ?? []).map((p: any) => ({
       id: p.id,
       numero: p.numero,
@@ -104,16 +149,25 @@ async function fetchDashboardStats(): Promise<DashStats> {
       cliente: p.clienti?.ragione_sociale ?? null,
     }));
 
+  const ordBozza = ((ultimiOrd ?? []) as any[]); // placeholder
+  void ordBozza;
+
+  // Contatori ordini separati
+  const [{ count: ordBozzaCount }, { count: ordConfermatiCount }] = await Promise.all([
+    supabase.from("preventivi").select("id", { count: "exact", head: true }).eq("tipo", "ordine").eq("stato", "bozza"),
+    supabase.from("preventivi").select("id", { count: "exact", head: true }).eq("tipo", "ordine").eq("stato", "confermato"),
+  ]);
+
   return {
-    prevBozza: prevBozza ?? 0,
-    prevInviati: prevInviati ?? 0,
-    prevConfermati: prevConfermati ?? 0,
-    valoreOfferteMese: sumTotale(prevMese),
-    ultimiPreventivi: mapDoc(ultimiPrev),
-    ordBozza: ordBozza ?? 0,
-    ordConfermati: ordConfermati ?? 0,
+    prevAperti,
+    prevParziali,
+    prevEvasi,
+    valoreOfferteMese,
+    ultimiPreventivi: mapPrev(ultimiPrev),
+    ordBozza: ordBozzaCount ?? 0,
+    ordConfermati: ordConfermatiCount ?? 0,
     valoreOrdinatoMese: sumTotale(ordMese),
-    ultimiOrdini: mapDoc(ultimiOrd),
+    ultimiOrdini: mapOrd(ultimiOrd),
     articoliAttivi: articoliAttivi ?? 0,
     articoliPotenziali: articoliPotenziali ?? 0,
   };
@@ -153,7 +207,7 @@ function DashboardPage() {
           </div>
         </div>
 
-        {/* ARTICOLI (comune) */}
+        {/* ARTICOLI */}
         <SectionTitle>Articoli</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
           <StatCard label="Articoli attivi" value={data?.articoliAttivi} icon={Package} />
@@ -175,11 +229,11 @@ function DashboardPage() {
         {/* PREVENTIVI */}
         <SectionTitle>Preventivi</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-3">
-          <StatCard label="Bozze" value={data?.prevBozza} icon={FileText} />
-          <StatCard label="Inviati" value={data?.prevInviati} icon={Send} />
-          <StatCard label="Confermati" value={data?.prevConfermati} icon={CheckCircle2} />
+          <StatCard label="Aperti" value={data?.prevAperti} icon={CircleDashed} />
+          <StatCard label="Parz. evasi" value={data?.prevParziali} icon={CircleDot} />
+          <StatCard label="Evasi" value={data?.prevEvasi} icon={CheckCircle2} />
           <StatCard
-            label="Valore offerte mese"
+            label="Valore offerte mese (residuo)"
             value={data ? formatEur(data.valoreOfferteMese) : undefined}
             icon={FileText}
           />
@@ -192,6 +246,7 @@ function DashboardPage() {
           rows={data?.ultimiPreventivi}
           isLoading={isLoading}
           emptyLabel="Nessun preventivo recente."
+          showEvasione
         />
 
         {/* ORDINI */}
@@ -235,6 +290,7 @@ function RecentDocsTable({
   rows,
   isLoading,
   emptyLabel,
+  showEvasione,
 }: {
   title: string;
   linkLabel: string;
@@ -243,6 +299,7 @@ function RecentDocsTable({
   rows: DocRecente[] | undefined;
   isLoading: boolean;
   emptyLabel: string;
+  showEvasione?: boolean;
 }) {
   return (
     <div className="mt-4 bg-card border border-border rounded-md">
@@ -264,18 +321,10 @@ function RecentDocsTable({
         </thead>
         <tbody className="divide-y divide-border">
           {isLoading && (
-            <tr>
-              <td colSpan={5} className="px-5 py-6 text-center text-muted-foreground">
-                Caricamento…
-              </td>
-            </tr>
+            <tr><td colSpan={5} className="px-5 py-6 text-center text-muted-foreground">Caricamento…</td></tr>
           )}
           {!isLoading && (rows?.length ?? 0) === 0 && (
-            <tr>
-              <td colSpan={5} className="px-5 py-6 text-center text-muted-foreground">
-                {emptyLabel}
-              </td>
-            </tr>
+            <tr><td colSpan={5} className="px-5 py-6 text-center text-muted-foreground">{emptyLabel}</td></tr>
           )}
           {rows?.map((p) => (
             <tr key={p.id} className="hover:bg-muted/30">
@@ -289,9 +338,11 @@ function RecentDocsTable({
                 {new Date(p.data).toLocaleDateString("it-IT")}
               </td>
               <td className="px-5 py-2">
-                <span className="text-xs px-2 py-0.5 rounded bg-muted text-foreground">
-                  {p.stato}
-                </span>
+                {showEvasione && p.evasione ? (
+                  <EvasioneBadge stato={p.evasione} />
+                ) : (
+                  <span className="text-xs px-2 py-0.5 rounded bg-muted text-foreground">{p.stato}</span>
+                )}
               </td>
               <td className="px-5 py-2 font-mono text-right">
                 {p.totale != null ? formatEur(Number(p.totale)) : "—"}
