@@ -265,7 +265,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
     if (col.quantita) colDefs.push({ head: "Quantità", width: 18, halign: "right", font: "courier" });
     if (col.prezzo_unit) colDefs.push({ head: "Prezzo unit.", width: 22, halign: "right", font: "courier" });
     if (col.sconto) colDefs.push({ head: "Sconto %", width: 16, halign: "right", font: "courier" });
-    if (col.prezzo_scontato) colDefs.push({ head: "Prezzo scontato", width: 24, halign: "right", font: "courier" });
+    if (col.prezzo_scontato) colDefs.push({ head: col.prezzo_unit ? "Prezzo scontato" : "Prezzo", width: 24, halign: "right", font: "courier" });
     if (col.importo) colDefs.push({ head: "Importo", width: 24, halign: "right", font: "courier", bold: true });
 
     const body: (string | number)[][] = [];
