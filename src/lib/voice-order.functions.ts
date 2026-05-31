@@ -94,7 +94,7 @@ Frase: "${data.testo}"`;
     const json = await resp.json();
     const call = json?.choices?.[0]?.message?.tool_calls?.[0];
     if (!call) throw new Error("Risposta AI senza tool call");
-    let args: { righe?: unknown[] } = {};
+    let args: { righe?: RigaEstratta[] } = {};
     try {
       args = JSON.parse(call.function?.arguments ?? "{}");
     } catch {
@@ -102,3 +102,14 @@ Frase: "${data.testo}"`;
     }
     return { righe: Array.isArray(args.righe) ? args.righe : [], raw_testo: data.testo };
   });
+
+export type RigaEstratta = {
+  fornitore_riconosciuto: string | null;
+  categoria_riconosciuta: string | null;
+  termini_ricerca: string[];
+  quantita: number | null;
+  unita_misura: string | null;
+  spessore: string | null;
+  dimensione: string | null;
+};
+
