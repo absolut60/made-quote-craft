@@ -470,7 +470,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
 
 
   drawFooter(doc);
-  const name = fileName(prev, "preventivo");
+  const name = fileName(prev, prev.tipo === "ordine" ? "ordine" : "preventivo");
   return { blob: doc.output("blob") as Blob, fileName: name };
 }
 
