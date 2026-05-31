@@ -105,39 +105,96 @@ Domanda: "${data.domanda}"`,
     };
 
     // --- Step 2: query articoli ---
-    let q = supabase
-      .from("articoli")
-      .select(
-        `id, cod_gamma, cod_fornitore, descrizione, um, categoria, tipologia, note_acquisto,
-         fornitore:fornitori(ragione_sociale),
-         listini_acquisto:listini_acquisto(costo_netto, data_validita),
-         listini_vendita:listini_vendita(fascia, prezzo)`,
-      )
-      .limit(80);
-
-    if (criteri.categoria) q = q.eq("categoria", criteri.categoria);
-
+    // Risolvi fornitore_id (case-insensitive, trim)
+    let fornitoreId: string | null = null;
+    let fornitoreNomeReale: string | null = null;
     if (criteri.fornitore) {
+      const nome = criteri.fornitore.trim();
       const { data: fid } = await supabase
         .from("fornitori")
-        .select("id")
-        .ilike("ragione_sociale", `%${criteri.fornitore}%`)
+        .select("id, ragione_sociale")
+        .ilike("ragione_sociale", `%${nome}%`)
         .limit(1)
         .maybeSingle();
-      if (fid?.id) q = q.eq("fornitore_id", fid.id);
+      if (fid?.id) {
+        fornitoreId = fid.id;
+        fornitoreNomeReale = fid.ragione_sociale;
+      }
     }
 
-    if (criteri.termini.length > 0) {
-      const orParts = criteri.termini
-        .slice(0, 5)
-        .map((t) => t.replace(/[%,]/g, " ").trim())
-        .filter(Boolean)
-        .map((t) => `descrizione.ilike.%${t}%`);
-      if (orParts.length) q = q.or(orParts.join(","));
-    }
+    // Normalizza categoria (codice singolo, uppercase)
+    const categoriaCode = criteri.categoria ? criteri.categoria.trim().toUpperCase() : null;
 
-    const { data: arts, error: artsErr } = await q;
+    // Trova descrizione categoria per escludere termini ridondanti
+    const descCategoria = categoriaCode
+      ? (matrice.find((c) => c.categoria === categoriaCode)?.descrizione_categoria ?? "")
+      : "";
+
+    // Parole "consumate" da fornitore/categoria — non vanno ricercate come termini
+    const stop = new Set<string>();
+    const addStop = (s: string | null) => {
+      if (!s) return;
+      s.toLowerCase()
+        .split(/[\s,_\-/]+/)
+        .map((w) => w.trim())
+        .filter((w) => w.length >= 3)
+        .forEach((w) => stop.add(w));
+    };
+    addStop(criteri.fornitore);
+    addStop(fornitoreNomeReale);
+    addStop(descCategoria);
+    // Termini generici che non aiutano in descrizione
+    ["prezzo", "prezzi", "fascia", "listino", "articoli", "prodotti"].forEach((w) => stop.add(w));
+
+    const terminiPuliti = criteri.termini
+      .map((t) => t.replace(/[%,]/g, " ").trim())
+      .filter(Boolean)
+      .filter((t) => !stop.has(t.toLowerCase()))
+      // scarta numeri puri / sigle spessore (es. "13", "12,5", "SP") — sono raffinamento morbido
+      .filter((t) => !/^(sp\.?|mm)?\s*\d+([.,]\d+)?\s*(mm)?$/i.test(t));
+
+    const baseSelect = `id, cod_gamma, cod_fornitore, descrizione, um, categoria, tipologia, note_acquisto,
+       fornitore:fornitori(ragione_sociale),
+       listini_acquisto:listini_acquisto(costo_netto, data_validita),
+       listini_vendita:listini_vendita(fascia, prezzo)`;
+
+    const buildQuery = (withTermini: boolean) => {
+      let q = supabase.from("articoli").select(baseSelect).limit(80);
+      if (categoriaCode) q = q.ilike("categoria", categoriaCode);
+      if (fornitoreId) q = q.eq("fornitore_id", fornitoreId);
+      if (withTermini && terminiPuliti.length > 0) {
+        const orParts = terminiPuliti
+          .slice(0, 5)
+          .map((t) => `descrizione.ilike.%${t}%`);
+        q = q.or(orParts.join(","));
+      }
+      return q;
+    };
+
+    // Primo tentativo: con tutti i filtri
+    let { data: arts, error: artsErr } = await buildQuery(true);
     if (artsErr) throw artsErr;
+
+    // Fallback: se i termini azzerano ma fornitore/categoria avrebbero risultati, droppali
+    if ((!arts || arts.length === 0) && terminiPuliti.length > 0 && (fornitoreId || categoriaCode)) {
+      const fb = await buildQuery(false);
+      if (!fb.error && fb.data && fb.data.length > 0) arts = fb.data;
+    }
+
+    // Ordinamento "soft" per pertinenza ai termini residui (inclusi quelli scartati come numeri)
+    const rankTerms = criteri.termini
+      .map((t) => t.toLowerCase().trim())
+      .filter(Boolean)
+      .filter((t) => !stop.has(t));
+    if (rankTerms.length > 0 && arts && arts.length > 0) {
+      arts = [...arts].sort((a, b) => {
+        const da = (a.descrizione ?? "").toLowerCase();
+        const db = (b.descrizione ?? "").toLowerCase();
+        const sa = rankTerms.reduce((n, t) => n + (da.includes(t) ? 1 : 0), 0);
+        const sb = rankTerms.reduce((n, t) => n + (db.includes(t) ? 1 : 0), 0);
+        return sb - sa;
+      });
+    }
 
     // --- Costruisci fonti compatte ---
     const fonti: Fonte[] = (arts ?? []).slice(0, 40).map((a) => {
