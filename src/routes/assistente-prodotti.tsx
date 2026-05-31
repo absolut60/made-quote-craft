@@ -57,9 +57,14 @@ function AssistentePage() {
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const speech = useSpeechRecognition({
+    onFinal: (text) => setInput((prev) => (prev ? prev + " " : "") + text),
+  });
+
   const invia = async (testo?: string) => {
     const domanda = (testo ?? input).trim();
     if (!domanda || loading) return;
+    if (speech.listening) speech.stop();
     setInput("");
     const userMsg: Messaggio = { role: "user", content: domanda };
     const nuovo = [...messaggi, userMsg];
