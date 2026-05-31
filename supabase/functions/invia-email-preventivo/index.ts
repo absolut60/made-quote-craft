@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
       },
     });
 
-    const pdfBytes = base64ToUint8(pdf_base64);
+    const cleanB64 = pdf_base64.replace(/^data:[^;]+;base64,/, "");
     const htmlBody = buildHtml(corpo ?? "");
     const textBody = buildPlainText(corpo ?? "");
 
@@ -182,8 +182,8 @@ Deno.serve(async (req) => {
         attachments: [
           {
             filename: nome_file,
-            content: pdfBytes,
-            encoding: "binary",
+            content: cleanB64,
+            encoding: "base64",
             contentType: payload.mime_type || "application/pdf",
           },
         ],
