@@ -45,6 +45,9 @@ import {
   type FasciaListino,
 } from "@/lib/clienti-api";
 import { STATI_LABEL, TIPI_DOC_LABEL, type StatoPreventivo, type TipoDoc } from "@/lib/preventivi-api";
+import { computeEvasione } from "@/lib/evasione";
+import { EvasioneBadge } from "@/components/preventivi/EvasioneBadge";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileText, Pencil, Plus, Save, Trash2 } from "lucide-react";
@@ -534,7 +537,11 @@ type PreventivoRow = {
   tipo_doc: TipoDoc;
   totale: number | null;
   cantiere: { nome: string } | null;
+  blocchi: {
+    righe: { tipo_riga: string; quantita: number | null; qta_ordinata: number | null }[];
+  }[];
 };
+
 
 const fmtData = (s: string | null) => {
   if (!s) return "—";
@@ -566,7 +573,10 @@ function PreventiviSection({ clienteId, tipo = "preventivo" }: { clienteId: stri
     queryFn: async () => {
       const { data, error } = await supabase
         .from("preventivi")
-        .select("id, numero, data, validita, stato, tipo_doc, totale, cantiere:cantieri(nome)")
+        .select(
+          "id, numero, data, validita, stato, tipo_doc, totale, cantiere:cantieri(nome), blocchi:blocchi_preventivo(righe:righe_preventivo(tipo_riga, quantita, qta_ordinata))",
+        )
+
         .eq("cliente_id", clienteId)
         .eq("tipo", tipo)
         .order("data", { ascending: false })
@@ -667,8 +677,15 @@ function PreventiviSection({ clienteId, tipo = "preventivo" }: { clienteId: stri
                     <td className="px-3 py-1.5">{p.cantiere?.nome ?? "—"}</td>
                     <td className="px-3 py-1.5">{TIPI_DOC_LABEL[p.tipo_doc]}</td>
                     <td className="px-3 py-1.5">
-                      <Badge variant={statoVariant(p.stato)}>{STATI_LABEL[p.stato]}</Badge>
+                      {isOrdine ? (
+                        <Badge variant={statoVariant(p.stato)}>{STATI_LABEL[p.stato]}</Badge>
+                      ) : (
+                        <EvasioneBadge
+                          stato={computeEvasione((p.blocchi ?? []).flatMap((b) => b.righe ?? []))}
+                        />
+                      )}
                     </td>
+
                     <td className="px-3 py-1.5 text-right font-mono">{fmtEuro(p.totale)}</td>
                   </tr>
                 ))}
@@ -687,9 +704,17 @@ function PreventiviSection({ clienteId, tipo = "preventivo" }: { clienteId: stri
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-xs">{p.numero ?? "—"}</span>
-                  <Badge variant={statoVariant(p.stato)} className="text-[10px]">
-                    {STATI_LABEL[p.stato]}
-                  </Badge>
+                  {isOrdine ? (
+                    <Badge variant={statoVariant(p.stato)} className="text-[10px]">
+                      {STATI_LABEL[p.stato]}
+                    </Badge>
+                  ) : (
+                    <EvasioneBadge
+                      stato={computeEvasione((p.blocchi ?? []).flatMap((b) => b.righe ?? []))}
+                      className="text-[10px]"
+                    />
+                  )}
+
                 </div>
                 <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                   <span>{fmtData(p.data)} · {TIPI_DOC_LABEL[p.tipo_doc]}</span>
