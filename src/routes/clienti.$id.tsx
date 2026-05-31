@@ -677,8 +677,15 @@ function PreventiviSection({ clienteId, tipo = "preventivo" }: { clienteId: stri
                     <td className="px-3 py-1.5">{p.cantiere?.nome ?? "—"}</td>
                     <td className="px-3 py-1.5">{TIPI_DOC_LABEL[p.tipo_doc]}</td>
                     <td className="px-3 py-1.5">
-                      <Badge variant={statoVariant(p.stato)}>{STATI_LABEL[p.stato]}</Badge>
+                      {isOrdine ? (
+                        <Badge variant={statoVariant(p.stato)}>{STATI_LABEL[p.stato]}</Badge>
+                      ) : (
+                        <EvasioneBadge
+                          stato={computeEvasione((p.blocchi ?? []).flatMap((b) => b.righe ?? []))}
+                        />
+                      )}
                     </td>
+
                     <td className="px-3 py-1.5 text-right font-mono">{fmtEuro(p.totale)}</td>
                   </tr>
                 ))}
