@@ -22,6 +22,7 @@ const nav: NavItem[] = [
   { to: "/kit", label: "Kit / Lavorazioni", icon: Wrench },
   { to: "/clienti", label: "Clienti", icon: Users },
   { to: "/ordine-vocale", label: "Ordine vocale (beta)", icon: Mic },
+  { to: "/assistente-prodotti", label: "Assistente prodotti (beta)", icon: Sparkles },
   { to: "/utenti", label: "Utenti", icon: UserCog, adminOnly: true },
 ];
 
