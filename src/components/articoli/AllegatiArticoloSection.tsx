@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Upload, Download, Trash2, FileText, FileImage, File as FileIcon,
-  Loader2, Eye, Printer,
+  Loader2, Eye, Printer, Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -25,6 +25,12 @@ import {
   deleteAllegatoArticolo, fetchAllegatiArticolo, formatBytes,
   getSignedUrlArticolo, uploadAllegatoArticolo,
 } from "@/lib/allegati-articolo-api";
+import { InviaEmailDialog } from "@/components/preventivi/InviaEmailDialog";
+
+export type ArticoloEmailContext = {
+  codGamma?: string | null;
+  descrizione?: string | null;
+};
 
 function iconFor(mime: string | null) {
   if (!mime) return FileIcon;
@@ -66,10 +72,17 @@ async function printAllegato(a: AllegatoArticolo) {
   w.addEventListener("load", () => { try { w.print(); } catch { /* ignore */ } });
 }
 
-export function AllegatiArticoloSection({ articoloId }: { articoloId: string }) {
+export function AllegatiArticoloSection({
+  articoloId,
+  emailContext,
+}: {
+  articoloId: string;
+  emailContext?: ArticoloEmailContext;
+}) {
   const qc = useQueryClient();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [preview, setPreview] = useState<AllegatoArticolo | null>(null);
+  const [emailTarget, setEmailTarget] = useState<{ allegato: AllegatoArticolo; blob: Blob } | null>(null);
 
   const { data: allegati = [], isLoading } = useQuery({
     queryKey: ["allegati_articolo", articoloId],
