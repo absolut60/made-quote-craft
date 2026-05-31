@@ -704,9 +704,17 @@ function PreventiviSection({ clienteId, tipo = "preventivo" }: { clienteId: stri
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-xs">{p.numero ?? "—"}</span>
-                  <Badge variant={statoVariant(p.stato)} className="text-[10px]">
-                    {STATI_LABEL[p.stato]}
-                  </Badge>
+                  {isOrdine ? (
+                    <Badge variant={statoVariant(p.stato)} className="text-[10px]">
+                      {STATI_LABEL[p.stato]}
+                    </Badge>
+                  ) : (
+                    <EvasioneBadge
+                      stato={computeEvasione((p.blocchi ?? []).flatMap((b) => b.righe ?? []))}
+                      className="text-[10px]"
+                    />
+                  )}
+
                 </div>
                 <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                   <span>{fmtData(p.data)} · {TIPI_DOC_LABEL[p.tipo_doc]}</span>
