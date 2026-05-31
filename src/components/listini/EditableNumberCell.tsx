@@ -44,6 +44,18 @@ export function EditableNumberCell({
       return;
     }
     if (num === value) return;
+    // Conferma se si sta azzerando/svuotando un valore precedente > 0
+    const prev = typeof value === "number" ? value : NaN;
+    const sta_azzerando = (num === null || num === 0) && Number.isFinite(prev) && prev !== 0;
+    if (sta_azzerando) {
+      const ok = window.confirm(
+        `Vuoi davvero azzerare questo valore? (era ${String(prev).replace(".", ",")})`,
+      );
+      if (!ok) {
+        setLocal(toDisplay(value));
+        return;
+      }
+    }
     try {
       setBusy(true);
       await onCommit(num);
@@ -64,6 +76,10 @@ export function EditableNumberCell({
         setLocal(e.target.value.replace(/[^0-9.,\-]/g, ""));
       }}
       onFocus={(e) => e.currentTarget.select()}
+      // Impedisce il drag&drop nativo del testo selezionato: trascinare la
+      // selezione fuori dall'input causava un "move" che svuotava il campo.
+      onDragStart={(e) => e.preventDefault()}
+      onDrop={(e) => e.preventDefault()}
       onBlur={commit}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
