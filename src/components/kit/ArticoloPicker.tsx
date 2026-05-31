@@ -71,7 +71,6 @@ export function ArticoloPicker({
       let qb = supabase
         .from("articoli")
         .select(ARTICOLO_SELECT)
-        .eq("stato", "attivo")
         .order("cod_gamma", { ascending: true, nullsFirst: false })
         .limit(50);
       if (fornitoreFiltro) qb = qb.eq("fornitore_id", fornitoreFiltro);
