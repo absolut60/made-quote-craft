@@ -231,17 +231,19 @@ export function RigheTable({
             {!readOnly && (
               <tr>
                 <td colSpan={15} className="px-2 pt-2">
-                  <QuickArticoloSearch onPick={(a) => addArticoloRow(a)} />
+                  <QuickArticoloSearch ref={quickRef} onPick={(a) => addArticoloRow(a)} />
                 </td>
               </tr>
             )}
             <tr className="border-t bg-muted/30 text-xs">
               <td colSpan={9} className="px-2 py-2">
                 <AddRowMenu
-                  onAddArticolo={() => addRow(null, "articolo_singolo")}
+                  readOnly={readOnly}
+                  onAddArticolo={focusQuickSearch}
                   onPick={(tipo) => addRow(null, tipo)}
                 />
               </td>
+
               <td className="px-1 py-2 text-right font-mono font-semibold">€ {calcs.totale.toFixed(2)}</td>
               <td className="px-1 py-2 text-right font-mono text-muted-foreground">€ {calcs.costo.toFixed(2)}</td>
               <td className="px-1 py-2 text-right font-mono text-muted-foreground">
