@@ -24,6 +24,14 @@ import {
   BUCKET, CATEGORIE, CATEGORIE_LABEL, type Allegato, type CategoriaAllegato,
   deleteAllegato, fetchAllegati, formatBytes, getSignedUrl, uploadAllegato,
 } from "@/lib/allegati-api";
+import { InviaEmailDialog } from "@/components/preventivi/InviaEmailDialog";
+
+export type AllegatiEmailContext = {
+  tipo?: "preventivo" | "ordine";
+  numero?: string | null;
+  ragSoc?: string | null;
+  clienteEmail?: string | null;
+};
 
 function iconFor(mime: string | null) {
   if (!mime) return FileIcon;
@@ -100,17 +108,30 @@ export function AllegatiButton({ preventivoId }: { preventivoId: string }) {
 }
 
 // Retro-compat: vecchio nome — render della sola lista (per usi inline)
-export function AllegatiSection({ preventivoId }: { preventivoId: string }) {
-  return <AllegatiList preventivoId={preventivoId} />;
+export function AllegatiSection({
+  preventivoId,
+  emailContext,
+}: {
+  preventivoId: string;
+  emailContext?: AllegatiEmailContext;
+}) {
+  return <AllegatiList preventivoId={preventivoId} emailContext={emailContext} />;
 }
 
 // =========================================================================
 // Lista allegati raggruppata + upload + azioni
 // =========================================================================
-function AllegatiList({ preventivoId }: { preventivoId: string }) {
+function AllegatiList({
+  preventivoId,
+  emailContext,
+}: {
+  preventivoId: string;
+  emailContext?: AllegatiEmailContext;
+}) {
   const qc = useQueryClient();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [preview, setPreview] = useState<Allegato | null>(null);
+  const [emailTarget, setEmailTarget] = useState<{ allegato: Allegato; blob: Blob } | null>(null);
 
   const { data: allegati = [], isLoading } = useQuery({
     queryKey: ["allegati", preventivoId],
