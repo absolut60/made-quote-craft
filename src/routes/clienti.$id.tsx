@@ -573,7 +573,10 @@ function PreventiviSection({ clienteId, tipo = "preventivo" }: { clienteId: stri
     queryFn: async () => {
       const { data, error } = await supabase
         .from("preventivi")
-        .select("id, numero, data, validita, stato, tipo_doc, totale, cantiere:cantieri(nome)")
+        .select(
+          "id, numero, data, validita, stato, tipo_doc, totale, cantiere:cantieri(nome), blocchi:blocchi_preventivo(righe:righe_preventivo(tipo_riga, quantita, qta_ordinata))",
+        )
+
         .eq("cliente_id", clienteId)
         .eq("tipo", tipo)
         .order("data", { ascending: false })
