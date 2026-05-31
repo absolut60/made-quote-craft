@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -28,15 +28,23 @@ export function ArticoloPicker({
   value,
   onChange,
   placeholder = "Seleziona articolo…",
+  autoOpen = false,
 }: {
   value: string | null;
   onChange: (articoloId: string, articolo?: ArticoloConListini | null) => void;
   placeholder?: string;
+  autoOpen?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [fornitoreFiltro, setFornitoreFiltro] = useState("");
   const [tipologiaFiltro, setTipologiaFiltro] = useState("");
+
+  useEffect(() => {
+    if (autoOpen) setOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const { data: fornitori = [] } = useQuery({
     queryKey: ["fornitori-picker"],

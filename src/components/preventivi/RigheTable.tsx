@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArticoloDettaglioDialog } from "@/components/preventivi/ArticoloDettaglioDialog";
 import {
   DndContext,
@@ -34,8 +34,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
   DropdownMenuSeparator, DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { QuickArticoloSearch, type QuickArticoloSearchHandle } from "@/components/preventivi/QuickArticoloSearch";
-import type { ArticoloConListini } from "@/lib/kit-api";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 import { EditableNumberCell } from "@/components/listini/EditableNumberCell";
 import { ArticoloPicker } from "@/components/kit/ArticoloPicker";
 import {
@@ -60,19 +60,20 @@ export function RigheTable({
   readOnly?: boolean;
 }) {
   const [openArticoloId, setOpenArticoloId] = useState<string | null>(null);
-  const quickRef = useRef<QuickArticoloSearchHandle>(null);
+  const [pendingPickerId, setPendingPickerId] = useState<string | null>(null);
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["preventivo", preventivoId] });
 
-  function focusQuickSearch() {
-    requestAnimationFrame(() => {
-      try {
-        quickRef.current?.focus();
-      } catch {
-        /* noop */
-      }
-    });
-  }
+  // Pulisce il flag dopo che la nuova riga è stata renderizzata col picker aperto.
+  useEffect(() => {
+    if (!pendingPickerId) return;
+    const exists = blocco.righe.some((r) => r.id === pendingPickerId);
+    if (exists) {
+      const t = window.setTimeout(() => setPendingPickerId(null), 600);
+      return () => window.clearTimeout(t);
+    }
+  }, [pendingPickerId, blocco.righe]);
+
 
 
   const calcs = useMemo(() => calcolaBlocco(blocco.righe), [blocco.righe]);
@@ -123,32 +124,28 @@ export function RigheTable({
     });
   }
 
-  async function addArticoloRow(a: ArticoloConListini) {
+  async function addArticoloEmptyAndOpen() {
     const ordine = fractionalOrder(
       blocco.righe.length ? Number(blocco.righe[blocco.righe.length - 1].ordine ?? 0) : null,
       null,
     );
-    const listino = a.listini_vendita?.find((l) => l.fascia === fascia);
-    const acquistoRecente = a.listini_acquisto?.[0];
-    const prezzo = listino?.prezzo == null ? null : Number(listino.prezzo);
-    const costo = acquistoRecente?.costo_netto == null ? null : Number(acquistoRecente.costo_netto);
-    await insertRiga({
-      blocco_id: blocco.id,
-      tipo_riga: "articolo_singolo",
-      ordine,
-      segno: 1,
-      articolo_id: a.id,
-      descrizione: a.descrizione ?? null,
-      um: a.um ?? null,
-      quantita: 1,
-      prezzo_unit: prezzo,
-      costo,
-      vendita: prezzo,
-      peso: a.peso_unit == null ? null : Number(a.peso_unit),
-      sconto_perc: 0,
-    });
-    invalidate();
+    try {
+      const nuova = await insertRiga({
+        blocco_id: blocco.id,
+        tipo_riga: "articolo_singolo",
+        ordine,
+        segno: 1,
+        quantita: 1,
+        sconto_perc: 0,
+      });
+      setPendingPickerId(nuova.id);
+      invalidate();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   }
+
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -206,7 +203,9 @@ export function RigheTable({
                     idx={idx}
                     fascia={fascia}
                     readOnly={readOnly}
+                    autoOpenPicker={r.id === pendingPickerId}
                     onOpenArticolo={(aid) => setOpenArticoloId(aid)}
+
                     calc={calcMap.get(r.id)!}
                     onPatch={(patch) => upd.mutate({ id: r.id, patch })}
                     onDelete={() => del.mutate(r.id)}
@@ -228,21 +227,15 @@ export function RigheTable({
             </tbody>
           </SortableContext>
           <tfoot>
-            {!readOnly && (
-              <tr>
-                <td colSpan={15} className="px-2 pt-2">
-                  <QuickArticoloSearch ref={quickRef} onPick={(a) => addArticoloRow(a)} />
-                </td>
-              </tr>
-            )}
             <tr className="border-t bg-muted/30 text-xs">
               <td colSpan={9} className="px-2 py-2">
                 <AddRowMenu
                   readOnly={readOnly}
-                  onAddArticolo={focusQuickSearch}
+                  onAddArticolo={addArticoloEmptyAndOpen}
                   onPick={(tipo) => addRow(null, tipo)}
                 />
               </td>
+
 
               <td className="px-1 py-2 text-right font-mono font-semibold">€ {calcs.totale.toFixed(2)}</td>
               <td className="px-1 py-2 text-right font-mono text-muted-foreground">€ {calcs.costo.toFixed(2)}</td>
@@ -281,50 +274,66 @@ function AddRowMenu({
   const secondaryTypes = TIPI_RIGA.filter((t) => t !== "articolo_singolo");
   if (readOnly) return null;
   return (
-    <div className="inline-flex items-center">
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
-        className="rounded-r-none border-r-0"
-        onClick={onAddArticolo}
-      >
-        <Plus className="mr-1 h-3 w-3" /> Aggiungi riga
-      </Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="rounded-l-none px-1.5"
-            title="Altre opzioni di riga"
-          >
-            <ChevronDown className="h-3 w-3" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <DropdownMenuLabel className="text-xs">Altri tipi di riga</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {secondaryTypes.map((t) => (
-            <DropdownMenuItem key={t} onSelect={() => onPick(t)}>
-              {TIPI_RIGA_LABEL[t]}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <TooltipProvider delayDuration={200}>
+      <div className="inline-flex items-center">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="rounded-r-none border-r-0"
+              onClick={onAddArticolo}
+            >
+              <Plus className="mr-1 h-3 w-3" /> Aggiungi riga
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">Aggiungi una riga articolo (selettore articolo aperto)</TooltipContent>
+        </Tooltip>
+        <DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="rounded-l-none px-1.5"
+                  aria-label="Scegli tipo di riga"
+                >
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              Scegli il tipo di riga: Articolo (predefinito), Kit, Riga manuale
+            </TooltipContent>
+          </Tooltip>
+          <DropdownMenuContent align="start">
+            <DropdownMenuLabel className="text-xs">Altri tipi di riga</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {secondaryTypes.map((t) => (
+              <DropdownMenuItem key={t} onSelect={() => onPick(t)}>
+                {TIPI_RIGA_LABEL[t]}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </TooltipProvider>
   );
 }
 
 
+
 function RigaRow({
-  row, idx, calc, fascia, readOnly, onOpenArticolo, onPatch, onDelete, onAddAbove, onAddBelow,
+  row, idx, calc, fascia, readOnly, autoOpenPicker = false, onOpenArticolo, onPatch, onDelete, onAddAbove, onAddBelow,
 }: {
   row: Riga & { articolo: { id: string; descrizione: string; um: string | null; peso_unit: number | null } | null };
   idx: number;
   fascia: FasciaListino;
   readOnly: boolean;
+  autoOpenPicker?: boolean;
   onOpenArticolo: (id: string) => void;
   calc: ReturnType<typeof calcolaBlocco>["righe"][number]["calc"];
   onPatch: (patch: Parameters<typeof updateRiga>[1]) => void;
@@ -332,6 +341,7 @@ function RigaRow({
   onAddAbove: (tipo: TipoRiga) => void;
   onAddBelow: (tipo: TipoRiga) => void;
 }) {
+
   const sortable = useSortable({ id: row.id });
   const style = {
     transform: CSS.Transform.toString(sortable.transform),
@@ -395,6 +405,7 @@ function RigaRow({
       <td className="px-1 py-0.5">
         {(tipo === "articolo_singolo" || tipo === "da_kit") ? (
           <ArticoloPicker
+            autoOpen={autoOpenPicker}
             value={row.articolo_id}
             onChange={(articolo_id, articolo) => {
               const listino = articolo?.listini_vendita?.find((l) => l.fascia === fascia);
