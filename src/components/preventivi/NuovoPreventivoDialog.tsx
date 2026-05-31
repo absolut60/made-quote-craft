@@ -102,7 +102,7 @@ export function NuovoPreventivoDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
-        <DialogHeader><DialogTitle>Nuovo preventivo</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Nuovo {labelDoc}</DialogTitle></DialogHeader>
         <div className="grid gap-3">
           <div className="grid gap-1.5">
             <Label>Cliente *</Label>
