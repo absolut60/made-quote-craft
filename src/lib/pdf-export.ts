@@ -437,7 +437,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
   const DISCLAIMER =
     "I prezzi si intendono franco filiale MADE — IVA esclusa. " +
     "La vendita è effettuata a confezioni / bancali / pallet interi. " +
-    "Validità preventivo come indicato in intestazione. " +
+    (prev.tipo === "ordine" ? "" : "Validità preventivo come indicato in intestazione. ") +
     "Salvo errori ed omissioni.";
   doc.setFont("helvetica", "italic"); doc.setFontSize(6.8); doc.setTextColor(...GRIGIO);
   const discLines = doc.splitTextToSize(DISCLAIMER, 78);
@@ -470,7 +470,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
 
 
   drawFooter(doc);
-  const name = fileName(prev, "preventivo");
+  const name = fileName(prev, prev.tipo === "ordine" ? "ordine" : "preventivo");
   return { blob: doc.output("blob") as Blob, fileName: name };
 }
 
@@ -527,7 +527,7 @@ export async function exportPropostaRapidaPdf(prev: PreventivoConDettagli) {
 
   const DISCLAIMER =
     "I prezzi si intendono franco filiale MADE — IVA esclusa. " +
-    "Validità preventivo come indicato in intestazione. " +
+    (prev.tipo === "ordine" ? "" : "Validità preventivo come indicato in intestazione. ") +
     "Salvo errori ed omissioni.";
   doc.setFont("helvetica", "italic"); doc.setFontSize(6.8); doc.setTextColor(...GRIGIO);
   const discLines = doc.splitTextToSize(DISCLAIMER, 78);

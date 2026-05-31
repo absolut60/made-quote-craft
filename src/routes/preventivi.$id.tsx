@@ -307,12 +307,12 @@ function PreventivoEditorPage() {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button size="sm" variant="ghost" className="text-destructive">
-                  <Trash2 className="mr-1 h-4 w-4" /> Elimina preventivo
+                  <Trash2 className="mr-1 h-4 w-4" /> {prev.tipo === "ordine" ? "Elimina ordine" : "Elimina preventivo"}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Eliminare il preventivo?</AlertDialogTitle>
+                  <AlertDialogTitle>{prev.tipo === "ordine" ? "Eliminare l'ordine?" : "Eliminare il preventivo?"}</AlertDialogTitle>
                   <AlertDialogDescription>Tutti i blocchi e le righe verranno eliminati. Irreversibile.</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

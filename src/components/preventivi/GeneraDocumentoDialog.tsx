@@ -20,28 +20,32 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Modalita = "PREVENTIVO" | "PROPOSTA_RAPIDA" | "LISTA_MATERIALI" | "LISTA_FORNITORE";
 
-const MODI: { id: Modalita; label: string; desc: string; icon: typeof FileText; excel: boolean }[] = [
-  {
-    id: "PREVENTIVO", label: "Preventivo",
-    desc: "PDF ufficiale per il cliente: intestazione MADE, dati cantiere, blocchi con materiali, totali e IVA.",
-    icon: FileText, excel: false,
-  },
-  {
-    id: "PROPOSTA_RAPIDA", label: "Proposta rapida",
-    desc: "Versione sintetica: solo Rif., descrizione, prezzo/mq e importo per ogni blocco.",
-    icon: FileBarChart, excel: false,
-  },
-  {
-    id: "LISTA_MATERIALI", label: "Lista materiali",
-    desc: "Elenco materiali con quantità teoriche totali (somma incidenze × quantità) raggruppato per articolo.",
-    icon: Package, excel: true,
-  },
-  {
-    id: "LISTA_FORNITORE", label: "Lista mat. fornitore",
-    desc: "Conferma d'ordine: quantità arrotondate ai minimi di vendita (confezioni/bancali interi), raggruppate per fornitore.",
-    icon: Truck, excel: true,
-  },
-];
+function buildModi(isOrdine: boolean): { id: Modalita; label: string; desc: string; icon: typeof FileText; excel: boolean }[] {
+  return [
+    {
+      id: "PREVENTIVO", label: isOrdine ? "Ordine" : "Preventivo",
+      desc: isOrdine
+        ? "PDF ufficiale per il cliente: intestazione MADE, dati cantiere, blocchi con materiali, totali e IVA."
+        : "PDF ufficiale per il cliente: intestazione MADE, dati cantiere, blocchi con materiali, totali e IVA.",
+      icon: FileText, excel: false,
+    },
+    {
+      id: "PROPOSTA_RAPIDA", label: "Proposta rapida",
+      desc: "Versione sintetica: solo Rif., descrizione, prezzo/mq e importo per ogni blocco.",
+      icon: FileBarChart, excel: false,
+    },
+    {
+      id: "LISTA_MATERIALI", label: "Lista materiali",
+      desc: "Elenco materiali con quantità teoriche totali (somma incidenze × quantità) raggruppato per articolo.",
+      icon: Package, excel: true,
+    },
+    {
+      id: "LISTA_FORNITORE", label: "Lista mat. fornitore",
+      desc: "Conferma d'ordine: quantità arrotondate ai minimi di vendita (confezioni/bancali interi), raggruppate per fornitore.",
+      icon: Truck, excel: true,
+    },
+  ];
+}
 
 const COLONNE_LABEL: { key: keyof ColonneRighePdf; label: string }[] = [
   { key: "um", label: "U.M." },
@@ -61,14 +65,20 @@ export function GeneraDocumentoDialog({
   const [emailOpen, setEmailOpen] = useState(false);
   const [colonne, setColonne] = useState<ColonneRighePdf>(COLONNE_RIGHE_DEFAULT);
 
+  const isOrdine = prev.tipo === "ordine";
+  const docCap = isOrdine ? "Ordine" : "Preventivo";
+  const docLow = isOrdine ? "ordine" : "preventivo";
+  const docDa = isOrdine ? "dall'ordine" : "dal preventivo";
+  const MODI = buildModi(isOrdine);
+
   const clienteEmail = (prev.cliente as (typeof prev.cliente & { email?: string | null }) | null)?.email ?? null;
   const ragSoc = prev.cliente?.ragione_sociale ?? "";
   const cantiereNome = prev.cantiere?.nome ?? "";
   const numero = prev.numero ?? "";
-  const defaultSubject = `Preventivo ${numero}${ragSoc ? ` - ${ragSoc}` : ""} - Sistema MADE`;
+  const defaultSubject = `${docCap} ${numero}${ragSoc ? ` - ${ragSoc}` : ""} - Sistema MADE`;
   const defaultBody =
     `Gentile Cliente,\n\n` +
-    `in allegato trovate il preventivo ${numero}${cantiereNome ? ` relativo a ${cantiereNome}` : ""}.\n` +
+    `in allegato trovate ${isOrdine ? "l'ordine" : "il preventivo"} ${numero}${cantiereNome ? ` relativo a ${cantiereNome}` : ""}.\n` +
     `Restiamo a disposizione per qualsiasi chiarimento.\n\n` +
     `Cordiali saluti,\nSistema MADE`;
 
@@ -132,7 +142,7 @@ export function GeneraDocumentoDialog({
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Genera documento</DialogTitle>
-            <DialogDescription>Scegli la modalità di output dal preventivo {prev.numero ?? ""}.</DialogDescription>
+            <DialogDescription>Scegli la modalità di output {docDa} {prev.numero ?? ""}.</DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
