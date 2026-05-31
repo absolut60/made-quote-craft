@@ -226,7 +226,7 @@ function AllegatiList({
                       <Button size="icon" variant="ghost" onClick={() => handlePrint(a)} title="Stampa" className="hidden sm:inline-flex">
                         <Printer className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" onClick={handleEmail} title="Invia per email" className="hidden sm:inline-flex">
+                      <Button size="icon" variant="ghost" onClick={() => handleEmail(a)} title="Invia per email" className="hidden sm:inline-flex">
                         <Mail className="h-4 w-4" />
                       </Button>
                       <AlertDialog>
@@ -269,7 +269,20 @@ function AllegatiList({
         onOpenChange={(v) => { if (!v) setPreview(null); }}
         onDownload={handleDownload}
         onPrint={handlePrint}
-        onEmail={handleEmail}
+        onEmail={(a) => handleEmail(a)}
+      />
+
+      <InviaEmailDialog
+        open={emailTarget !== null}
+        onOpenChange={(v) => { if (!v) setEmailTarget(null); }}
+        blob={emailTarget?.blob ?? null}
+        fileName={emailTarget?.allegato.nome_file ?? ""}
+        mimeType={emailTarget?.allegato.mime_type ?? undefined}
+        defaultTo={emailContext?.clienteEmail ?? ""}
+        defaultSubject={emailSubject}
+        defaultBody={emailBody}
+        preventivoId={preventivoId}
+        title="Invia allegato per email"
       />
     </div>
   );
@@ -285,7 +298,7 @@ function PreviewDialog({
   onOpenChange: (v: boolean) => void;
   onDownload: (a: Allegato) => void;
   onPrint: (a: Allegato) => void;
-  onEmail: () => void;
+  onEmail: (a: Allegato) => void;
 }) {
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
