@@ -668,7 +668,15 @@ function PreventivoEditorPage() {
           </TabsContent>
 
           <TabsContent value="allegati" className="pt-3">
-            <AllegatiSection preventivoId={id} />
+            <AllegatiSection
+              preventivoId={id}
+              emailContext={{
+                tipo: prev.tipo === "ordine" ? "ordine" : "preventivo",
+                numero: prev.numero,
+                ragSoc: cliente?.ragione_sociale ?? null,
+                clienteEmail: (cliente as (typeof cliente & { email?: string | null }) | null)?.email ?? null,
+              }}
+            />
           </TabsContent>
         </Tabs>
       </div>
