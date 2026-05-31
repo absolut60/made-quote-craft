@@ -99,7 +99,11 @@ function PreventivoEditorPage() {
 
   const delPrev = useMutation({
     mutationFn: () => deletePreventivo(id),
-    onSuccess: () => { toast.success("Preventivo eliminato"); navigate({ to: "/preventivi" }); },
+    onSuccess: () => {
+      const isOrd = prev?.tipo === "ordine";
+      toast.success(isOrd ? "Ordine eliminato" : "Preventivo eliminato");
+      navigate({ to: isOrd ? "/ordini" : "/preventivi" });
+    },
     onError: (e: unknown) => toast.error((e as Error).message),
   });
 
