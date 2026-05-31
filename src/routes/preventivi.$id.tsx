@@ -678,6 +678,13 @@ function PreventivoEditorPage() {
         open={clienteDialogOpen}
         onOpenChange={setClienteDialogOpen}
       />
+      {prev.tipo === "preventivo" && (
+        <TrasformaInOrdineDialog
+          open={trasformaOpen}
+          onOpenChange={setTrasformaOpen}
+          prev={prev}
+        />
+      )}
     </AppShell>
   );
 }
