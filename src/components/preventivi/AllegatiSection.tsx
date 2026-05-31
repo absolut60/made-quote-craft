@@ -360,7 +360,7 @@ function PreviewDialog({
           )}
         </div>
         <DialogFooter className="flex flex-wrap gap-2 sm:justify-end">
-          <Button variant="outline" onClick={onEmail}>
+          <Button variant="outline" onClick={() => allegato && onEmail(allegato)} disabled={!allegato}>
             <Mail className="mr-1 h-4 w-4" /> Invia
           </Button>
           <Button variant="outline" onClick={() => allegato && onPrint(allegato)} disabled={!allegato}>
