@@ -312,6 +312,46 @@ function PreventivoEditorPage() {
           </div>
         </div>
 
+        {/* Link incrociati preventivo ↔ ordini */}
+        {(ordiniCollegati.length > 0 || preventivoOrigine) && (
+          <Card className="border-[#0d1f3c]/15 bg-[#f4f7fb]">
+            <CardContent className="flex flex-wrap items-center gap-x-4 gap-y-1 p-3 text-xs">
+              {preventivoOrigine && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-muted-foreground">Generato da preventivo:</span>
+                  <Link
+                    to="/preventivi/$id"
+                    params={{ id: preventivoOrigine.id }}
+                    className="font-mono font-semibold text-[#2b5ea7] hover:underline"
+                  >
+                    {preventivoOrigine.numero ?? "—"}
+                  </Link>
+                </div>
+              )}
+              {ordiniCollegati.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-muted-foreground">
+                    Ordini collegati ({ordiniCollegati.length}):
+                  </span>
+                  {ordiniCollegati.map((o) => (
+                    <Link
+                      key={o.id}
+                      to="/preventivi/$id"
+                      params={{ id: o.id }}
+                      className="rounded bg-white px-1.5 py-0.5 font-mono text-[#2b5ea7] hover:underline"
+                    >
+                      {o.numero ?? "—"}{" "}
+                      <span className="text-[10px] text-muted-foreground">
+                        ({STATI_LABEL[o.stato]})
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs defaultValue="preventivo" className="w-full">
           <TabsList>
             <TabsTrigger value="preventivo">Preventivo</TabsTrigger>
