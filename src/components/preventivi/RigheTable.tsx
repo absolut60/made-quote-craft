@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ArticoloDettaglioDialog } from "@/components/preventivi/ArticoloDettaglioDialog";
 import {
   DndContext,
@@ -34,7 +34,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
   DropdownMenuSeparator, DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { QuickArticoloSearch } from "@/components/preventivi/QuickArticoloSearch";
+import { QuickArticoloSearch, type QuickArticoloSearchHandle } from "@/components/preventivi/QuickArticoloSearch";
 import type { ArticoloConListini } from "@/lib/kit-api";
 import { EditableNumberCell } from "@/components/listini/EditableNumberCell";
 import { ArticoloPicker } from "@/components/kit/ArticoloPicker";
@@ -60,8 +60,20 @@ export function RigheTable({
   readOnly?: boolean;
 }) {
   const [openArticoloId, setOpenArticoloId] = useState<string | null>(null);
+  const quickRef = useRef<QuickArticoloSearchHandle>(null);
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["preventivo", preventivoId] });
+
+  function focusQuickSearch() {
+    requestAnimationFrame(() => {
+      try {
+        quickRef.current?.focus();
+      } catch {
+        /* noop */
+      }
+    });
+  }
+
 
   const calcs = useMemo(() => calcolaBlocco(blocco.righe), [blocco.righe]);
   const calcMap = useMemo(() => new Map(calcs.righe.map((r) => [r.id, r.calc])), [calcs]);
@@ -219,17 +231,19 @@ export function RigheTable({
             {!readOnly && (
               <tr>
                 <td colSpan={15} className="px-2 pt-2">
-                  <QuickArticoloSearch onPick={(a) => addArticoloRow(a)} />
+                  <QuickArticoloSearch ref={quickRef} onPick={(a) => addArticoloRow(a)} />
                 </td>
               </tr>
             )}
             <tr className="border-t bg-muted/30 text-xs">
               <td colSpan={9} className="px-2 py-2">
                 <AddRowMenu
-                  onAddArticolo={() => addRow(null, "articolo_singolo")}
+                  readOnly={readOnly}
+                  onAddArticolo={focusQuickSearch}
                   onPick={(tipo) => addRow(null, tipo)}
                 />
               </td>
+
               <td className="px-1 py-2 text-right font-mono font-semibold">€ {calcs.totale.toFixed(2)}</td>
               <td className="px-1 py-2 text-right font-mono text-muted-foreground">€ {calcs.costo.toFixed(2)}</td>
               <td className="px-1 py-2 text-right font-mono text-muted-foreground">
@@ -258,14 +272,18 @@ export function RigheTable({
 function AddRowMenu({
   onAddArticolo,
   onPick,
+  readOnly = false,
 }: {
   onAddArticolo: () => void;
   onPick: (tipo: TipoRiga) => void;
+  readOnly?: boolean;
 }) {
   const secondaryTypes = TIPI_RIGA.filter((t) => t !== "articolo_singolo");
+  if (readOnly) return null;
   return (
     <div className="inline-flex items-center">
       <Button
+        type="button"
         size="sm"
         variant="outline"
         className="rounded-r-none border-r-0"
@@ -276,6 +294,7 @@ function AddRowMenu({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
+            type="button"
             size="sm"
             variant="outline"
             className="rounded-l-none px-1.5"
@@ -288,7 +307,7 @@ function AddRowMenu({
           <DropdownMenuLabel className="text-xs">Altri tipi di riga</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {secondaryTypes.map((t) => (
-            <DropdownMenuItem key={t} onClick={() => onPick(t)}>
+            <DropdownMenuItem key={t} onSelect={() => onPick(t)}>
               {TIPI_RIGA_LABEL[t]}
             </DropdownMenuItem>
           ))}
@@ -297,6 +316,7 @@ function AddRowMenu({
     </div>
   );
 }
+
 
 function RigaRow({
   row, idx, calc, fascia, readOnly, onOpenArticolo, onPatch, onDelete, onAddAbove, onAddBelow,
