@@ -79,6 +79,47 @@ export type Database = {
           },
         ]
       }
+      allegati_kit: {
+        Row: {
+          categoria: string
+          created_at: string
+          dimensione_bytes: number | null
+          id: string
+          kit_id: string
+          mime_type: string | null
+          nome_file: string
+          storage_path: string
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          dimensione_bytes?: number | null
+          id?: string
+          kit_id: string
+          mime_type?: string | null
+          nome_file: string
+          storage_path: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          dimensione_bytes?: number | null
+          id?: string
+          kit_id?: string
+          mime_type?: string | null
+          nome_file?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "allegati_kit_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "kit"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       allegati_preventivo: {
         Row: {
           categoria: Database["public"]["Enums"]["categoria_allegato"]
