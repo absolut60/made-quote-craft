@@ -35,7 +35,7 @@ import {
   DropdownMenuSeparator, DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import type { ArticoloConListini } from "@/lib/kit-api";
+
 import { EditableNumberCell } from "@/components/listini/EditableNumberCell";
 import { ArticoloPicker } from "@/components/kit/ArticoloPicker";
 import {
@@ -145,8 +145,6 @@ export function RigheTable({
     }
   }
 
-  // Mantenuto per compatibilità futura — non usato qui.
-  void ({} as ArticoloConListini);
 
 
   const sensors = useSensors(
