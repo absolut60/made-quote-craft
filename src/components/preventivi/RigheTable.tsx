@@ -329,12 +329,13 @@ function AddRowMenu({
 
 
 function RigaRow({
-  row, idx, calc, fascia, readOnly, onOpenArticolo, onPatch, onDelete, onAddAbove, onAddBelow,
+  row, idx, calc, fascia, readOnly, autoOpenPicker = false, onOpenArticolo, onPatch, onDelete, onAddAbove, onAddBelow,
 }: {
   row: Riga & { articolo: { id: string; descrizione: string; um: string | null; peso_unit: number | null } | null };
   idx: number;
   fascia: FasciaListino;
   readOnly: boolean;
+  autoOpenPicker?: boolean;
   onOpenArticolo: (id: string) => void;
   calc: ReturnType<typeof calcolaBlocco>["righe"][number]["calc"];
   onPatch: (patch: Parameters<typeof updateRiga>[1]) => void;
@@ -342,6 +343,7 @@ function RigaRow({
   onAddAbove: (tipo: TipoRiga) => void;
   onAddBelow: (tipo: TipoRiga) => void;
 }) {
+
   const sortable = useSortable({ id: row.id });
   const style = {
     transform: CSS.Transform.toString(sortable.transform),
