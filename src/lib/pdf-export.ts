@@ -527,7 +527,7 @@ export async function exportPropostaRapidaPdf(prev: PreventivoConDettagli) {
 
   const DISCLAIMER =
     "I prezzi si intendono franco filiale MADE — IVA esclusa. " +
-    "Validità preventivo come indicato in intestazione. " +
+    (prev.tipo === "ordine" ? "" : "Validità preventivo come indicato in intestazione. ") +
     "Salvo errori ed omissioni.";
   doc.setFont("helvetica", "italic"); doc.setFontSize(6.8); doc.setTextColor(...GRIGIO);
   const discLines = doc.splitTextToSize(DISCLAIMER, 78);
