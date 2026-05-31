@@ -544,10 +544,12 @@ export interface RigaCalc {
 
 /**
  * Calcoli su una riga "tipo Excel".
- * - importo = quantita × prezzo_unit × (1 - sconto/100) × segno
- * - costo / vendita / peso usano i valori già salvati sulla riga (snapshot).
- *   In assenza di sconto, "vendita" coincide con importo lordo (senza sconto).
- *   Margine = (vendita - costo) / vendita.
+ * - importo = quantita × prezzo_unit × (1 - sconto/100) × segno (vendita REALE, scontata)
+ * - vendita = snapshot lordo (prezzo × qta, senza sconto) — solo informativo
+ * - margine % = (importo_scontato - costo) / importo_scontato × 100
+ *   Calcolato SULLA VENDITA EFFETTIVA (scontata): se si vende sotto costo il
+ *   margine è negativo. Lo sconto a piede è già propagato in sconto_perc, quindi
+ *   è incluso automaticamente.
  */
 export function calcolaRiga(r: Partial<Riga>): RigaCalc {
   const tipo = r.tipo_riga ?? "manuale";
@@ -560,9 +562,9 @@ export function calcolaRiga(r: Partial<Riga>): RigaCalc {
   const sc = n(r.sconto_perc);
   const importo = round2(q * p * (1 - sc / 100) * segno);
   const costo = round2(n(r.costo) || 0);
-  // "vendita" lorda dalla riga (snapshot listino × quantità × segno).
   const venditaSnapshot = r.vendita == null ? round2(q * p * segno) : round2(n(r.vendita));
-  const margine = venditaSnapshot !== 0 ? ((venditaSnapshot - costo) / venditaSnapshot) * 100 : 0;
+  // Margine sulla vendita REALE (scontata), non sul prezzo pieno.
+  const margine = importo !== 0 ? ((importo - costo) / importo) * 100 : 0;
   return {
     importo,
     costo,
