@@ -19,6 +19,9 @@ import {
 } from "@/lib/preventivi-api";
 import { searchClienti } from "@/lib/preventivi-api";
 import { NuovoPreventivoDialog } from "@/components/preventivi/NuovoPreventivoDialog";
+import { EvasioneBadge } from "@/components/preventivi/EvasioneBadge";
+import { computeEvasione } from "@/lib/evasione";
+
 
 const ANY = "__any";
 
