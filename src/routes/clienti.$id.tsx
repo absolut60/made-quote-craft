@@ -69,6 +69,17 @@ export const Route = createFileRoute("/clienti/$id")({
 
 const NONE = "__none";
 
+async function fetchDocumentiCount(clienteId: string, tipo: "preventivo" | "ordine"): Promise<number> {
+  const { count, error } = await supabase
+    .from("preventivi")
+    .select("id", { count: "exact", head: true })
+    .eq("cliente_id", clienteId)
+    .eq("tipo", tipo);
+  if (error) throw error;
+  return count ?? 0;
+}
+
+
 function ClienteDetailPage() {
   const { id } = Route.useParams();
   const { tab: tabParam } = Route.useSearch();
