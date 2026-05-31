@@ -21,9 +21,7 @@ interface RigaMini {
   tipo_riga: string;
   quantita: number | null;
   qta_ordinata: number | null;
-  prezzo_unit: number | null;
-  sconto_perc: number | null;
-  segno: number | null;
+  importo: number | null;
 }
 interface BloccoMini { righe: RigaMini[] | null }
 
@@ -55,27 +53,42 @@ interface DashStats {
 }
 
 const RIGHE_SELECT =
-  "blocchi:blocchi_preventivo(righe:righe_preventivo(tipo_riga,quantita,qta_ordinata,prezzo_unit,sconto_perc,segno))";
+  "blocchi:blocchi_preventivo(righe:righe_preventivo(tipo_riga,quantita,qta_ordinata,importo))";
 
 function flatten(blocchi: BloccoMini[] | null | undefined): RigaMini[] {
   return (blocchi ?? []).flatMap((b) => b.righe ?? []);
 }
 
-/** Valore residuo non ordinato di un preventivo (imponibile). */
-function residuoPreventivo(righe: RigaMini[]): number {
-  let tot = 0;
+function round2(n: number) {
+  return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+
+/** Valore residuo non ordinato di un preventivo, coerente col totale documento mostrato. */
+function residuoPreventivo(righe: RigaMini[], totaleDocumento: number | null | undefined): number {
+  const evasione = computeEvasione(righe);
+  const totale = Number(totaleDocumento ?? 0);
+
+  if (evasione === "evaso") return 0;
+  if (evasione === "aperto") return totale;
+
+  let imponibileTotaleRighe = 0;
+  let imponibileResiduoRighe = 0;
   for (const r of righe) {
     if (r.tipo_riga !== "articolo_singolo" && r.tipo_riga !== "da_kit" && r.tipo_riga !== "manuale") continue;
     const q = Number(r.quantita ?? 0);
+    if (q <= 0) continue;
     const o = Number(r.qta_ordinata ?? 0);
-    const resQ = Math.max(0, q - o);
-    if (resQ <= 0) continue;
-    const pu = Number(r.prezzo_unit ?? 0);
-    const sc = Number(r.sconto_perc ?? 0);
-    const seg = Number(r.segno ?? 1);
-    tot += resQ * pu * (1 - sc / 100) * seg;
+    const resQ = Math.max(0, Math.min(q, q - o));
+    const importoRiga = Number(r.importo ?? 0);
+
+    imponibileTotaleRighe += importoRiga;
+    if (resQ > 0) {
+      imponibileResiduoRighe += importoRiga * (resQ / q);
+    }
   }
-  return tot;
+
+  if (Math.abs(imponibileTotaleRighe) <= 0.0001) return totale;
+  return Math.max(0, round2(totale * (imponibileResiduoRighe / imponibileTotaleRighe)));
 }
 
 async function fetchDashboardStats(): Promise<DashStats> {
@@ -94,7 +107,7 @@ async function fetchDashboardStats(): Promise<DashStats> {
     supabase.from("articoli").select("id", { count: "exact", head: true }).eq("stato", "potenziale"),
     supabase
       .from("preventivi")
-      .select(`id, data, ${RIGHE_SELECT}`)
+      .select(`id, data, totale, ${RIGHE_SELECT}`)
       .eq("tipo", "preventivo"),
     supabase.from("preventivi").select("totale, data").eq("tipo", "ordine").gte("data", inizioMese),
     supabase
@@ -121,7 +134,7 @@ async function fetchDashboardStats(): Promise<DashStats> {
     else if (stato === "parziale") prevParziali++;
     else prevEvasi++;
     if (p.data >= inizioMese) {
-      valoreOfferteMese += residuoPreventivo(righe);
+      valoreOfferteMese += residuoPreventivo(righe, p.totale);
     }
   }
 
