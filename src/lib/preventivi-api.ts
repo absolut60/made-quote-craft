@@ -191,32 +191,41 @@ export async function fetchPreventivo(id: string): Promise<PreventivoConDettagli
   return p;
 }
 
-export async function anteprimaProssimoNumero(anno?: number): Promise<string> {
+export async function anteprimaProssimoNumero(
+  anno?: number,
+  tipo: TipoDocumento = "preventivo",
+): Promise<string> {
   const a = anno ?? new Date().getFullYear();
-  const { data, error } = await supabase.rpc("anteprima_numero_preventivo", { p_anno: a });
+  const rpcName = tipo === "ordine" ? "anteprima_numero_ordine" : "anteprima_numero_preventivo";
+  const prefix = tipo === "ordine" ? "ORD" : "PRV";
+  const { data, error } = await supabase.rpc(rpcName, { p_anno: a });
   if (error) throw error;
-  return `PRV-${data}/${String(a).slice(-2)}`;
+  return `${prefix}-${data}/${String(a).slice(-2)}`;
 }
 
-async function assegnaProssimoNumero(anno: number): Promise<string> {
-  const { data, error } = await supabase.rpc("prossimo_numero_preventivo", { p_anno: anno });
+async function assegnaProssimoNumero(anno: number, tipo: TipoDocumento = "preventivo"): Promise<string> {
+  const rpcName = tipo === "ordine" ? "prossimo_numero_ordine" : "prossimo_numero_preventivo";
+  const prefix = tipo === "ordine" ? "ORD" : "PRV";
+  const { data, error } = await supabase.rpc(rpcName, { p_anno: anno });
   if (error) throw error;
-  return `PRV-${data}/${String(anno).slice(-2)}`;
+  return `${prefix}-${data}/${String(anno).slice(-2)}`;
 }
 
 /**
- * Crea un preventivo gestendo il conflitto di unicità sul numero:
+ * Crea un documento (preventivo o ordine) gestendo il conflitto di unicità sul numero:
  * se il numero è già impegnato da un altro utente, riassegna il successivo
  * libero in modo atomico e riprova (fino a 5 tentativi).
  * Ritorna l'eventuale numero riassegnato per consentire all'UI di avvisare.
+ * Il `tipo` del documento ('preventivo' | 'ordine') determina la serie di numerazione.
  */
 export async function createPreventivo(
   row: PreventivoInsert,
 ): Promise<{ preventivo: Preventivo; numeroRiassegnato: string | null }> {
   const anno = new Date().getFullYear();
+  const tipo: TipoDocumento = (row.tipo as TipoDocumento) ?? "preventivo";
   let numero = (row.numero ?? "").trim();
   if (!numero) {
-    numero = await assegnaProssimoNumero(anno);
+    numero = await assegnaProssimoNumero(anno, tipo);
   }
   let reassignedTo: string | null = null;
 
