@@ -20,6 +20,7 @@ interface Payload {
   corpo: string;
   pdf_base64: string;
   nome_file: string;
+  mime_type?: string;
 }
 
 function isValidEmail(e: string): boolean {
@@ -183,7 +184,7 @@ Deno.serve(async (req) => {
             filename: nome_file,
             content: pdfBytes,
             encoding: "binary",
-            contentType: "application/pdf",
+            contentType: payload.mime_type || "application/pdf",
           },
         ],
       });

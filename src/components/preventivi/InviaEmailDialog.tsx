@@ -30,19 +30,25 @@ export function InviaEmailDialog({
   onOpenChange,
   blob,
   fileName,
+  mimeType,
   defaultTo,
   defaultSubject,
   defaultBody,
   preventivoId,
+  title,
+  description,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   blob: Blob | null;
   fileName: string;
+  mimeType?: string;
   defaultTo?: string | null;
   defaultSubject?: string;
   defaultBody?: string;
   preventivoId?: string;
+  title?: string;
+  description?: string;
 }) {
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
@@ -86,6 +92,7 @@ export function InviaEmailDialog({
           corpo: body,
           pdf_base64,
           nome_file: fileName,
+          mime_type: mimeType ?? blob.type ?? "application/pdf",
         },
       });
       if (error) throw error;
@@ -106,9 +113,9 @@ export function InviaEmailDialog({
     <Dialog open={open} onOpenChange={(v) => !sending && onOpenChange(v)}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Invia preventivo per email</DialogTitle>
+          <DialogTitle>{title ?? "Invia preventivo per email"}</DialogTitle>
           <DialogDescription>
-            Il PDF <span className="font-mono">{fileName}</span> sarà allegato al messaggio.
+            {description ?? <>Il PDF <span className="font-mono">{fileName}</span> sarà allegato al messaggio.</>}
           </DialogDescription>
         </DialogHeader>
 

@@ -330,7 +330,13 @@ function ArticoloDetailPage() {
             </TabsContent>
 
             <TabsContent value="allegati" className="mt-4">
-              <AllegatiArticoloSection articoloId={id} />
+              <AllegatiArticoloSection
+                articoloId={id}
+                emailContext={{
+                  codGamma: articolo?.cod_gamma ?? null,
+                  descrizione: articolo?.descrizione ?? null,
+                }}
+              />
             </TabsContent>
           </Tabs>
         </div>

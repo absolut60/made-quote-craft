@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Upload, Download, Trash2, FileText, FileImage, File as FileIcon,
-  Loader2, Eye, Printer,
+  Loader2, Eye, Printer, Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -25,6 +25,12 @@ import {
   deleteAllegatoArticolo, fetchAllegatiArticolo, formatBytes,
   getSignedUrlArticolo, uploadAllegatoArticolo,
 } from "@/lib/allegati-articolo-api";
+import { InviaEmailDialog } from "@/components/preventivi/InviaEmailDialog";
+
+export type ArticoloEmailContext = {
+  codGamma?: string | null;
+  descrizione?: string | null;
+};
 
 function iconFor(mime: string | null) {
   if (!mime) return FileIcon;
@@ -66,10 +72,17 @@ async function printAllegato(a: AllegatoArticolo) {
   w.addEventListener("load", () => { try { w.print(); } catch { /* ignore */ } });
 }
 
-export function AllegatiArticoloSection({ articoloId }: { articoloId: string }) {
+export function AllegatiArticoloSection({
+  articoloId,
+  emailContext,
+}: {
+  articoloId: string;
+  emailContext?: ArticoloEmailContext;
+}) {
   const qc = useQueryClient();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [preview, setPreview] = useState<AllegatoArticolo | null>(null);
+  const [emailTarget, setEmailTarget] = useState<{ allegato: AllegatoArticolo; blob: Blob } | null>(null);
 
   const { data: allegati = [], isLoading } = useQuery({
     queryKey: ["allegati_articolo", articoloId],
@@ -100,6 +113,22 @@ export function AllegatiArticoloSection({ articoloId }: { articoloId: string }) 
   async function handlePrint(a: AllegatoArticolo) {
     try { await printAllegato(a); } catch (e) { toast.error((e as Error).message); }
   }
+  async function handleEmail(a: AllegatoArticolo) {
+    try {
+      const { data, error } = await supabase.storage.from(BUCKET_ARTICOLO).download(a.storage_path);
+      if (error) throw error;
+      setEmailTarget({ allegato: a, blob: data });
+    } catch (e) {
+      toast.error("Impossibile caricare il file: " + (e as Error).message);
+    }
+  }
+
+  const emailSubject = emailTarget
+    ? `${CATEGORIE_ARTICOLO_LABEL[emailTarget.allegato.categoria]} - ${emailContext?.codGamma ?? ""}${emailContext?.descrizione ? ` ${emailContext.descrizione}` : ""} - Sistema MADE`.replace(/\s+/g, " ").trim()
+    : "";
+  const emailBody = emailTarget
+    ? `Buongiorno,\n\nin allegato trovate il documento "${emailTarget.allegato.nome_file}"${emailContext?.codGamma || emailContext?.descrizione ? ` relativo all'articolo ${emailContext?.codGamma ?? ""}${emailContext?.descrizione ? ` — ${emailContext.descrizione}` : ""}` : ""}.\nRestiamo a disposizione per qualsiasi chiarimento.\n\nCordiali saluti,\nSistema MADE`
+    : "";
 
   return (
     <div className="space-y-3 rounded-lg border bg-card p-4 md:p-6">
@@ -147,6 +176,9 @@ export function AllegatiArticoloSection({ articoloId }: { articoloId: string }) 
                       <Button size="icon" variant="ghost" onClick={() => handlePrint(a)} title="Stampa" className="hidden sm:inline-flex">
                         <Printer className="h-4 w-4" />
                       </Button>
+                      <Button size="icon" variant="ghost" onClick={() => handleEmail(a)} title="Invia per email" className="hidden sm:inline-flex">
+                        <Mail className="h-4 w-4" />
+                      </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button size="icon" variant="ghost" className="text-destructive" title="Elimina">
@@ -187,6 +219,18 @@ export function AllegatiArticoloSection({ articoloId }: { articoloId: string }) 
         onOpenChange={(v) => { if (!v) setPreview(null); }}
         onDownload={handleDownload}
         onPrint={handlePrint}
+      />
+
+      <InviaEmailDialog
+        open={emailTarget !== null}
+        onOpenChange={(v) => { if (!v) setEmailTarget(null); }}
+        blob={emailTarget?.blob ?? null}
+        fileName={emailTarget?.allegato.nome_file ?? ""}
+        mimeType={emailTarget?.allegato.mime_type ?? undefined}
+        defaultTo=""
+        defaultSubject={emailSubject}
+        defaultBody={emailBody}
+        title="Invia allegato per email"
       />
     </div>
   );

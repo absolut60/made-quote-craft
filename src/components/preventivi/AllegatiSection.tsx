@@ -24,6 +24,14 @@ import {
   BUCKET, CATEGORIE, CATEGORIE_LABEL, type Allegato, type CategoriaAllegato,
   deleteAllegato, fetchAllegati, formatBytes, getSignedUrl, uploadAllegato,
 } from "@/lib/allegati-api";
+import { InviaEmailDialog } from "@/components/preventivi/InviaEmailDialog";
+
+export type AllegatiEmailContext = {
+  tipo?: "preventivo" | "ordine";
+  numero?: string | null;
+  ragSoc?: string | null;
+  clienteEmail?: string | null;
+};
 
 function iconFor(mime: string | null) {
   if (!mime) return FileIcon;
@@ -100,17 +108,30 @@ export function AllegatiButton({ preventivoId }: { preventivoId: string }) {
 }
 
 // Retro-compat: vecchio nome — render della sola lista (per usi inline)
-export function AllegatiSection({ preventivoId }: { preventivoId: string }) {
-  return <AllegatiList preventivoId={preventivoId} />;
+export function AllegatiSection({
+  preventivoId,
+  emailContext,
+}: {
+  preventivoId: string;
+  emailContext?: AllegatiEmailContext;
+}) {
+  return <AllegatiList preventivoId={preventivoId} emailContext={emailContext} />;
 }
 
 // =========================================================================
 // Lista allegati raggruppata + upload + azioni
 // =========================================================================
-function AllegatiList({ preventivoId }: { preventivoId: string }) {
+function AllegatiList({
+  preventivoId,
+  emailContext,
+}: {
+  preventivoId: string;
+  emailContext?: AllegatiEmailContext;
+}) {
   const qc = useQueryClient();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [preview, setPreview] = useState<Allegato | null>(null);
+  const [emailTarget, setEmailTarget] = useState<{ allegato: Allegato; blob: Blob } | null>(null);
 
   const { data: allegati = [], isLoading } = useQuery({
     queryKey: ["allegati", preventivoId],
@@ -141,9 +162,23 @@ function AllegatiList({ preventivoId }: { preventivoId: string }) {
   async function handlePrint(a: Allegato) {
     try { await printAllegato(a); } catch (e) { toast.error((e as Error).message); }
   }
-  function handleEmail() {
-    toast.info("Invio email disponibile a breve");
+  async function handleEmail(a: Allegato) {
+    try {
+      const { data, error } = await supabase.storage.from(BUCKET).download(a.storage_path);
+      if (error) throw error;
+      setEmailTarget({ allegato: a, blob: data });
+    } catch (e) {
+      toast.error("Impossibile caricare il file: " + (e as Error).message);
+    }
   }
+
+  const docCap = emailContext?.tipo === "ordine" ? "Ordine" : "Preventivo";
+  const emailSubject = emailTarget
+    ? `${docCap}${emailContext?.numero ? ` ${emailContext.numero}` : ""}${emailContext?.ragSoc ? ` - ${emailContext.ragSoc}` : ""} - ${emailTarget.allegato.nome_file} - Sistema MADE`
+    : "";
+  const emailBody = emailTarget
+    ? `Gentile Cliente,\n\nin allegato trovate il documento "${emailTarget.allegato.nome_file}"${emailContext?.numero ? ` relativo a ${docCap.toLowerCase()} ${emailContext.numero}` : ""}.\nRestiamo a disposizione per qualsiasi chiarimento.\n\nCordiali saluti,\nSistema MADE`
+    : "";
 
   return (
     <div className="space-y-3">
@@ -191,7 +226,7 @@ function AllegatiList({ preventivoId }: { preventivoId: string }) {
                       <Button size="icon" variant="ghost" onClick={() => handlePrint(a)} title="Stampa" className="hidden sm:inline-flex">
                         <Printer className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" onClick={handleEmail} title="Invia per email" className="hidden sm:inline-flex">
+                      <Button size="icon" variant="ghost" onClick={() => handleEmail(a)} title="Invia per email" className="hidden sm:inline-flex">
                         <Mail className="h-4 w-4" />
                       </Button>
                       <AlertDialog>
@@ -234,7 +269,20 @@ function AllegatiList({ preventivoId }: { preventivoId: string }) {
         onOpenChange={(v) => { if (!v) setPreview(null); }}
         onDownload={handleDownload}
         onPrint={handlePrint}
-        onEmail={handleEmail}
+        onEmail={(a) => handleEmail(a)}
+      />
+
+      <InviaEmailDialog
+        open={emailTarget !== null}
+        onOpenChange={(v) => { if (!v) setEmailTarget(null); }}
+        blob={emailTarget?.blob ?? null}
+        fileName={emailTarget?.allegato.nome_file ?? ""}
+        mimeType={emailTarget?.allegato.mime_type ?? undefined}
+        defaultTo={emailContext?.clienteEmail ?? ""}
+        defaultSubject={emailSubject}
+        defaultBody={emailBody}
+        preventivoId={preventivoId}
+        title="Invia allegato per email"
       />
     </div>
   );
@@ -250,7 +298,7 @@ function PreviewDialog({
   onOpenChange: (v: boolean) => void;
   onDownload: (a: Allegato) => void;
   onPrint: (a: Allegato) => void;
-  onEmail: () => void;
+  onEmail: (a: Allegato) => void;
 }) {
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -312,7 +360,7 @@ function PreviewDialog({
           )}
         </div>
         <DialogFooter className="flex flex-wrap gap-2 sm:justify-end">
-          <Button variant="outline" onClick={onEmail}>
+          <Button variant="outline" onClick={() => allegato && onEmail(allegato)} disabled={!allegato}>
             <Mail className="mr-1 h-4 w-4" /> Invia
           </Button>
           <Button variant="outline" onClick={() => allegato && onPrint(allegato)} disabled={!allegato}>
