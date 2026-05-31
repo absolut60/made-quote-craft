@@ -123,11 +123,10 @@ export function AllegatiArticoloSection({
     }
   }
 
-  const emailSubject = emailTarget
-    ? `${CATEGORIE_ARTICOLO_LABEL[emailTarget.allegato.categoria]} - ${emailContext?.codGamma ?? ""}${emailContext?.descrizione ? ` ${emailContext.descrizione}` : ""} - Sistema MADE`.replace(/\s+/g, " ").trim()
-    : "";
+  const catLabelArt = emailTarget ? CATEGORIE_ARTICOLO_LABEL[emailTarget.allegato.categoria] : "";
+  const emailSubject = emailTarget ? `${catLabelArt} - Sistema MADE` : "";
   const emailBody = emailTarget
-    ? `Buongiorno,\n\nin allegato trovate il documento "${emailTarget.allegato.nome_file}"${emailContext?.codGamma || emailContext?.descrizione ? ` relativo all'articolo ${emailContext?.codGamma ?? ""}${emailContext?.descrizione ? ` — ${emailContext.descrizione}` : ""}` : ""}.\nRestiamo a disposizione per qualsiasi chiarimento.\n\nCordiali saluti,\nSistema MADE`
+    ? `Buongiorno,\n\nin allegato trovate il documento (${catLabelArt.toLowerCase()}).\nRestiamo a disposizione per qualsiasi chiarimento.\n\nCordiali saluti,\nSistema MADE`
     : "";
 
   return (

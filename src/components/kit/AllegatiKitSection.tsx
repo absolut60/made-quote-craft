@@ -123,12 +123,10 @@ export function AllegatiKitSection({
     }
   }
 
-  const kitNome = emailContext?.nome ?? "";
-  const emailSubject = emailTarget
-    ? `${CATEGORIE_KIT_LABEL[emailTarget.allegato.categoria]} - ${kitNome} - Sistema MADE`.replace(/\s+/g, " ").trim()
-    : "";
+  const catLabelKit = emailTarget ? CATEGORIE_KIT_LABEL[emailTarget.allegato.categoria] : "";
+  const emailSubject = emailTarget ? `${catLabelKit} - Sistema MADE` : "";
   const emailBody = emailTarget
-    ? `Buongiorno,\n\nin allegato trovate il documento "${emailTarget.allegato.nome_file}"${kitNome ? ` relativo alla lavorazione/kit "${kitNome}"` : ""}.\nRestiamo a disposizione per qualsiasi chiarimento.\n\nCordiali saluti,\nSistema MADE`
+    ? `Buongiorno,\n\nin allegato trovate il documento (${catLabelKit.toLowerCase()}).\nRestiamo a disposizione per qualsiasi chiarimento.\n\nCordiali saluti,\nSistema MADE`
     : "";
 
   return (
