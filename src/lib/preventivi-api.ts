@@ -71,6 +71,7 @@ export interface PreventiviFilters {
   cliente_id?: string | null;
   stato?: StatoPreventivo | null;
   tipo_doc?: TipoDoc | null;
+  tipo?: TipoDocumento | null;
 }
 
 export interface PreventivoListItem extends Preventivo {
@@ -85,6 +86,7 @@ export async function fetchPreventivi(f: PreventiviFilters): Promise<PreventivoL
     .order("data", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(500);
+  if (f.tipo) q = q.eq("tipo", f.tipo);
   if (f.cliente_id) q = q.eq("cliente_id", f.cliente_id);
   if (f.stato) q = q.eq("stato", f.stato);
   if (f.tipo_doc) q = q.eq("tipo_doc", f.tipo_doc);
