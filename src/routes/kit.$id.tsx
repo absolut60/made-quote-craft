@@ -54,6 +54,7 @@ import { FAMIGLIE_KIT, FAMIGLIA_LABEL, TIPI_DRIVER, calcIncidenzaFromDriver, typ
 import { FASCE } from "@/lib/articoli-api";
 import { EditableNumberCell } from "@/components/listini/EditableNumberCell";
 import { ArticoloPicker } from "@/components/kit/ArticoloPicker";
+import { AllegatiKitSection } from "@/components/kit/AllegatiKitSection";
 
 export const Route = createFileRoute("/kit/$id")({
   head: () => ({ meta: [{ title: "Editor Kit — Sistema MADE" }] }),
@@ -348,6 +349,12 @@ function KitEditorPage() {
             </div>
           )}
         </div>
+
+        {/* Allegati */}
+        <section className="space-y-2">
+          <h2 className="text-sm font-semibold">Allegati</h2>
+          <AllegatiKitSection kitId={id} emailContext={{ nome: kit.nome }} />
+        </section>
       </div>
     </AppShell>
   );
