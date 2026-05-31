@@ -268,7 +268,10 @@ function ClienteDetailPage() {
             <CantieriSection clienteId={id} />
 
             {/* Preventivi */}
-            <PreventiviSection clienteId={id} />
+            <PreventiviSection clienteId={id} tipo="preventivo" />
+
+            {/* Ordini */}
+            <PreventiviSection clienteId={id} tipo="ordine" />
 
           </div>
         </div>
@@ -549,18 +552,23 @@ function statoVariant(s: StatoPreventivo): "outline" | "secondary" | "default" {
   return "default";
 }
 
-function PreventiviSection({ clienteId }: { clienteId: string }) {
+function PreventiviSection({ clienteId, tipo = "preventivo" }: { clienteId: string; tipo?: "preventivo" | "ordine" }) {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [cantiereFilter, setCantiereFilter] = useState<string>("__all");
+  const isOrdine = tipo === "ordine";
+  const titoloSezione = isOrdine ? "Ordini" : "Preventivi";
+  const emptyMsg = isOrdine ? "Nessun ordine per questo cliente" : "Nessun preventivo per questo cliente";
+  const notFoundMsg = isOrdine ? "Nessun ordine trovato" : "Nessun preventivo trovato";
 
   const { data: preventivi = [], isLoading, error } = useQuery({
-    queryKey: ["preventivi-cliente", clienteId],
+    queryKey: ["preventivi-cliente", clienteId, tipo],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("preventivi")
         .select("id, numero, data, validita, stato, tipo_doc, totale, cantiere:cantieri(nome)")
         .eq("cliente_id", clienteId)
+        .eq("tipo", tipo)
         .order("data", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
