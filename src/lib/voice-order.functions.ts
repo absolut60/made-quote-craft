@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { callClaude, extractToolUse } from "./ai-claude.server";
 
 const InterpretInput = z.object({
   testo: z.string().min(1).max(2000),
@@ -18,88 +19,54 @@ Per ogni riga, identifica:
 - unita_misura: "mq", "ml", "pz", "kg", "cad", "sacco", null se non chiara
 - spessore: stringa (es. "12,5") o null
 - dimensione: stringa (es. "1200x3000") o null
-RISPONDI SOLO chiamando la function "extract_righe". Nessun testo extra.`;
+RISPONDI SOLO chiamando lo strumento "extract_righe". Nessun testo extra.`;
+
+const TOOL = {
+  name: "extract_righe",
+  description: "Estrae le righe di ordine dalla frase",
+  input_schema: {
+    type: "object",
+    properties: {
+      righe: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            fornitore_riconosciuto: { type: ["string", "null"] },
+            categoria_riconosciuta: { type: ["string", "null"] },
+            termini_ricerca: { type: "array", items: { type: "string" } },
+            quantita: { type: ["number", "null"] },
+            unita_misura: { type: ["string", "null"] },
+            spessore: { type: ["string", "null"] },
+            dimensione: { type: ["string", "null"] },
+          },
+          required: ["termini_ricerca"],
+        },
+      },
+    },
+    required: ["righe"],
+  },
+};
 
 export const interpretaVoce = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => InterpretInput.parse(d))
   .handler(async ({ data }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY non configurata");
-
     const userPrompt = `Fornitori noti: ${data.fornitori.join(", ")}
 Categorie note: ${data.categorie.map((c) => `${c.codice}=${c.descrizione}`).join("; ")}
 
 Frase: "${data.testo}"`;
 
-    const body = {
-      model: "google/gemini-2.5-flash",
-      messages: [
-        { role: "system", content: SYSTEM },
-        { role: "user", content: userPrompt },
-      ],
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "extract_righe",
-            description: "Estrae le righe di ordine dalla frase",
-            parameters: {
-              type: "object",
-              properties: {
-                righe: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      fornitore_riconosciuto: { type: ["string", "null"] },
-                      categoria_riconosciuta: { type: ["string", "null"] },
-                      termini_ricerca: { type: "array", items: { type: "string" } },
-                      quantita: { type: ["number", "null"] },
-                      unita_misura: { type: ["string", "null"] },
-                      spessore: { type: ["string", "null"] },
-                      dimensione: { type: ["string", "null"] },
-                    },
-                    required: ["termini_ricerca"],
-                    additionalProperties: false,
-                  },
-                },
-              },
-              required: ["righe"],
-              additionalProperties: false,
-            },
-          },
-        },
-      ],
-      tool_choice: { type: "function", function: { name: "extract_righe" } },
-    };
-
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
+    const resp = await callClaude({
+      system: SYSTEM,
+      messages: [{ role: "user", content: userPrompt }],
+      max_tokens: 1024,
+      tools: [TOOL],
+      tool_choice: { type: "tool", name: "extract_righe" },
     });
 
-    if (!resp.ok) {
-      if (resp.status === 429) throw new Error("Troppi tentativi, riprova tra poco.");
-      if (resp.status === 402) throw new Error("Crediti AI esauriti per il workspace.");
-      const t = await resp.text();
-      console.error("AI gateway error", resp.status, t);
-      throw new Error(`AI gateway error ${resp.status}`);
-    }
-
-    const json = await resp.json();
-    const call = json?.choices?.[0]?.message?.tool_calls?.[0];
-    if (!call) throw new Error("Risposta AI senza tool call");
-    let args: { righe?: RigaEstratta[] } = {};
-    try {
-      args = JSON.parse(call.function?.arguments ?? "{}");
-    } catch {
-      throw new Error("JSON AI non valido");
-    }
+    const args = extractToolUse<{ righe?: RigaEstratta[] }>(resp, "extract_righe");
+    if (!args) throw new Error("Risposta AI senza tool call");
     return { righe: Array.isArray(args.righe) ? args.righe : [], raw_testo: data.testo };
   });
 
@@ -112,4 +79,3 @@ export type RigaEstratta = {
   spessore: string | null;
   dimensione: string | null;
 };
-
