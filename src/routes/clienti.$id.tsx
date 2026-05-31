@@ -537,7 +537,11 @@ type PreventivoRow = {
   tipo_doc: TipoDoc;
   totale: number | null;
   cantiere: { nome: string } | null;
+  blocchi: {
+    righe: { tipo_riga: string; quantita: number | null; qta_ordinata: number | null }[];
+  }[];
 };
+
 
 const fmtData = (s: string | null) => {
   if (!s) return "—";
