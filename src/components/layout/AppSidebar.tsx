@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, FileText, ShoppingCart, Package, Tags, Wrench, Users, UserCog, Mic,
+  LayoutDashboard, FileText, ShoppingCart, Package, Tags, Wrench, Users, UserCog, Mic, Sparkles,
 } from "lucide-react";
 import logo from "@/assets/logo-made-white.png";
 import { useAuth } from "@/hooks/use-auth";
