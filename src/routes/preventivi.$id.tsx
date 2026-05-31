@@ -502,9 +502,14 @@ function PreventivoEditorPage() {
                         <CardContent className="flex flex-col items-center gap-2 p-12 text-center">
                           <p className="text-sm text-muted-foreground">Nessun blocco. {editMode ? "Aggiungine uno per iniziare." : "Premi Modifica per aggiungerne."}</p>
                           {editMode && (
-                            <Button size="sm" onClick={() => setAddBloccoOpen(true)}>
-                              <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button size="sm" onClick={handleAddEmptyBlocco} disabled={addEmptyBlocco.isPending}>
+                                <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => setAddBloccoOpen(true)}>
+                                Da Kit
+                              </Button>
+                            </div>
                           )}
                         </CardContent>
                       </Card>
