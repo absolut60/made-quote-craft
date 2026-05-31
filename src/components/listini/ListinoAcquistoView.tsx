@@ -322,7 +322,7 @@ export function ListinoAcquistoView() {
                   <td className="px-2 py-1 text-right font-mono font-bold bg-muted/30">
                     {live.costo_netto ? `€ ${live.costo_netto.toFixed(4)}` : "—"}
                   </td>
-                  <td className="px-2 py-1 font-mono text-[11px]">{l?.data_validita ?? "—"}</td>
+                  <td className="px-1 py-1 font-mono text-[11px] truncate" title={l?.data_validita ?? ""}>{l?.data_validita ?? "—"}</td>
                 </tr>
               );
             })}
