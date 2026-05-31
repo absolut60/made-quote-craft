@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 
 const ARTICOLO_SELECT = `
   id, cod_gamma, descrizione, um, peso_unit, qta_fornitore, qta_cliente,
+  fornitore:fornitori(id, ragione_sociale),
   listini_acquisto:listini_acquisto(*),
   listini_vendita:listini_vendita(*)
 `;
