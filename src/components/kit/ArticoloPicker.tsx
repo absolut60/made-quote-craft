@@ -205,7 +205,14 @@ export function ArticoloPicker({
                   className={cn("mt-0.5 h-3 w-3", value === a.id ? "opacity-100" : "opacity-0")}
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="font-mono">{a.cod_gamma ?? "—"}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono">{a.cod_gamma ?? "—"}</span>
+                    {(a as unknown as { fornitore?: { ragione_sociale?: string } | null }).fornitore?.ragione_sociale && (
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                        {(a as unknown as { fornitore: { ragione_sociale: string } }).fornitore.ragione_sociale}
+                      </span>
+                    )}
+                  </div>
                   <div className="truncate text-muted-foreground">{a.descrizione}</div>
                 </div>
                 <span className="font-mono text-muted-foreground">{a.um ?? ""}</span>
