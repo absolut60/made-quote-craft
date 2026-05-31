@@ -213,6 +213,11 @@ export function ArticoloPicker({
                     )}
                   </div>
                   <div className="truncate text-muted-foreground">{a.descrizione}</div>
+                  {(a as unknown as { cod_fornitore?: string | null }).cod_fornitore && (
+                    <div className="font-mono text-[10px] text-muted-foreground/80">
+                      Cod. for.: {(a as unknown as { cod_fornitore: string }).cod_fornitore}
+                    </div>
+                  )}
                 </div>
                 <span className="font-mono text-muted-foreground">{a.um ?? ""}</span>
               </button>
