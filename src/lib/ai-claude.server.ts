@@ -3,7 +3,7 @@
 // (mai esposta al client). Non loggare mai la chiave.
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-export const DEFAULT_CLAUDE_MODEL = "claude-3-5-sonnet-20241022";
+export const DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-6";
 
 export type ClaudeMessage = {
   role: "user" | "assistant";
