@@ -17,7 +17,7 @@ import type { ArticoloConListini } from "@/lib/kit-api";
 import { cn } from "@/lib/utils";
 
 const ARTICOLO_SELECT = `
-  id, cod_gamma, descrizione, um, peso_unit, qta_fornitore, qta_cliente,
+  id, cod_gamma, cod_fornitore, descrizione, um, peso_unit, qta_fornitore, qta_cliente,
   fornitore:fornitori(id, ragione_sociale),
   listini_acquisto:listini_acquisto(*),
   listini_vendita:listini_vendita(*)
@@ -213,6 +213,11 @@ export function ArticoloPicker({
                     )}
                   </div>
                   <div className="truncate text-muted-foreground">{a.descrizione}</div>
+                  {(a as unknown as { cod_fornitore?: string | null }).cod_fornitore && (
+                    <div className="font-mono text-[10px] text-muted-foreground/80">
+                      Cod. for.: {(a as unknown as { cod_fornitore: string }).cod_fornitore}
+                    </div>
+                  )}
                 </div>
                 <span className="font-mono text-muted-foreground">{a.um ?? ""}</span>
               </button>
