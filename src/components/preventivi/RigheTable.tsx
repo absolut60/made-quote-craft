@@ -272,14 +272,18 @@ export function RigheTable({
 function AddRowMenu({
   onAddArticolo,
   onPick,
+  readOnly = false,
 }: {
   onAddArticolo: () => void;
   onPick: (tipo: TipoRiga) => void;
+  readOnly?: boolean;
 }) {
   const secondaryTypes = TIPI_RIGA.filter((t) => t !== "articolo_singolo");
+  if (readOnly) return null;
   return (
     <div className="inline-flex items-center">
       <Button
+        type="button"
         size="sm"
         variant="outline"
         className="rounded-r-none border-r-0"
@@ -290,6 +294,7 @@ function AddRowMenu({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
+            type="button"
             size="sm"
             variant="outline"
             className="rounded-l-none px-1.5"
@@ -302,7 +307,7 @@ function AddRowMenu({
           <DropdownMenuLabel className="text-xs">Altri tipi di riga</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {secondaryTypes.map((t) => (
-            <DropdownMenuItem key={t} onClick={() => onPick(t)}>
+            <DropdownMenuItem key={t} onSelect={() => onPick(t)}>
               {TIPI_RIGA_LABEL[t]}
             </DropdownMenuItem>
           ))}
@@ -311,6 +316,7 @@ function AddRowMenu({
     </div>
   );
 }
+
 
 function RigaRow({
   row, idx, calc, fascia, readOnly, onOpenArticolo, onPatch, onDelete, onAddAbove, onAddBelow,
