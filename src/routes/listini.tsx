@@ -49,6 +49,13 @@ function ListiniPage() {
             >
               <MatriceRicarichiView />
             </TabsContent>
+            <TabsContent
+              value="cantieri"
+              className="mt-0 -mx-3 border-t data-[state=inactive]:hidden lg:-mx-6"
+              forceMount
+            >
+              <PrezziCantieriView />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
