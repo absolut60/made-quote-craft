@@ -312,6 +312,27 @@ function PreventivoEditorPage() {
               <FileDown className="mr-1 h-4 w-4" /> Genera documento
             </Button>
             {prev.tipo === "preventivo" && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="outline" disabled={duplica.isPending}>
+                    <Copy className="mr-1 h-4 w-4" /> {duplica.isPending ? "Duplicazione…" : "Duplica"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Duplicare questo preventivo?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Verrà creata una copia completa (testata, blocchi, righe, allegati) con un nuovo numero e data odierna. Verrai portato sul duplicato.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annulla</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => duplica.mutate()}>Duplica</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            {prev.tipo === "preventivo" && (
               <Button size="sm" onClick={() => setTrasformaOpen(true)}>
                 <ShoppingCart className="mr-1 h-4 w-4" /> Trasforma in ordine
               </Button>
