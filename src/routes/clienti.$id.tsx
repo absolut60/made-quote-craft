@@ -512,11 +512,15 @@ function CantiereDialog({
   onOpenChange,
   clienteId,
   cantiere,
+  fasciaCliente,
+  fasciaIsDefault,
 }: {
   open: boolean;
   onOpenChange: (b: boolean) => void;
   clienteId: string;
   cantiere: Cantiere | null;
+  fasciaCliente: FasciaListino;
+  fasciaIsDefault: boolean;
 }) {
   const qc = useQueryClient();
   const [nome, setNome] = useState("");
@@ -524,6 +528,7 @@ function CantiereDialog({
   const [comuneId, setComuneId] = useState<string | null>(null);
   const [prov, setProv] = useState("");
   const [cap, setCap] = useState("");
+  const [tab, setTab] = useState<"anagrafica" | "listini">("anagrafica");
 
   useEffect(() => {
     if (open) {
@@ -532,6 +537,7 @@ function CantiereDialog({
       setComuneId(cantiere?.comune_id ?? null);
       setProv(cantiere?.prov ?? "");
       setCap(cantiere?.cap ?? "");
+      setTab("anagrafica");
     }
   }, [open, cantiere]);
 
@@ -552,60 +558,115 @@ function CantiereDialog({
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cantieri", clienteId] });
       toast.success(cantiere ? "Cantiere aggiornato" : "Cantiere creato");
-      onOpenChange(false);
+      if (!cantiere) onOpenChange(false);
     },
     onError: (e: unknown) => toast.error((e as Error).message),
   });
 
+  const isExisting = !!cantiere;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className={tab === "listini" ? "max-w-5xl" : "max-w-lg"}>
         <DialogHeader>
-          <DialogTitle>{cantiere ? "Modifica cantiere" : "Nuovo cantiere"}</DialogTitle>
+          <DialogTitle>{isExisting ? "Modifica cantiere" : "Nuovo cantiere"}</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-3">
-          <div className="grid gap-1.5">
-            <Label>Nome *</Label>
-            <Input value={nome} onChange={(e) => setNome(e.target.value)} />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>Indirizzo</Label>
-            <Input value={indirizzo} onChange={(e) => setIndirizzo(e.target.value)} />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>Comune</Label>
-            <ComunePicker
-              value={comuneId}
-              onChange={(id, p) => {
-                setComuneId(id);
-                if (p) setProv(p);
-              }}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-1.5">
-              <Label>Prov</Label>
-              <Input
-                value={prov}
-                onChange={(e) => setProv(e.target.value.toUpperCase())}
-                maxLength={2}
-                className="font-mono"
+
+        {isExisting ? (
+          <Tabs value={tab} onValueChange={(v) => setTab(v as "anagrafica" | "listini")}>
+            <TabsList>
+              <TabsTrigger value="anagrafica">Anagrafica</TabsTrigger>
+              <TabsTrigger value="listini">Listini speciali</TabsTrigger>
+            </TabsList>
+            <TabsContent value="anagrafica" className="mt-3">
+              <CantiereAnagraficaForm
+                nome={nome} setNome={setNome}
+                indirizzo={indirizzo} setIndirizzo={setIndirizzo}
+                comuneId={comuneId} setComuneId={setComuneId}
+                prov={prov} setProv={setProv}
+                cap={cap} setCap={setCap}
               />
-            </div>
-            <div className="grid gap-1.5">
-              <Label>CAP</Label>
-              <Input value={cap} onChange={(e) => setCap(e.target.value)} className="font-mono" />
-            </div>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Annulla</Button>
-          <Button onClick={() => save.mutate()} disabled={!nome.trim() || save.isPending}>
-            {cantiere ? "Salva" : "Crea"}
-          </Button>
-        </DialogFooter>
+            </TabsContent>
+            <TabsContent value="listini" className="mt-3">
+              <CantiereListiniSpecialiSection
+                cantiereId={cantiere!.id}
+                fasciaCliente={fasciaCliente}
+                fasciaIsDefault={fasciaIsDefault}
+              />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <CantiereAnagraficaForm
+            nome={nome} setNome={setNome}
+            indirizzo={indirizzo} setIndirizzo={setIndirizzo}
+            comuneId={comuneId} setComuneId={setComuneId}
+            prov={prov} setProv={setProv}
+            cap={cap} setCap={setCap}
+          />
+        )}
+
+        {tab === "anagrafica" && (
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Annulla</Button>
+            <Button onClick={() => save.mutate()} disabled={!nome.trim() || save.isPending}>
+              {isExisting ? "Salva" : "Crea"}
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function CantiereAnagraficaForm({
+  nome, setNome,
+  indirizzo, setIndirizzo,
+  comuneId, setComuneId,
+  prov, setProv,
+  cap, setCap,
+}: {
+  nome: string; setNome: (v: string) => void;
+  indirizzo: string; setIndirizzo: (v: string) => void;
+  comuneId: string | null; setComuneId: (v: string | null) => void;
+  prov: string; setProv: (v: string) => void;
+  cap: string; setCap: (v: string) => void;
+}) {
+  return (
+    <div className="grid gap-3">
+      <div className="grid gap-1.5">
+        <Label>Nome *</Label>
+        <Input value={nome} onChange={(e) => setNome(e.target.value)} />
+      </div>
+      <div className="grid gap-1.5">
+        <Label>Indirizzo</Label>
+        <Input value={indirizzo} onChange={(e) => setIndirizzo(e.target.value)} />
+      </div>
+      <div className="grid gap-1.5">
+        <Label>Comune</Label>
+        <ComunePicker
+          value={comuneId}
+          onChange={(id, p) => {
+            setComuneId(id);
+            if (p) setProv(p);
+          }}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-1.5">
+          <Label>Prov</Label>
+          <Input
+            value={prov}
+            onChange={(e) => setProv(e.target.value.toUpperCase())}
+            maxLength={2}
+            className="font-mono"
+          />
+        </div>
+        <div className="grid gap-1.5">
+          <Label>CAP</Label>
+          <Input value={cap} onChange={(e) => setCap(e.target.value)} className="font-mono" />
+        </div>
+      </div>
+    </div>
   );
 }
 
