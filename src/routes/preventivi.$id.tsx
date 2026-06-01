@@ -229,6 +229,11 @@ function PreventivoEditorPage() {
     return { costo, vendita, euro: round2(euro), perc: round2(perc) };
   }, [prev]);
 
+  const prezziSpecialiMap = useMemo<PrezziSpecialiMap>(
+    () => buildPrezziSpecialiMap(prev?.prezziSpeciali ?? []),
+    [prev?.prezziSpeciali],
+  );
+
 
   // Persist totali in DB automaticamente quando cambiano
   const saveTotali = useMutation({
