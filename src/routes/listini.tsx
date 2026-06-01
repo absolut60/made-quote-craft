@@ -26,6 +26,7 @@ function ListiniPage() {
               <TabsTrigger value="acquisto">Listino acquisto</TabsTrigger>
               <TabsTrigger value="vendita">Listino vendita</TabsTrigger>
               <TabsTrigger value="matrice">Matrice ricarichi</TabsTrigger>
+              <TabsTrigger value="cantieri">Prezzi Cantieri</TabsTrigger>
             </TabsList>
             <TabsContent
               value="acquisto"
