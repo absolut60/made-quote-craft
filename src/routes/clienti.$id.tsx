@@ -397,7 +397,13 @@ function Field({
 // Cantieri section
 // ----------------------------------------------------------------------------
 
-function CantieriSection({ clienteId }: { clienteId: string }) {
+function CantieriSection({
+  clienteId,
+  clienteFascia,
+}: {
+  clienteId: string;
+  clienteFascia: FasciaListino | null;
+}) {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Cantiere | null>(null);
   const [open, setOpen] = useState(false);
