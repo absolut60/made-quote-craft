@@ -156,11 +156,61 @@ export async function fetchAgenti(): Promise<Agente[]> {
 // Preventivo CRUD
 // =========================================================================
 
+export interface PrezzoSpecialeCantiere {
+  cod_gamma: string;
+  costo_netto_speciale: number | null;
+  prezzo_vendita_speciale: number | null;
+}
+
+export type PrezziSpecialiMap = Map<
+  string,
+  { costo: number | null; prezzo: number | null }
+>;
+
+export function buildPrezziSpecialiMap(list: PrezzoSpecialeCantiere[]): PrezziSpecialiMap {
+  const m: PrezziSpecialiMap = new Map();
+  for (const s of list) {
+    if (!s.cod_gamma) continue;
+    m.set(s.cod_gamma, {
+      costo: s.costo_netto_speciale == null ? null : Number(s.costo_netto_speciale),
+      prezzo: s.prezzo_vendita_speciale == null ? null : Number(s.prezzo_vendita_speciale),
+    });
+  }
+  return m;
+}
+
+/**
+ * Determina se una riga sta usando prezzi speciali di cantiere e se sono stati
+ * modificati manualmente.
+ */
+export function statoPrezzoSpecialeRiga(
+  row: { prezzo_unit: number | null; costo: number | null; quantita: number | null },
+  cod_gamma: string | null | undefined,
+  map: PrezziSpecialiMap | null | undefined,
+): {
+  stato: "attivo" | "modificato";
+  special: { costo: number | null; prezzo: number | null };
+} | null {
+  if (!map || !cod_gamma) return null;
+  const sp = map.get(cod_gamma);
+  if (!sp) return null;
+  if (sp.costo == null && sp.prezzo == null) return null;
+  const q = Number(row.quantita ?? 0);
+  const costoUnit = q > 0 ? Number(row.costo ?? 0) / q : Number(row.costo ?? 0);
+  const prezzoUnit = Number(row.prezzo_unit ?? 0);
+  const EPS = 0.015;
+  const costoOk = sp.costo == null || Math.abs(costoUnit - sp.costo) <= EPS;
+  const prezzoOk = sp.prezzo == null || Math.abs(prezzoUnit - sp.prezzo) <= EPS;
+  return { stato: costoOk && prezzoOk ? "attivo" : "modificato", special: sp };
+}
+
 export interface PreventivoConDettagli extends Preventivo {
   cliente: Cliente | null;
   cantiere: Cantiere | null;
   agente: Agente | null;
   blocchi: BloccoConRighe[];
+  /** Prezzi speciali del cantiere collegato (vuoto se nessun cantiere). */
+  prezziSpeciali: PrezzoSpecialeCantiere[];
 }
 
 export interface BloccoConRighe extends Blocco {
@@ -183,6 +233,16 @@ const BLOCCHI_SELECT = `
   )
 `;
 
+async function fetchPrezziSpecialiCantiere(cantiere_id: string | null): Promise<PrezzoSpecialeCantiere[]> {
+  if (!cantiere_id) return [];
+  const { data, error } = await supabase
+    .from("cantiere_listini_speciali")
+    .select("cod_gamma, costo_netto_speciale, prezzo_vendita_speciale")
+    .eq("cantiere_id", cantiere_id);
+  if (error) throw error;
+  return (data ?? []).filter((r) => r.cod_gamma) as PrezzoSpecialeCantiere[];
+}
+
 export async function fetchPreventivo(id: string): Promise<PreventivoConDettagli> {
   const { data, error } = await supabase
     .from("preventivi")
@@ -201,6 +261,7 @@ export async function fetchPreventivo(id: string): Promise<PreventivoConDettagli
   for (const b of p.blocchi) {
     b.righe.sort((a, b2) => Number(a.ordine ?? 0) - Number(b2.ordine ?? 0));
   }
+  p.prezziSpeciali = await fetchPrezziSpecialiCantiere(p.cantiere_id);
   return p;
 }
 
@@ -514,6 +575,7 @@ export async function aggiornaListiniPreventivo(preventivo_id: string): Promise<
   aggiornate: number;
   saltate_manuali: number;
   senza_listino: number;
+  speciali_applicati: number;
 }> {
   const prev = await fetchPreventivo(preventivo_id);
   const fascia = prev.fascia_listino;
@@ -548,6 +610,10 @@ export async function aggiornaListiniPreventivo(preventivo_id: string): Promise<
   let saltate_manuali = 0;
   let senza_listino = 0;
 
+  // Mappa prezzi speciali del cantiere collegato (override su standard).
+  const prezziSpecialiMap = buildPrezziSpecialiMap(prev.prezziSpeciali ?? []);
+  let speciali_applicati = 0;
+
   // Itera TUTTI i blocchi e TUTTE le righe — esecuzione sequenziale per riga
   // per evitare race/limiti di concorrenza che potevano far fallire silenziosamente
   // gli update dei blocchi successivi al primo.
@@ -561,8 +627,14 @@ export async function aggiornaListiniPreventivo(preventivo_id: string): Promise<
       if (!r.articolo_id) { saltate_manuali++; continue; }
       const art = articoliMap.get(r.articolo_id);
       if (!art) { senza_listino++; continue; }
-      const vendita_unit = getPrezzoVendita(art, fascia);
-      const costo_unit = getCostoNettoCorrente(art);
+      let vendita_unit = getPrezzoVendita(art, fascia);
+      let costo_unit = getCostoNettoCorrente(art);
+      const sp_cant = art.cod_gamma ? prezziSpecialiMap.get(art.cod_gamma) : undefined;
+      if (sp_cant) {
+        if (sp_cant.costo != null) costo_unit = sp_cant.costo;
+        if (sp_cant.prezzo != null) vendita_unit = sp_cant.prezzo;
+        speciali_applicati++;
+      }
       if (!vendita_unit) senza_listino++;
       const q = n(r.quantita);
       const segno = (r.segno ?? 1) === -1 ? -1 : 1;
@@ -622,7 +694,83 @@ export async function aggiornaListiniPreventivo(preventivo_id: string): Promise<
     totale: round2(tot * (1 + iva / 100)),
   }).eq("id", preventivo_id);
 
-  return { aggiornate, saltate_manuali, senza_listino };
+  return { aggiornate, saltate_manuali, senza_listino, speciali_applicati };
+}
+
+/**
+ * Riapplica i prezzi speciali del cantiere corrente del preventivo alle righe
+ * articolo (articolo_singolo / da_kit) il cui cod_gamma è presente nella tabella
+ * cantiere_listini_speciali. Le righe il cui cod_gamma NON è nella mappa restano
+ * intatte (utile dopo un cambio cantiere: non sovrascrive le righe non collegate).
+ * Se cantiere_id è null, non fa nulla.
+ */
+export async function riapplicaPrezziSpecialiCantiere(preventivo_id: string): Promise<{
+  aggiornate: number;
+}> {
+  const prev = await fetchPreventivo(preventivo_id);
+  if (!prev.cantiere_id) return { aggiornate: 0 };
+  const map = buildPrezziSpecialiMap(prev.prezziSpeciali ?? []);
+  if (map.size === 0) return { aggiornate: 0 };
+
+  let aggiornate = 0;
+  const bloccoIdsDirty = new Set<string>();
+
+  for (const b of prev.blocchi) {
+    for (const r of b.righe) {
+      if (r.tipo_riga !== "articolo_singolo" && r.tipo_riga !== "da_kit") continue;
+      const cod = r.articolo?.cod_gamma;
+      if (!cod) continue;
+      const sp = map.get(cod);
+      if (!sp) continue;
+      if (sp.costo == null && sp.prezzo == null) continue;
+      const q = n(r.quantita);
+      const segno = (r.segno ?? 1) === -1 ? -1 : 1;
+      const sc = n(r.sconto_perc);
+      const nuovoPrezzo = sp.prezzo != null ? sp.prezzo : n(r.prezzo_unit);
+      const costoUnitOld = q > 0 ? n(r.costo) / q : 0;
+      const nuovoCostoUnit = sp.costo != null ? sp.costo : costoUnitOld;
+      const importo = round2(q * nuovoPrezzo * (1 - sc / 100) * segno);
+      const { error } = await supabase
+        .from("righe_preventivo")
+        .update({
+          prezzo_unit: round2(nuovoPrezzo),
+          costo: round2(nuovoCostoUnit * q),
+          vendita: round2(nuovoPrezzo * q),
+          importo,
+        })
+        .eq("id", r.id);
+      if (error) throw error;
+      aggiornate++;
+      bloccoIdsDirty.add(b.id);
+    }
+  }
+
+  if (aggiornate === 0) return { aggiornate: 0 };
+
+  // Ricalcola subtotali dei blocchi toccati + totale documento
+  const { data: blocchi, error: bErr } = await supabase
+    .from("blocchi_preventivo")
+    .select("id, importo, righe:righe_preventivo(*)")
+    .eq("preventivo_id", preventivo_id);
+  if (bErr) throw bErr;
+  for (const bl of (blocchi ?? []) as unknown as { id: string; righe: Riga[] }[]) {
+    if (!bloccoIdsDirty.has(bl.id)) continue;
+    let totale = 0;
+    for (const r of bl.righe ?? []) {
+      if (r.tipo_riga === "nota" || r.tipo_riga === "separatore" || r.tipo_riga === "sotto_totale") continue;
+      totale += n(r.importo);
+    }
+    await supabase.from("blocchi_preventivo").update({ importo: round2(totale) }).eq("id", bl.id);
+  }
+  const tot = ((blocchi ?? []) as { importo: number | null }[]).reduce((s, b) => s + n(b.importo), 0);
+  const iva = n(prev.iva_perc);
+  await supabase.from("preventivi").update({
+    totale_imponibile: round2(tot),
+    iva_importo: round2(tot * iva / 100),
+    totale: round2(tot * (1 + iva / 100)),
+  }).eq("id", preventivo_id);
+
+  return { aggiornate };
 }
 
 /** Crea un blocco vuoto in fondo al preventivo. */

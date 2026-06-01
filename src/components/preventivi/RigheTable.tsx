@@ -40,8 +40,9 @@ import { EditableNumberCell } from "@/components/listini/EditableNumberCell";
 import { ArticoloPicker } from "@/components/kit/ArticoloPicker";
 import {
   calcolaBlocco, deleteRiga, fractionalOrder, insertRiga, reorderRighe,
+  statoPrezzoSpecialeRiga,
   TIPI_RIGA, TIPI_RIGA_LABEL, updateRiga,
-  type BloccoConRighe, type Riga, type TipoRiga,
+  type BloccoConRighe, type PrezziSpecialiMap, type Riga, type TipoRiga,
 } from "@/lib/preventivi-api";
 import type { FasciaListino } from "@/lib/articoli-api";
 import { round2 } from "@/lib/pricing";
@@ -53,11 +54,13 @@ export function RigheTable({
   preventivoId,
   fascia,
   readOnly = false,
+  prezziSpecialiMap,
 }: {
   blocco: BloccoConRighe;
   preventivoId: string;
   fascia: FasciaListino;
   readOnly?: boolean;
+  prezziSpecialiMap?: PrezziSpecialiMap | null;
 }) {
   const [openArticoloId, setOpenArticoloId] = useState<string | null>(null);
   const [pendingPickerId, setPendingPickerId] = useState<string | null>(null);
@@ -205,7 +208,7 @@ export function RigheTable({
                     readOnly={readOnly}
                     autoOpenPicker={r.id === pendingPickerId}
                     onOpenArticolo={(aid) => setOpenArticoloId(aid)}
-
+                    prezziSpecialiMap={prezziSpecialiMap ?? null}
                     calc={calcMap.get(r.id)!}
                     onPatch={(patch) => upd.mutate({ id: r.id, patch })}
                     onDelete={() => del.mutate(r.id)}
@@ -328,8 +331,9 @@ function AddRowMenu({
 
 function RigaRow({
   row, idx, calc, fascia, readOnly, autoOpenPicker = false, onOpenArticolo, onPatch, onDelete, onAddAbove, onAddBelow,
+  prezziSpecialiMap,
 }: {
-  row: Riga & { articolo: { id: string; descrizione: string; um: string | null; peso_unit: number | null } | null };
+  row: Riga & { articolo: { id: string; cod_gamma: string | null; descrizione: string; um: string | null; peso_unit: number | null } | null };
   idx: number;
   fascia: FasciaListino;
   readOnly: boolean;
@@ -340,6 +344,7 @@ function RigaRow({
   onDelete: () => void;
   onAddAbove: (tipo: TipoRiga) => void;
   onAddBelow: (tipo: TipoRiga) => void;
+  prezziSpecialiMap?: PrezziSpecialiMap | null;
 }) {
 
   const sortable = useSortable({ id: row.id });
@@ -404,25 +409,58 @@ function RigaRow({
       <td className="text-center text-[10px] text-muted-foreground">{idx + 1}</td>
       <td className="px-1 py-0.5">
         {(tipo === "articolo_singolo" || tipo === "da_kit") ? (
-          <ArticoloPicker
-            autoOpen={autoOpenPicker}
-            value={row.articolo_id}
-            onChange={(articolo_id, articolo) => {
-              const listino = articolo?.listini_vendita?.find((l) => l.fascia === fascia);
-              const acquistoRecente = articolo?.listini_acquisto?.[0];
-              const prezzo = listino?.prezzo == null ? null : Number(listino.prezzo);
-              const costo = acquistoRecente?.costo_netto == null ? null : Number(acquistoRecente.costo_netto);
-              onPatch({
-                articolo_id,
-                um: articolo?.um ?? null,
-                descrizione: articolo?.descrizione ?? null,
-                prezzo_unit: prezzo,
-                costo,
-                vendita: prezzo,
-                peso: articolo?.peso_unit == null ? null : Number(articolo.peso_unit),
-              });
-            }}
-          />
+          <>
+            <ArticoloPicker
+              autoOpen={autoOpenPicker}
+              value={row.articolo_id}
+              onChange={(articolo_id, articolo) => {
+                const listino = articolo?.listini_vendita?.find((l) => l.fascia === fascia);
+                const acquistoRecente = articolo?.listini_acquisto?.[0];
+                let prezzo = listino?.prezzo == null ? null : Number(listino.prezzo);
+                let costo = acquistoRecente?.costo_netto == null ? null : Number(acquistoRecente.costo_netto);
+                const sp = articolo?.cod_gamma && prezziSpecialiMap ? prezziSpecialiMap.get(articolo.cod_gamma) : undefined;
+                if (sp) {
+                  if (sp.costo != null) costo = sp.costo;
+                  if (sp.prezzo != null) prezzo = sp.prezzo;
+                }
+                onPatch({
+                  articolo_id,
+                  um: articolo?.um ?? null,
+                  descrizione: articolo?.descrizione ?? null,
+                  prezzo_unit: prezzo,
+                  sconto_perc: sp ? 0 : (row.sconto_perc ?? 0),
+                  costo,
+                  vendita: prezzo,
+                  peso: articolo?.peso_unit == null ? null : Number(articolo.peso_unit),
+                });
+              }}
+            />
+            {(() => {
+              const st = statoPrezzoSpecialeRiga(
+                { prezzo_unit: row.prezzo_unit, costo: row.costo, quantita: row.quantita },
+                row.articolo?.cod_gamma,
+                prezziSpecialiMap,
+              );
+              if (!st) return null;
+              const fmt = (v: number | null) => v == null ? "—" : `€ ${v.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 5 })}`;
+              return (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span
+                        className="mt-0.5 inline-flex items-center gap-1 rounded border border-[#0d1f3c]/30 bg-[#0d1f3c]/5 px-1.5 py-0.5 text-[10px] font-semibold text-[#0d1f3c]"
+                      >
+                        🏗 Cantiere{st.stato === "modificato" ? " (modificato)" : ""}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      Prezzo speciale cantiere — costo: {fmt(st.special.costo)} / vendita: {fmt(st.special.prezzo)}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              );
+            })()}
+          </>
         ) : (
           <Input
             defaultValue={row.descrizione ?? ""}

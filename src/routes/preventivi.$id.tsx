@@ -34,11 +34,12 @@ import {
   addBloccoVuoto,
   applicaScontoPiedeARighe,
   aggiornaListiniPreventivo,
+  buildPrezziSpecialiMap,
   calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, duplicaPreventivo, fetchAgenti, fetchCliente, fetchOrdiniCollegati, fetchPreventivo, fetchPreventivoOrigine,
   fractionalOrder,
-  reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
+  reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, riapplicaPrezziSpecialiCantiere, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
   updateBlocco, updatePreventivo,
-  type BloccoConRighe, type StatoPreventivo, type TipoDoc,
+  type BloccoConRighe, type PrezziSpecialiMap, type StatoPreventivo, type TipoDoc,
 } from "@/lib/preventivi-api";
 import { computeEvasione } from "@/lib/evasione";
 import { EvasioneBadge } from "@/components/preventivi/EvasioneBadge";
@@ -162,6 +163,15 @@ function PreventivoEditorPage() {
     onError: (e: unknown) => toast.error((e as Error).message),
   });
 
+  const riapplicaSpeciali = useMutation({
+    mutationFn: () => riapplicaPrezziSpecialiCantiere(id),
+    onSuccess: (res) => {
+      if (res.aggiornate > 0) toast.success(`${res.aggiornate} righe aggiornate con prezzi speciali del cantiere`);
+      invalidate();
+    },
+    onError: (e: unknown) => toast.error((e as Error).message),
+  });
+
 
   const applicaSconto = useMutation({
     mutationFn: async (perc: number) => {
@@ -218,6 +228,11 @@ function PreventivoEditorPage() {
     const perc = vendita > 0 ? (euro / vendita) * 100 : 0;
     return { costo, vendita, euro: round2(euro), perc: round2(perc) };
   }, [prev]);
+
+  const prezziSpecialiMap = useMemo<PrezziSpecialiMap>(
+    () => buildPrezziSpecialiMap(prev?.prezziSpeciali ?? []),
+    [prev?.prezziSpeciali],
+  );
 
 
   // Persist totali in DB automaticamente quando cambiano
@@ -589,7 +604,7 @@ function PreventivoEditorPage() {
                         <CantierePicker
                           cliente_id={prev.cliente_id ?? null}
                           value={prev.cantiere_id ?? null}
-                          onChange={(id) => save.mutate({ cantiere_id: id })}
+                          onChange={(id) => save.mutate({ cantiere_id: id }, { onSuccess: () => riapplicaSpeciali.mutate() })}
                         />
                       </div>
                     </CardContent>
@@ -716,7 +731,7 @@ function PreventivoEditorPage() {
                       </Card>
                     ) : (
                       prev.blocchi.map((b, idx) => (
-                        <BloccoCard key={b.id} blocco={b} index={idx} preventivoId={id} fascia={(prev.fascia_listino ?? "A") as FasciaListino} readOnly={!editMode} />
+                        <BloccoCard key={b.id} blocco={b} index={idx} preventivoId={id} fascia={(prev.fascia_listino ?? "A") as FasciaListino} readOnly={!editMode} prezziSpecialiMap={prezziSpecialiMap} />
                       ))
                     )}
                   </div>
@@ -849,8 +864,8 @@ function AllegatiCountBadge({ preventivoId }: { preventivoId: string }) {
 }
 
 function BloccoCard({
-  blocco, index, preventivoId, fascia, readOnly = false,
-}: { blocco: BloccoConRighe; index: number; preventivoId: string; fascia: FasciaListino; readOnly?: boolean }) {
+  blocco, index, preventivoId, fascia, readOnly = false, prezziSpecialiMap,
+}: { blocco: BloccoConRighe; index: number; preventivoId: string; fascia: FasciaListino; readOnly?: boolean; prezziSpecialiMap?: PrezziSpecialiMap | null }) {
   const qc = useQueryClient();
   const sortable = useSortable({ id: blocco.id });
   const style = {
@@ -974,7 +989,7 @@ function BloccoCard({
             </div>
           )}
 
-          <RigheTable blocco={blocco} preventivoId={preventivoId} fascia={fascia} readOnly={readOnly} />
+          <RigheTable blocco={blocco} preventivoId={preventivoId} fascia={fascia} readOnly={readOnly} prezziSpecialiMap={prezziSpecialiMap} />
         </CardContent>
       </Card>
     </div>
