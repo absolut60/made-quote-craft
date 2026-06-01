@@ -339,10 +339,14 @@ export type Database = {
           cliente_id: string
           comune_id: string | null
           created_at: string
+          geocodificato_at: string | null
           id: string
           indirizzo: string | null
+          lat: number | null
+          lng: number | null
           nome: string
           prov: string | null
+          stato: string
           updated_at: string
         }
         Insert: {
@@ -350,10 +354,14 @@ export type Database = {
           cliente_id: string
           comune_id?: string | null
           created_at?: string
+          geocodificato_at?: string | null
           id?: string
           indirizzo?: string | null
+          lat?: number | null
+          lng?: number | null
           nome: string
           prov?: string | null
+          stato?: string
           updated_at?: string
         }
         Update: {
@@ -361,10 +369,14 @@ export type Database = {
           cliente_id?: string
           comune_id?: string | null
           created_at?: string
+          geocodificato_at?: string | null
           id?: string
           indirizzo?: string | null
+          lat?: number | null
+          lng?: number | null
           nome?: string
           prov?: string | null
+          stato?: string
           updated_at?: string
         }
         Relationships: [
