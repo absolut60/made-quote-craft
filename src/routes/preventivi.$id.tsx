@@ -599,7 +599,7 @@ function PreventivoEditorPage() {
                         <CantierePicker
                           cliente_id={prev.cliente_id ?? null}
                           value={prev.cantiere_id ?? null}
-                          onChange={(id) => save.mutate({ cantiere_id: id })}
+                          onChange={(id) => save.mutate({ cantiere_id: id }, { onSuccess: () => riapplicaSpeciali.mutate() })}
                         />
                       </div>
                     </CardContent>
