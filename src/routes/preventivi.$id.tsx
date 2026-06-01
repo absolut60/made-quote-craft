@@ -989,7 +989,7 @@ function BloccoCard({
             </div>
           )}
 
-          <RigheTable blocco={blocco} preventivoId={preventivoId} fascia={fascia} readOnly={readOnly} />
+          <RigheTable blocco={blocco} preventivoId={preventivoId} fascia={fascia} readOnly={readOnly} prezziSpecialiMap={prezziSpecialiMap} />
         </CardContent>
       </Card>
     </div>
