@@ -137,6 +137,19 @@ function PreventivoEditorPage() {
     onError: (e: unknown) => toast.error((e as Error).message),
   });
 
+  const aggiornaListini = useMutation({
+    mutationFn: () => aggiornaListiniPreventivo(id),
+    onSuccess: (res) => {
+      const parts = [`${res.aggiornate} righe aggiornate`];
+      if (res.saltate_manuali > 0) parts.push(`${res.saltate_manuali} manuali ignorate`);
+      if (res.senza_listino > 0) parts.push(`${res.senza_listino} senza listino`);
+      toast.success(`Listini aggiornati: ${parts.join(", ")}`);
+      invalidate();
+    },
+    onError: (e: unknown) => toast.error((e as Error).message),
+  });
+
+
   const applicaSconto = useMutation({
     mutationFn: async (perc: number) => {
       await applicaScontoPiedeARighe(id, perc);
