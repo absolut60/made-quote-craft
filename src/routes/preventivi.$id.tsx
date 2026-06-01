@@ -322,6 +322,28 @@ function PreventivoEditorPage() {
                 <><Pencil className="mr-1 h-4 w-4" /> Modifica</>
               )}
             </Button>
+            {editMode && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="outline" disabled={aggiornaListini.isPending}>
+                    <RefreshCw className={cn("mr-1 h-4 w-4", aggiornaListini.isPending && "animate-spin")} />
+                    {aggiornaListini.isPending ? "Aggiornamento…" : "Aggiorna listini"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Aggiornare prezzi e costi dai listini attuali?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Le righe collegate ad articoli verranno aggiornate con prezzo di vendita (fascia {prev.fascia_listino ?? "—"}) e costo netto correnti. Eventuali prezzi e sconti modificati manualmente saranno SOVRASCRITTI. Lo sconto a piede, se presente, verrà riapplicato sui nuovi prezzi. Le righe manuali, note e separatori restano intatti. L'operazione non è reversibile.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annulla</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => aggiornaListini.mutate()}>Aggiorna</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             <Button size="sm" variant="outline" onClick={() => setOutputOpen(true)}>
               <FileDown className="mr-1 h-4 w-4" /> Genera documento
             </Button>
