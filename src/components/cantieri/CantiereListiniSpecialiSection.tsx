@@ -162,42 +162,26 @@ export function CantiereListiniSpecialiSection({
                       {fmt(r.costo_netto_standard)}
                     </td>
                     <td className="px-3 py-1.5">
-                      <NumberInputIt
-                        value={r.costo_netto_speciale ?? ""}
-                        onChange={() => {}}
-                        onBlur={(e) => {
-                          const v = e.currentTarget.value;
-                          const parsed = v.trim() === "" ? null : Number(v.replace(",", "."));
-                          const newVal = parsed === null || !Number.isFinite(parsed) ? null : parsed;
-                          if (newVal !== r.costo_netto_speciale) {
-                            handleSave(r, { costo_netto_speciale: newVal });
-                          }
+                      <EditableNumberCell
+                        value={r.costo_netto_speciale}
+                        highlight={costoDiff}
+                        onCommit={(v) => {
+                          if (v !== r.costo_netto_speciale)
+                            handleSave(r, { costo_netto_speciale: v });
                         }}
-                        className={cn(
-                          "h-7 w-28 px-2 text-right font-mono text-xs",
-                          costoDiff && "border-navy ring-1 ring-navy/30",
-                        )}
                       />
                     </td>
                     <td className="px-3 py-1.5 text-right font-mono text-muted-foreground">
                       {fmt(r.prezzo_standard)}
                     </td>
                     <td className="px-3 py-1.5">
-                      <NumberInputIt
-                        value={r.prezzo_vendita_speciale ?? ""}
-                        onChange={() => {}}
-                        onBlur={(e) => {
-                          const v = e.currentTarget.value;
-                          const parsed = v.trim() === "" ? null : Number(v.replace(",", "."));
-                          const newVal = parsed === null || !Number.isFinite(parsed) ? null : parsed;
-                          if (newVal !== r.prezzo_vendita_speciale) {
-                            handleSave(r, { prezzo_vendita_speciale: newVal });
-                          }
+                      <EditableNumberCell
+                        value={r.prezzo_vendita_speciale}
+                        highlight={prezzoDiff}
+                        onCommit={(v) => {
+                          if (v !== r.prezzo_vendita_speciale)
+                            handleSave(r, { prezzo_vendita_speciale: v });
                         }}
-                        className={cn(
-                          "h-7 w-28 px-2 text-right font-mono text-xs",
-                          prezzoDiff && "border-navy ring-1 ring-navy/30",
-                        )}
                       />
                     </td>
                     <td className={cn("px-3 py-1.5 text-right font-mono font-semibold", margineColor(m))}>
