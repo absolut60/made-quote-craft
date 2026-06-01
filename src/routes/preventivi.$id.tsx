@@ -124,6 +124,18 @@ function PreventivoEditorPage() {
     onError: (e: unknown) => toast.error((e as Error).message),
   });
 
+  const duplica = useMutation({
+    mutationFn: () => duplicaPreventivo(id),
+    onSuccess: (res) => {
+      toast.success(`Preventivo duplicato: ${res.numero}`);
+      if (res.allegatiFalliti.length > 0) {
+        toast.warning(`Allegati non copiati: ${res.allegatiFalliti.join(", ")}`);
+      }
+      navigate({ to: "/preventivi/$id", params: { id: res.id } });
+    },
+    onError: (e: unknown) => toast.error((e as Error).message),
+  });
+
   const applicaSconto = useMutation({
     mutationFn: async (perc: number) => {
       await applicaScontoPiedeARighe(id, perc);
