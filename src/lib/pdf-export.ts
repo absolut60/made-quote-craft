@@ -552,7 +552,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
 export async function exportPropostaRapidaPdf(prev: PreventivoConDettagli) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const w = doc.internal.pageSize.getWidth();
-  drawHeader(doc, "Proposta rapida", prev);
+  const headerEnd = drawHeader(doc, "Proposta rapida", prev);
 
   const blocchi = buildBlocchiOutput(prev);
   const body = blocchi.map((b) => [
@@ -564,7 +564,7 @@ export async function exportPropostaRapidaPdf(prev: PreventivoConDettagli) {
   ]);
 
   autoTable(doc, {
-    startY: 48,
+    startY: Math.max(62, headerEnd + 4),
     head: [["Rif.", "Descrizione", "Quantità", "Prezzo unit.", "Importo"]],
     body,
     theme: "striped",
