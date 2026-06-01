@@ -294,7 +294,10 @@ export async function deletePreventivo(id: string) {
  */
 export async function duplicaPreventivo(
   sourceId: string,
+  options: { mode?: "stesso_cliente" | "nuovo_cliente" } = {},
 ): Promise<{ id: string; numero: string; allegatiFalliti: string[] }> {
+  const mode = options.mode ?? "stesso_cliente";
+  const nuovoCliente = mode === "nuovo_cliente";
   const src = await fetchPreventivo(sourceId);
   if (src.tipo !== "preventivo") {
     throw new Error("Solo i preventivi possono essere duplicati");
@@ -304,8 +307,8 @@ export async function duplicaPreventivo(
   const { preventivo: nuovo } = await createPreventivo({
     data: oggi,
     validita: src.validita,
-    cliente_id: src.cliente_id,
-    cantiere_id: src.cantiere_id,
+    cliente_id: nuovoCliente ? null : src.cliente_id,
+    cantiere_id: nuovoCliente ? null : src.cantiere_id,
     agente_id: src.agente_id,
     filiale: src.filiale,
     fascia_listino: src.fascia_listino,
@@ -368,35 +371,38 @@ export async function duplicaPreventivo(
   }
 
   const allegatiFalliti: string[] = [];
-  const { data: allegati } = await supabase
-    .from("allegati_preventivo")
-    .select("*")
-    .eq("preventivo_id", sourceId);
-  const BUCKET = "allegati-preventivi";
-  for (const a of allegati ?? []) {
-    const safeName = (a.nome_file ?? "file").replace(/[^\w.\-]+/g, "_");
-    const newPath = `${nuovo.id}/${Date.now()}_${safeName}`;
-    const { error: copyErr } = await supabase.storage
-      .from(BUCKET)
-      .copy(a.storage_path, newPath);
-    if (copyErr) {
-      console.error("[duplicaPreventivo] copy storage fallita", a.storage_path, copyErr);
-      allegatiFalliti.push(a.nome_file);
-      continue;
-    }
-    const { error: insErr } = await supabase.from("allegati_preventivo").insert({
-      preventivo_id: nuovo.id,
-      categoria: a.categoria,
-      nome_file: a.nome_file,
-      storage_path: newPath,
-      mime_type: a.mime_type,
-      dimensione_bytes: a.dimensione_bytes,
-    });
-    if (insErr) {
-      await supabase.storage.from(BUCKET).remove([newPath]);
-      allegatiFalliti.push(a.nome_file);
+  if (!nuovoCliente) {
+    const { data: allegati } = await supabase
+      .from("allegati_preventivo")
+      .select("*")
+      .eq("preventivo_id", sourceId);
+    const BUCKET = "allegati-preventivi";
+    for (const a of allegati ?? []) {
+      const safeName = (a.nome_file ?? "file").replace(/[^\w.\-]+/g, "_");
+      const newPath = `${nuovo.id}/${Date.now()}_${safeName}`;
+      const { error: copyErr } = await supabase.storage
+        .from(BUCKET)
+        .copy(a.storage_path, newPath);
+      if (copyErr) {
+        console.error("[duplicaPreventivo] copy storage fallita", a.storage_path, copyErr);
+        allegatiFalliti.push(a.nome_file);
+        continue;
+      }
+      const { error: insErr } = await supabase.from("allegati_preventivo").insert({
+        preventivo_id: nuovo.id,
+        categoria: a.categoria,
+        nome_file: a.nome_file,
+        storage_path: newPath,
+        mime_type: a.mime_type,
+        dimensione_bytes: a.dimensione_bytes,
+      });
+      if (insErr) {
+        await supabase.storage.from(BUCKET).remove([newPath]);
+        allegatiFalliti.push(a.nome_file);
+      }
     }
   }
+
 
   return { id: nuovo.id, numero: nuovo.numero ?? "", allegatiFalliti };
 }
