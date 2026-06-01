@@ -288,11 +288,11 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
   const col: ColonneRighePdf = { ...COLONNE_RIGHE_DEFAULT, ...(opzioni.colonne ?? {}) };
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const w = doc.internal.pageSize.getWidth();
-  drawHeader(doc, prev.tipo === "ordine" ? "Ordine" : "Preventivo", prev);
+  const headerEnd = drawHeader(doc, prev.tipo === "ordine" ? "Ordine" : "Preventivo", prev);
 
   const blocchi = buildBlocchiOutput(prev);
   const USABLE = w - 28;
-  let y = 62;
+  let y = Math.max(62, headerEnd + 4);
 
   for (const b of blocchi) {
     autoTable(doc, {
