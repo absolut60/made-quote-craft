@@ -409,25 +409,58 @@ function RigaRow({
       <td className="text-center text-[10px] text-muted-foreground">{idx + 1}</td>
       <td className="px-1 py-0.5">
         {(tipo === "articolo_singolo" || tipo === "da_kit") ? (
-          <ArticoloPicker
-            autoOpen={autoOpenPicker}
-            value={row.articolo_id}
-            onChange={(articolo_id, articolo) => {
-              const listino = articolo?.listini_vendita?.find((l) => l.fascia === fascia);
-              const acquistoRecente = articolo?.listini_acquisto?.[0];
-              const prezzo = listino?.prezzo == null ? null : Number(listino.prezzo);
-              const costo = acquistoRecente?.costo_netto == null ? null : Number(acquistoRecente.costo_netto);
-              onPatch({
-                articolo_id,
-                um: articolo?.um ?? null,
-                descrizione: articolo?.descrizione ?? null,
-                prezzo_unit: prezzo,
-                costo,
-                vendita: prezzo,
-                peso: articolo?.peso_unit == null ? null : Number(articolo.peso_unit),
-              });
-            }}
-          />
+          <>
+            <ArticoloPicker
+              autoOpen={autoOpenPicker}
+              value={row.articolo_id}
+              onChange={(articolo_id, articolo) => {
+                const listino = articolo?.listini_vendita?.find((l) => l.fascia === fascia);
+                const acquistoRecente = articolo?.listini_acquisto?.[0];
+                let prezzo = listino?.prezzo == null ? null : Number(listino.prezzo);
+                let costo = acquistoRecente?.costo_netto == null ? null : Number(acquistoRecente.costo_netto);
+                const sp = articolo?.cod_gamma && prezziSpecialiMap ? prezziSpecialiMap.get(articolo.cod_gamma) : undefined;
+                if (sp) {
+                  if (sp.costo != null) costo = sp.costo;
+                  if (sp.prezzo != null) prezzo = sp.prezzo;
+                }
+                onPatch({
+                  articolo_id,
+                  um: articolo?.um ?? null,
+                  descrizione: articolo?.descrizione ?? null,
+                  prezzo_unit: prezzo,
+                  sconto_perc: sp ? 0 : (row.sconto_perc ?? 0),
+                  costo,
+                  vendita: prezzo,
+                  peso: articolo?.peso_unit == null ? null : Number(articolo.peso_unit),
+                });
+              }}
+            />
+            {(() => {
+              const st = statoPrezzoSpecialeRiga(
+                { prezzo_unit: row.prezzo_unit, costo: row.costo, quantita: row.quantita },
+                row.articolo?.cod_gamma,
+                prezziSpecialiMap,
+              );
+              if (!st) return null;
+              const fmt = (v: number | null) => v == null ? "—" : `€ ${v.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 5 })}`;
+              return (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span
+                        className="mt-0.5 inline-flex items-center gap-1 rounded border border-[#0d1f3c]/30 bg-[#0d1f3c]/5 px-1.5 py-0.5 text-[10px] font-semibold text-[#0d1f3c]"
+                      >
+                        🏗 Cantiere{st.stato === "modificato" ? " (modificato)" : ""}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      Prezzo speciale cantiere — costo: {fmt(st.special.costo)} / vendita: {fmt(st.special.prezzo)}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              );
+            })()}
+          </>
         ) : (
           <Input
             defaultValue={row.descrizione ?? ""}
