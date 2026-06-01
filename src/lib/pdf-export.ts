@@ -641,14 +641,14 @@ export async function exportPropostaRapidaPdf(prev: PreventivoConDettagli) {
 
 export async function exportListaMaterialiPdf(prev: PreventivoConDettagli) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  drawHeader(doc, "Lista materiali", prev);
+  const headerEnd = drawHeader(doc, "Lista materiali", prev);
 
   const base = aggregaMateriali(prev.blocchi);
   const info = await fetchArticoliPerOrdine(base.map((m) => m.articolo_id));
   const mats = arricchisciMateriali(base, info);
 
   autoTable(doc, {
-    startY: 48,
+    startY: Math.max(62, headerEnd + 4),
     head: [["Cod. Gamma", "Descrizione", "U.M.", "Quantità", "Peso (kg)", "Fornitore"]],
     body: mats.map((m) => [
       m.cod_gamma ?? "",
