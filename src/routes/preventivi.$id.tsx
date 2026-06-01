@@ -34,11 +34,12 @@ import {
   addBloccoVuoto,
   applicaScontoPiedeARighe,
   aggiornaListiniPreventivo,
+  buildPrezziSpecialiMap,
   calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, duplicaPreventivo, fetchAgenti, fetchCliente, fetchOrdiniCollegati, fetchPreventivo, fetchPreventivoOrigine,
   fractionalOrder,
-  reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
+  reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, riapplicaPrezziSpecialiCantiere, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
   updateBlocco, updatePreventivo,
-  type BloccoConRighe, type StatoPreventivo, type TipoDoc,
+  type BloccoConRighe, type PrezziSpecialiMap, type StatoPreventivo, type TipoDoc,
 } from "@/lib/preventivi-api";
 import { computeEvasione } from "@/lib/evasione";
 import { EvasioneBadge } from "@/components/preventivi/EvasioneBadge";
