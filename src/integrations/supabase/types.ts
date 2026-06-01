@@ -292,6 +292,47 @@ export type Database = {
           },
         ]
       }
+      cantiere_listini_speciali: {
+        Row: {
+          cantiere_id: string
+          cod_gamma: string
+          costo_netto_speciale: number | null
+          created_at: string
+          id: string
+          note: string | null
+          prezzo_vendita_speciale: number | null
+          updated_at: string
+        }
+        Insert: {
+          cantiere_id: string
+          cod_gamma: string
+          costo_netto_speciale?: number | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          prezzo_vendita_speciale?: number | null
+          updated_at?: string
+        }
+        Update: {
+          cantiere_id?: string
+          cod_gamma?: string
+          costo_netto_speciale?: number | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          prezzo_vendita_speciale?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cantiere_listini_speciali_cantiere_id_fkey"
+            columns: ["cantiere_id"]
+            isOneToOne: false
+            referencedRelation: "cantieri"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cantieri: {
         Row: {
           cap: string | null
