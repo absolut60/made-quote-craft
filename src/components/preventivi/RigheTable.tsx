@@ -40,8 +40,9 @@ import { EditableNumberCell } from "@/components/listini/EditableNumberCell";
 import { ArticoloPicker } from "@/components/kit/ArticoloPicker";
 import {
   calcolaBlocco, deleteRiga, fractionalOrder, insertRiga, reorderRighe,
+  statoPrezzoSpecialeRiga,
   TIPI_RIGA, TIPI_RIGA_LABEL, updateRiga,
-  type BloccoConRighe, type Riga, type TipoRiga,
+  type BloccoConRighe, type PrezziSpecialiMap, type Riga, type TipoRiga,
 } from "@/lib/preventivi-api";
 import type { FasciaListino } from "@/lib/articoli-api";
 import { round2 } from "@/lib/pricing";
@@ -53,11 +54,13 @@ export function RigheTable({
   preventivoId,
   fascia,
   readOnly = false,
+  prezziSpecialiMap,
 }: {
   blocco: BloccoConRighe;
   preventivoId: string;
   fascia: FasciaListino;
   readOnly?: boolean;
+  prezziSpecialiMap?: PrezziSpecialiMap | null;
 }) {
   const [openArticoloId, setOpenArticoloId] = useState<string | null>(null);
   const [pendingPickerId, setPendingPickerId] = useState<string | null>(null);
