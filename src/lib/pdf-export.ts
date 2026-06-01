@@ -105,9 +105,29 @@ function drawHeader(doc: jsPDF, titolo: string, prev: PreventivoConDettagli) {
   }
   if (prev.cantiere) {
     const cant = prev.cantiere as typeof prev.cantiere & { indirizzo?: string | null };
-    doc.setTextColor(...GRIGIO);
-    const ct = `Cantiere: ${cant.nome}${cant.indirizzo ? " — " + cant.indirizzo : ""}`;
-    doc.text(ct.slice(0, 78), 14, yL);
+    // Badge CANTIERE in evidenza — sfondo tono-su-tono coerente con la palette MADE
+    const badgeY = by + bh - 11.5; // ancorato in basso nella banda
+    const badgeH = 9;
+    const badgeW = 130;
+    const badgeX = 14;
+    const CANTIERE_BG: [number, number, number] = [220, 230, 245];
+    const CANTIERE_BORDER: [number, number, number] = [180, 200, 225];
+    doc.setFillColor(...CANTIERE_BG);
+    doc.setDrawColor(...CANTIERE_BORDER);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 1.2, 1.2, "FD");
+
+    doc.setFont("helvetica", "bold"); doc.setFontSize(6);
+    doc.setTextColor(...LABEL_COL);
+    doc.text("CANTIERE", badgeX + 3, badgeY + 3.6);
+
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+    doc.setTextColor(...NAVY);
+    const ctName = cant.nome ?? "—";
+    const ctAddr = cant.indirizzo ? "  ·  " + cant.indirizzo : "";
+    const ctFull = (ctName + ctAddr).slice(0, 78);
+    doc.text(ctFull, badgeX + 3, badgeY + 7.6);
+    doc.setFont("helvetica", "normal");
   }
 
   // Metadata dx
