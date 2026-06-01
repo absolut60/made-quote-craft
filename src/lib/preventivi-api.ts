@@ -609,6 +609,10 @@ export async function aggiornaListiniPreventivo(preventivo_id: string): Promise<
   let saltate_manuali = 0;
   let senza_listino = 0;
 
+  // Mappa prezzi speciali del cantiere collegato (override su standard).
+  const prezziSpecialiMap = buildPrezziSpecialiMap(prev.prezziSpeciali ?? []);
+  let speciali_applicati = 0;
+
   // Itera TUTTI i blocchi e TUTTE le righe — esecuzione sequenziale per riga
   // per evitare race/limiti di concorrenza che potevano far fallire silenziosamente
   // gli update dei blocchi successivi al primo.
