@@ -557,20 +557,8 @@ function PreventivoEditorPage() {
 
             {/* ===== CORPO ===== */}
             <section className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Corpo · Blocchi ({prev.blocchi.length})
-                </div>
-                {editMode && (
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" onClick={handleAddEmptyBlocco} disabled={addEmptyBlocco.isPending}>
-                      <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setAddBloccoOpen(true)}>
-                      Da Kit
-                    </Button>
-                  </div>
-                )}
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Corpo · Blocchi ({prev.blocchi.length})
               </div>
 
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEndBlocchi}>
@@ -600,7 +588,17 @@ function PreventivoEditorPage() {
                   </div>
                 </SortableContext>
               </DndContext>
-              </section>
+              {editMode && prev.blocchi.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button size="sm" onClick={handleAddEmptyBlocco} disabled={addEmptyBlocco.isPending}>
+                    <Plus className="mr-1 h-4 w-4" /> Aggiungi blocco
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setAddBloccoOpen(true)}>
+                    Da Kit
+                  </Button>
+                </div>
+              )}
+            </section>
             </fieldset>
 
             {/* ===== PIEDE ===== */}
