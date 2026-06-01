@@ -331,8 +331,9 @@ function AddRowMenu({
 
 function RigaRow({
   row, idx, calc, fascia, readOnly, autoOpenPicker = false, onOpenArticolo, onPatch, onDelete, onAddAbove, onAddBelow,
+  prezziSpecialiMap,
 }: {
-  row: Riga & { articolo: { id: string; descrizione: string; um: string | null; peso_unit: number | null } | null };
+  row: Riga & { articolo: { id: string; cod_gamma: string | null; descrizione: string; um: string | null; peso_unit: number | null } | null };
   idx: number;
   fascia: FasciaListino;
   readOnly: boolean;
@@ -343,6 +344,7 @@ function RigaRow({
   onDelete: () => void;
   onAddAbove: (tipo: TipoRiga) => void;
   onAddBelow: (tipo: TipoRiga) => void;
+  prezziSpecialiMap?: PrezziSpecialiMap | null;
 }) {
 
   const sortable = useSortable({ id: row.id });
