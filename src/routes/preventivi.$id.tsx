@@ -126,7 +126,7 @@ function PreventivoEditorPage() {
   });
 
   const duplica = useMutation({
-    mutationFn: () => duplicaPreventivo(id),
+    mutationFn: (mode: "stesso_cliente" | "nuovo_cliente") => duplicaPreventivo(id, { mode }),
     onSuccess: (res) => {
       toast.success(`Preventivo duplicato: ${res.numero}`);
       if (res.allegatiFalliti.length > 0) {
@@ -136,6 +136,7 @@ function PreventivoEditorPage() {
     },
     onError: (e: unknown) => toast.error((e as Error).message),
   });
+
 
   const aggiornaListini = useMutation({
     mutationFn: () => aggiornaListiniPreventivo(id),
