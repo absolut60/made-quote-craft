@@ -25,6 +25,25 @@ export interface CantiereListinoInput {
   note: string | null;
 }
 
+export interface ListinoSpecialeCantiere {
+  id: string;
+  cod_gamma: string;
+  descrizione: string | null;
+  um: string | null;
+  categoria: string | null;
+  costo_netto_standard: number | null;
+  prezzo_standard: number | null;
+  costo_netto_speciale: number | null;
+  prezzo_vendita_speciale: number | null;
+  note: string | null;
+  updated_at: string;
+  cantiere_id: string;
+  cantiere_nome: string;
+  cliente_id: string;
+  cliente_nome: string;
+  fascia_cliente: FasciaListino | null;
+}
+
 export interface ArticoloPrezziStandard {
   articolo_id: string;
   cod_gamma: string;
@@ -158,4 +177,64 @@ export async function getArticoloConPrezziStandard(
     prezzo_standard: prezzo,
     margine_standard: margine,
   };
+}
+
+/** Vista globale: tutti i listini speciali cantiere con join cantiere/cliente/articolo. */
+export async function getAllListiniSpecialiCantieri(): Promise<ListinoSpecialeCantiere[]> {
+  const { data: rows, error } = await supabase
+    .from("cantiere_listini_speciali")
+    .select("*")
+    .order("updated_at", { ascending: false });
+  if (error) throw error;
+  const list = rows ?? [];
+  if (list.length === 0) return [];
+
+  const codici = Array.from(new Set(list.map((r) => r.cod_gamma)));
+  const cantiereIds = Array.from(new Set(list.map((r) => r.cantiere_id)));
+
+  const [{ data: articoli, error: errA }, { data: cantieri, error: errC }] = await Promise.all([
+    supabase
+      .from("articoli")
+      .select("id, cod_gamma, descrizione, um, categoria, listini_acquisto(*), listini_vendita(*)")
+      .in("cod_gamma", codici),
+    supabase
+      .from("cantieri")
+      .select("id, nome, cliente:clienti(id, ragione_sociale, fascia_listino_default)")
+      .in("id", cantiereIds),
+  ]);
+  if (errA) throw errA;
+  if (errC) throw errC;
+
+  const byCod = new Map<string, (typeof articoli)[number]>();
+  for (const a of articoli ?? []) if (a.cod_gamma) byCod.set(a.cod_gamma, a);
+  const byCantiere = new Map<string, (typeof cantieri)[number]>();
+  for (const c of cantieri ?? []) byCantiere.set(c.id, c);
+
+  return list.map((r) => {
+    const a = byCod.get(r.cod_gamma);
+    const la = piuRecente(a?.listini_acquisto);
+    const costoStd = la ? calcCosto(la).costo_netto : null;
+    const c = byCantiere.get(r.cantiere_id);
+    const cliente = (c as { cliente?: { id: string; ragione_sociale: string; fascia_listino_default: FasciaListino | null } } | undefined)?.cliente ?? null;
+    const fascia = cliente?.fascia_listino_default ?? null;
+    const lv = fascia ? a?.listini_vendita?.find((x) => x.fascia === fascia) : null;
+    return {
+      id: r.id,
+      cod_gamma: r.cod_gamma,
+      descrizione: a?.descrizione ?? null,
+      um: a?.um ?? null,
+      categoria: a?.categoria ?? null,
+      costo_netto_standard: costoStd ?? null,
+      prezzo_standard: lv?.prezzo ?? null,
+      costo_netto_speciale: r.costo_netto_speciale === null ? null : Number(r.costo_netto_speciale),
+      prezzo_vendita_speciale: r.prezzo_vendita_speciale === null ? null : Number(r.prezzo_vendita_speciale),
+      note: r.note,
+      updated_at: r.updated_at,
+      cantiere_id: r.cantiere_id,
+      cantiere_nome: c?.nome ?? "—",
+      cliente_id: cliente?.id ?? "",
+      cliente_nome: cliente?.ragione_sociale ?? "—",
+      fascia_cliente: fascia,
+    };
+  });
 }

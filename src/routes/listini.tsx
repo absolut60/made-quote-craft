@@ -4,6 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ListinoAcquistoView } from "@/components/listini/ListinoAcquistoView";
 import { ListinoVenditaView } from "@/components/listini/ListinoVenditaView";
 import { MatriceRicarichiView } from "@/components/listini/MatriceRicarichiView";
+import { PrezziCantieriView } from "@/components/listini/PrezziCantieriView";
 
 export const Route = createFileRoute("/listini")({
   head: () => ({ meta: [{ title: "Listini — Sistema MADE" }] }),
@@ -25,6 +26,7 @@ function ListiniPage() {
               <TabsTrigger value="acquisto">Listino acquisto</TabsTrigger>
               <TabsTrigger value="vendita">Listino vendita</TabsTrigger>
               <TabsTrigger value="matrice">Matrice ricarichi</TabsTrigger>
+              <TabsTrigger value="cantieri">Prezzi Cantieri</TabsTrigger>
             </TabsList>
             <TabsContent
               value="acquisto"
@@ -46,6 +48,13 @@ function ListiniPage() {
               forceMount
             >
               <MatriceRicarichiView />
+            </TabsContent>
+            <TabsContent
+              value="cantieri"
+              className="mt-0 -mx-3 border-t data-[state=inactive]:hidden lg:-mx-6"
+              forceMount
+            >
+              <PrezziCantieriView />
             </TabsContent>
           </Tabs>
         </div>
