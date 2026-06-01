@@ -475,6 +475,10 @@ export async function applicaScontoPiedeARighe(
         } else {
           totale += n(r.importo);
         }
+      }
+      return supabase.from("blocchi_preventivo").update({ importo: round2(totale) }).eq("id", b.id).then();
+    }),
+  );
 }
 
 /**
