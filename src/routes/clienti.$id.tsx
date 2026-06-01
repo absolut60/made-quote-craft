@@ -491,6 +491,8 @@ function CantieriSection({ clienteId }: { clienteId: string }) {
         onOpenChange={setOpen}
         clienteId={clienteId}
         cantiere={editing}
+        fasciaCliente={(clienteFascia ?? "A") as FasciaListino}
+        fasciaIsDefault={!clienteFascia}
       />
     </section>
   );
