@@ -359,16 +359,22 @@ function PreventivoEditorPage() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Duplicare questo preventivo?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Verrà creata una copia completa (testata, blocchi, righe, allegati) con un nuovo numero e data odierna. Verrai portato sul duplicato.
+                      Scegli come duplicare. In entrambi i casi verrà creato un nuovo numero progressivo, con data di oggi e stato bozza.
+                      <br /><br />
+                      <strong>Stesso cliente</strong>: copia completa di testata, blocchi, righe e allegati.
+                      <br />
+                      <strong>Nuovo cliente</strong>: copia blocchi e righe (prezzi inclusi), ma cliente e cantiere restano vuoti e gli allegati non vengono copiati.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
+                  <AlertDialogFooter className="gap-2 sm:gap-2">
                     <AlertDialogCancel>Annulla</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => duplica.mutate()}>Duplica</AlertDialogAction>
+                    <AlertDialogAction onClick={() => duplica.mutate("nuovo_cliente")}>Nuovo cliente</AlertDialogAction>
+                    <AlertDialogAction onClick={() => duplica.mutate("stesso_cliente")}>Stesso cliente</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             )}
+
             {prev.tipo === "preventivo" && (
               <Button size="sm" onClick={() => setTrasformaOpen(true)}>
                 <ShoppingCart className="mr-1 h-4 w-4" /> Trasforma in ordine
