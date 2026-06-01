@@ -358,31 +358,77 @@ function PreventivoEditorPage() {
               <FileDown className="mr-1 h-4 w-4" /> Genera documento
             </Button>
             {prev.tipo === "preventivo" && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
+              <Dialog
+                open={duplicaOpen}
+                onOpenChange={(v) => {
+                  setDuplicaOpen(v);
+                  if (!v) {
+                    setDuplicaStep("scelta");
+                    setDuplicaClienteId(null);
+                  }
+                }}
+              >
+                <DialogTrigger asChild>
                   <Button size="sm" variant="outline" disabled={duplica.isPending}>
                     <Copy className="mr-1 h-4 w-4" /> {duplica.isPending ? "Duplicazione…" : "Duplica"}
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Duplicare questo preventivo?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Scegli come duplicare. In entrambi i casi verrà creato un nuovo numero progressivo, con data di oggi e stato bozza.
-                      <br /><br />
-                      <strong>Stesso cliente</strong>: copia completa di testata, blocchi, righe e allegati.
-                      <br />
-                      <strong>Nuovo cliente</strong>: copia blocchi e righe (prezzi inclusi), ma cliente e cantiere restano vuoti e gli allegati non vengono copiati.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter className="gap-2 sm:gap-2">
-                    <AlertDialogCancel>Annulla</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => duplica.mutate("nuovo_cliente")}>Nuovo cliente</AlertDialogAction>
-                    <AlertDialogAction onClick={() => duplica.mutate("stesso_cliente")}>Stesso cliente</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {duplicaStep === "scelta"
+                        ? "Duplicare questo preventivo?"
+                        : "Duplica preventivo — Seleziona cliente"}
+                    </DialogTitle>
+                    {duplicaStep === "scelta" && (
+                      <DialogDescription>
+                        Scegli come duplicare. In entrambi i casi verrà creato un nuovo numero progressivo, con data di oggi e stato bozza.
+                        <br /><br />
+                        <strong>Stesso cliente</strong>: copia completa di testata, blocchi, righe e allegati.
+                        <br />
+                        <strong>Nuovo cliente</strong>: copia blocchi e righe (prezzi inclusi), scegli il cliente di destinazione; agente e filiale vengono dal nuovo cliente, cantiere e allegati non vengono copiati.
+                      </DialogDescription>
+                    )}
+                  </DialogHeader>
+
+                  {duplicaStep === "scelta" ? (
+                    <DialogFooter className="gap-2 sm:gap-2">
+                      <Button variant="outline" onClick={() => setDuplicaOpen(false)}>Annulla</Button>
+                      <Button variant="outline" onClick={() => setDuplicaStep("seleziona-cliente")}>
+                        Nuovo cliente
+                      </Button>
+                      <Button onClick={() => duplica.mutate({ mode: "stesso_cliente" })}>
+                        Stesso cliente
+                      </Button>
+                    </DialogFooter>
+                  ) : (
+                    <>
+                      <div className="grid gap-2 py-2">
+                        <Label>Cliente di destinazione</Label>
+                        <ClientePicker value={duplicaClienteId} onChange={setDuplicaClienteId} />
+                        <p className="text-xs text-muted-foreground">
+                          Agente e filiale verranno presi dal cliente selezionato.
+                        </p>
+                      </div>
+                      <DialogFooter className="gap-2 sm:gap-2">
+                        <Button variant="outline" onClick={() => setDuplicaStep("scelta")}>
+                          Indietro
+                        </Button>
+                        <Button
+                          disabled={!duplicaClienteId || duplica.isPending}
+                          onClick={() =>
+                            duplica.mutate({ mode: "nuovo_cliente", nuovoClienteId: duplicaClienteId })
+                          }
+                        >
+                          {duplica.isPending ? "Duplicazione…" : "Duplica"}
+                        </Button>
+                      </DialogFooter>
+                    </>
+                  )}
+                </DialogContent>
+              </Dialog>
             )}
+
 
             {prev.tipo === "preventivo" && (
               <Button size="sm" onClick={() => setTrasformaOpen(true)}>
