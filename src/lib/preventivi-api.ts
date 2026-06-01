@@ -407,10 +407,15 @@ export async function addBloccoDaKit(args: {
     ordine: args.ordine,
   });
 
+  // Per non perdere i valori UNITARI di costo/vendita quando la quantità del
+  // blocco è 0 al momento dell'inserimento (l'utente la imposterà dopo),
+  // memorizziamo le righe come se qBase fosse almeno 1. In questo modo
+  // ricalcolaBloccoSuNuovaQuantita può ricavare i valori unitari da costo/qta.
+  const qBaseEff = args.quantita_base > 0 ? args.quantita_base : 1;
   const righeRows: RigaInsert[] = kit.componenti.map((c, idx) => {
     const r = calcolaRigaKit(c, c.articolo, args.fascia);
     const incidenza = r.incidenza_effettiva;
-    const quantita = round2(incidenza * args.quantita_base);
+    const quantita = round2(incidenza * qBaseEff);
     return {
       blocco_id: blocco.id,
       tipo_riga: "da_kit",
@@ -585,8 +590,15 @@ export function calcolaRiga(r: Partial<Riga>): RigaCalc {
   const importo = round2(q * p * (1 - sc / 100) * segno);
   const costo = round2(n(r.costo) || 0);
   const venditaSnapshot = r.vendita == null ? round2(q * p * segno) : round2(n(r.vendita));
-  // Margine sulla vendita REALE (scontata), non sul prezzo pieno.
-  const margine = importo !== 0 ? ((importo - costo) / importo) * 100 : 0;
+  // Margine % calcolato sui valori UNITARI: indipendente dalla quantità,
+  // così la riga mostra il margine corretto anche con qta=0 (purché ci sia
+  // un costo unitario derivabile). costo memorizzato = costo_unit * quantita.
+  const prezzoScontatoUnit = p * (1 - sc / 100) * segno;
+  const costoUnit = q > 0 ? n(r.costo) / q : 0;
+  const margine =
+    prezzoScontatoUnit !== 0
+      ? ((prezzoScontatoUnit - costoUnit) / prezzoScontatoUnit) * 100
+      : 0;
   return {
     importo,
     costo,
