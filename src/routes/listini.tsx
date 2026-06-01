@@ -4,6 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ListinoAcquistoView } from "@/components/listini/ListinoAcquistoView";
 import { ListinoVenditaView } from "@/components/listini/ListinoVenditaView";
 import { MatriceRicarichiView } from "@/components/listini/MatriceRicarichiView";
+import { PrezziCantieriView } from "@/components/listini/PrezziCantieriView";
 
 export const Route = createFileRoute("/listini")({
   head: () => ({ meta: [{ title: "Listini — Sistema MADE" }] }),
