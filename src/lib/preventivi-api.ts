@@ -282,6 +282,122 @@ export async function deletePreventivo(id: string) {
   if (error) throw error;
 }
 
+/**
+ * Duplica un preventivo: testata + blocchi + righe + allegati (record + file storage).
+ * - Nuovo numero progressivo della serie preventivi
+ * - Data odierna, stato 'bozza'
+ * - Nessun collegamento a ordini (preventivo_origine_id=null, qta_ordinata=0, riga_origine_id=null)
+ * - Solo per documenti di tipo 'preventivo'
+ */
+export async function duplicaPreventivo(
+  sourceId: string,
+): Promise<{ id: string; numero: string; allegatiFalliti: string[] }> {
+  const src = await fetchPreventivo(sourceId);
+  if (src.tipo !== "preventivo") {
+    throw new Error("Solo i preventivi possono essere duplicati");
+  }
+
+  const oggi = new Date().toISOString().slice(0, 10);
+  const { preventivo: nuovo } = await createPreventivo({
+    data: oggi,
+    validita: src.validita,
+    cliente_id: src.cliente_id,
+    cantiere_id: src.cantiere_id,
+    agente_id: src.agente_id,
+    filiale: src.filiale,
+    fascia_listino: src.fascia_listino,
+    tipo_doc: src.tipo_doc,
+    stato: "bozza",
+    iva_perc: src.iva_perc,
+    sconto_piede_perc: src.sconto_piede_perc,
+    note: src.note,
+    tipo: "preventivo",
+    preventivo_origine_id: null,
+    totale_imponibile: src.totale_imponibile,
+    iva_importo: src.iva_importo,
+    totale: src.totale,
+  });
+
+  for (const b of src.blocchi) {
+    const { data: nb, error: bErr } = await supabase
+      .from("blocchi_preventivo")
+      .insert({
+        preventivo_id: nuovo.id,
+        descrizione: b.descrizione,
+        rif_capitolato: b.rif_capitolato,
+        note_tecniche: b.note_tecniche,
+        ordine: b.ordine,
+        importo: b.importo,
+        prezzo_um: b.prezzo_um,
+        um_base: b.um_base,
+        quantita_base: b.quantita_base,
+        kit_id: b.kit_id,
+      })
+      .select("id")
+      .single();
+    if (bErr) throw bErr;
+
+    if (b.righe.length > 0) {
+      const righeIns = b.righe.map((r) => ({
+        blocco_id: nb.id,
+        tipo_riga: r.tipo_riga,
+        articolo_id: r.articolo_id,
+        descrizione: r.descrizione,
+        um: r.um,
+        incidenza: r.incidenza,
+        quantita: r.quantita,
+        prezzo_unit: r.prezzo_unit,
+        sconto_perc: r.sconto_perc,
+        segno: r.segno,
+        importo: r.importo,
+        costo: r.costo,
+        ricarico: r.ricarico,
+        margine: r.margine,
+        vendita: r.vendita,
+        peso: r.peso,
+        ordine: r.ordine,
+        qta_ordinata: 0,
+        riga_origine_id: null,
+      }));
+      const { error: rErr } = await supabase.from("righe_preventivo").insert(righeIns);
+      if (rErr) throw rErr;
+    }
+  }
+
+  const allegatiFalliti: string[] = [];
+  const { data: allegati } = await supabase
+    .from("allegati_preventivo")
+    .select("*")
+    .eq("preventivo_id", sourceId);
+  const BUCKET = "allegati-preventivi";
+  for (const a of allegati ?? []) {
+    const safeName = (a.nome_file ?? "file").replace(/[^\w.\-]+/g, "_");
+    const newPath = `${nuovo.id}/${Date.now()}_${safeName}`;
+    const { error: copyErr } = await supabase.storage
+      .from(BUCKET)
+      .copy(a.storage_path, newPath);
+    if (copyErr) {
+      console.error("[duplicaPreventivo] copy storage fallita", a.storage_path, copyErr);
+      allegatiFalliti.push(a.nome_file);
+      continue;
+    }
+    const { error: insErr } = await supabase.from("allegati_preventivo").insert({
+      preventivo_id: nuovo.id,
+      categoria: a.categoria,
+      nome_file: a.nome_file,
+      storage_path: newPath,
+      mime_type: a.mime_type,
+      dimensione_bytes: a.dimensione_bytes,
+    });
+    if (insErr) {
+      await supabase.storage.from(BUCKET).remove([newPath]);
+      allegatiFalliti.push(a.nome_file);
+    }
+  }
+
+  return { id: nuovo.id, numero: nuovo.numero ?? "", allegatiFalliti };
+}
+
 // =========================================================================
 // Blocchi CRUD + esplosione kit
 // =========================================================================
