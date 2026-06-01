@@ -338,7 +338,10 @@ function ClienteDetailPage() {
               </TabsContent>
 
               <TabsContent value="cantieri" className="mt-4">
-                <CantieriSection clienteId={id} />
+                <CantieriSection
+                  clienteId={id}
+                  clienteFascia={cliente.fascia_listino_default ?? null}
+                />
               </TabsContent>
 
               <TabsContent value="preventivi" className="mt-4">
