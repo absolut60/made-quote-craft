@@ -25,6 +25,25 @@ export interface CantiereListinoInput {
   note: string | null;
 }
 
+export interface ListinoSpecialeCantiere {
+  id: string;
+  cod_gamma: string;
+  descrizione: string | null;
+  um: string | null;
+  categoria: string | null;
+  costo_netto_standard: number | null;
+  prezzo_standard: number | null;
+  costo_netto_speciale: number | null;
+  prezzo_vendita_speciale: number | null;
+  note: string | null;
+  updated_at: string;
+  cantiere_id: string;
+  cantiere_nome: string;
+  cliente_id: string;
+  cliente_nome: string;
+  fascia_cliente: FasciaListino | null;
+}
+
 export interface ArticoloPrezziStandard {
   articolo_id: string;
   cod_gamma: string;
