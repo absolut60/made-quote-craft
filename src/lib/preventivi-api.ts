@@ -156,11 +156,61 @@ export async function fetchAgenti(): Promise<Agente[]> {
 // Preventivo CRUD
 // =========================================================================
 
+export interface PrezzoSpecialeCantiere {
+  cod_gamma: string;
+  costo_netto_speciale: number | null;
+  prezzo_vendita_speciale: number | null;
+}
+
+export type PrezziSpecialiMap = Map<
+  string,
+  { costo: number | null; prezzo: number | null }
+>;
+
+export function buildPrezziSpecialiMap(list: PrezzoSpecialeCantiere[]): PrezziSpecialiMap {
+  const m: PrezziSpecialiMap = new Map();
+  for (const s of list) {
+    if (!s.cod_gamma) continue;
+    m.set(s.cod_gamma, {
+      costo: s.costo_netto_speciale == null ? null : Number(s.costo_netto_speciale),
+      prezzo: s.prezzo_vendita_speciale == null ? null : Number(s.prezzo_vendita_speciale),
+    });
+  }
+  return m;
+}
+
+/**
+ * Determina se una riga sta usando prezzi speciali di cantiere e se sono stati
+ * modificati manualmente.
+ */
+export function statoPrezzoSpecialeRiga(
+  row: { prezzo_unit: number | null; costo: number | null; quantita: number | null },
+  cod_gamma: string | null | undefined,
+  map: PrezziSpecialiMap | null | undefined,
+): {
+  stato: "attivo" | "modificato";
+  special: { costo: number | null; prezzo: number | null };
+} | null {
+  if (!map || !cod_gamma) return null;
+  const sp = map.get(cod_gamma);
+  if (!sp) return null;
+  if (sp.costo == null && sp.prezzo == null) return null;
+  const q = Number(row.quantita ?? 0);
+  const costoUnit = q > 0 ? Number(row.costo ?? 0) / q : Number(row.costo ?? 0);
+  const prezzoUnit = Number(row.prezzo_unit ?? 0);
+  const EPS = 0.015;
+  const costoOk = sp.costo == null || Math.abs(costoUnit - sp.costo) <= EPS;
+  const prezzoOk = sp.prezzo == null || Math.abs(prezzoUnit - sp.prezzo) <= EPS;
+  return { stato: costoOk && prezzoOk ? "attivo" : "modificato", special: sp };
+}
+
 export interface PreventivoConDettagli extends Preventivo {
   cliente: Cliente | null;
   cantiere: Cantiere | null;
   agente: Agente | null;
   blocchi: BloccoConRighe[];
+  /** Prezzi speciali del cantiere collegato (vuoto se nessun cantiere). */
+  prezziSpeciali: PrezzoSpecialeCantiere[];
 }
 
 export interface BloccoConRighe extends Blocco {
@@ -183,6 +233,16 @@ const BLOCCHI_SELECT = `
   )
 `;
 
+async function fetchPrezziSpecialiCantiere(cantiere_id: string | null): Promise<PrezzoSpecialeCantiere[]> {
+  if (!cantiere_id) return [];
+  const { data, error } = await supabase
+    .from("cantiere_listini_speciali")
+    .select("cod_gamma, costo_netto_speciale, prezzo_vendita_speciale")
+    .eq("cantiere_id", cantiere_id);
+  if (error) throw error;
+  return (data ?? []).filter((r) => r.cod_gamma) as PrezzoSpecialeCantiere[];
+}
+
 export async function fetchPreventivo(id: string): Promise<PreventivoConDettagli> {
   const { data, error } = await supabase
     .from("preventivi")
@@ -201,6 +261,7 @@ export async function fetchPreventivo(id: string): Promise<PreventivoConDettagli
   for (const b of p.blocchi) {
     b.righe.sort((a, b2) => Number(a.ordine ?? 0) - Number(b2.ordine ?? 0));
   }
+  p.prezziSpeciali = await fetchPrezziSpecialiCantiere(p.cantiere_id);
   return p;
 }
 
