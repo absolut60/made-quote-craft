@@ -24,13 +24,13 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  ArrowLeft, Check, FileDown, GripVertical, Pencil, Plus, ShoppingCart, Trash2,
+  ArrowLeft, Check, Copy, FileDown, GripVertical, Pencil, Plus, ShoppingCart, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   addBloccoVuoto,
   applicaScontoPiedeARighe,
-  calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, fetchAgenti, fetchCliente, fetchOrdiniCollegati, fetchPreventivo, fetchPreventivoOrigine,
+  calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, duplicaPreventivo, fetchAgenti, fetchCliente, fetchOrdiniCollegati, fetchPreventivo, fetchPreventivoOrigine,
   fractionalOrder,
   reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
   updateBlocco, updatePreventivo,
@@ -120,6 +120,18 @@ function PreventivoEditorPage() {
       const isOrd = prev?.tipo === "ordine";
       toast.success(isOrd ? "Ordine eliminato" : "Preventivo eliminato");
       navigate({ to: isOrd ? "/ordini" : "/preventivi" });
+    },
+    onError: (e: unknown) => toast.error((e as Error).message),
+  });
+
+  const duplica = useMutation({
+    mutationFn: () => duplicaPreventivo(id),
+    onSuccess: (res) => {
+      toast.success(`Preventivo duplicato: ${res.numero}`);
+      if (res.allegatiFalliti.length > 0) {
+        toast.warning(`Allegati non copiati: ${res.allegatiFalliti.join(", ")}`);
+      }
+      navigate({ to: "/preventivi/$id", params: { id: res.id } });
     },
     onError: (e: unknown) => toast.error((e as Error).message),
   });
@@ -299,6 +311,27 @@ function PreventivoEditorPage() {
             <Button size="sm" variant="outline" onClick={() => setOutputOpen(true)}>
               <FileDown className="mr-1 h-4 w-4" /> Genera documento
             </Button>
+            {prev.tipo === "preventivo" && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="outline" disabled={duplica.isPending}>
+                    <Copy className="mr-1 h-4 w-4" /> {duplica.isPending ? "Duplicazione…" : "Duplica"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Duplicare questo preventivo?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Verrà creata una copia completa (testata, blocchi, righe, allegati) con un nuovo numero e data odierna. Verrai portato sul duplicato.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annulla</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => duplica.mutate()}>Duplica</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             {prev.tipo === "preventivo" && (
               <Button size="sm" onClick={() => setTrasformaOpen(true)}>
                 <ShoppingCart className="mr-1 h-4 w-4" /> Trasforma in ordine
