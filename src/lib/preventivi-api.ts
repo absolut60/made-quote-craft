@@ -407,10 +407,15 @@ export async function addBloccoDaKit(args: {
     ordine: args.ordine,
   });
 
+  // Per non perdere i valori UNITARI di costo/vendita quando la quantità del
+  // blocco è 0 al momento dell'inserimento (l'utente la imposterà dopo),
+  // memorizziamo le righe come se qBase fosse almeno 1. In questo modo
+  // ricalcolaBloccoSuNuovaQuantita può ricavare i valori unitari da costo/qta.
+  const qBaseEff = args.quantita_base > 0 ? args.quantita_base : 1;
   const righeRows: RigaInsert[] = kit.componenti.map((c, idx) => {
     const r = calcolaRigaKit(c, c.articolo, args.fascia);
     const incidenza = r.incidenza_effettiva;
-    const quantita = round2(incidenza * args.quantita_base);
+    const quantita = round2(incidenza * qBaseEff);
     return {
       blocco_id: blocco.id,
       tipo_riga: "da_kit",
