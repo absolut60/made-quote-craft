@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import type { PreventivoConDettagli } from "./preventivi-api";
+import type { PreventivoConDettagli, Cantiere } from "./preventivi-api";
 import { calcolaTotaliPreventivo, calcolaBlocco } from "./preventivi-api";
 import {
   aggregaMateriali, arricchisciMateriali, arrotondaPerFornitore, buildBlocchiOutput,
