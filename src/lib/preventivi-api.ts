@@ -4,6 +4,9 @@ import { round2 } from "./pricing";
 import {
   calcolaRigaKit,
   fetchKit,
+  getCostoNettoCorrente,
+  getPrezzoVendita,
+  type ArticoloConListini,
   type FasciaListino,
 } from "./kit-api";
 
@@ -476,6 +479,113 @@ export async function applicaScontoPiedeARighe(
       return supabase.from("blocchi_preventivo").update({ importo: round2(totale) }).eq("id", b.id).then();
     }),
   );
+}
+
+/**
+ * Aggiorna prezzi e costi delle righe collegate ad articoli (e componenti kit) leggendo
+ * i listini ATTUALI per la fascia del preventivo. Sovrascrive prezzo_unit, sconti di riga
+ * (azzerati), costo, vendita lorda e peso. Lascia intatte le righe manuali/descrittive.
+ * Se è impostato uno sconto a piede, lo riapplica sui nuovi prezzi.
+ * Ricalcola i totali dei blocchi e del documento.
+ */
+export async function aggiornaListiniPreventivo(preventivo_id: string): Promise<{
+  aggiornate: number;
+  saltate_manuali: number;
+  senza_listino: number;
+}> {
+  const prev = await fetchPreventivo(preventivo_id);
+  const fascia = prev.fascia_listino;
+  if (!fascia) {
+    throw new Error("Imposta la fascia di listino del preventivo prima di aggiornare i listini.");
+  }
+
+  const articoloIds = new Set<string>();
+  for (const b of prev.blocchi) {
+    for (const r of b.righe) {
+      if (r.articolo_id && (r.tipo_riga === "articolo_singolo" || r.tipo_riga === "da_kit")) {
+        articoloIds.add(r.articolo_id);
+      }
+    }
+  }
+
+  const articoliMap = new Map<string, ArticoloConListini>();
+  if (articoloIds.size > 0) {
+    const { data, error } = await supabase
+      .from("articoli")
+      .select(`id, cod_gamma, descrizione, um, peso_unit, qta_fornitore, qta_cliente,
+        listini_acquisto:listini_acquisto(*),
+        listini_vendita:listini_vendita(*)`)
+      .in("id", Array.from(articoloIds));
+    if (error) throw error;
+    for (const a of (data ?? []) as unknown as ArticoloConListini[]) {
+      articoliMap.set(a.id, a);
+    }
+  }
+
+  let aggiornate = 0;
+  let saltate_manuali = 0;
+  let senza_listino = 0;
+  const updates: PromiseLike<unknown>[] = [];
+
+  for (const b of prev.blocchi) {
+    for (const r of b.righe) {
+      if (r.tipo_riga === "manuale") { saltate_manuali++; continue; }
+      if (r.tipo_riga !== "articolo_singolo" && r.tipo_riga !== "da_kit") continue;
+      if (!r.articolo_id) { saltate_manuali++; continue; }
+      const art = articoliMap.get(r.articolo_id);
+      if (!art) { senza_listino++; continue; }
+      const vendita_unit = getPrezzoVendita(art, fascia);
+      const costo_unit = getCostoNettoCorrente(art);
+      if (!vendita_unit) senza_listino++;
+      const q = n(r.quantita);
+      const segno = (r.segno ?? 1) === -1 ? -1 : 1;
+      const importo = round2(q * vendita_unit * segno);
+      updates.push(
+        supabase.from("righe_preventivo").update({
+          prezzo_unit: round2(vendita_unit),
+          sconto_perc: 0,
+          costo: round2(costo_unit * q),
+          vendita: round2(vendita_unit * q),
+          peso: round2(Number(art.peso_unit ?? 0) * q),
+          importo,
+        }).eq("id", r.id).then(),
+      );
+      aggiornate++;
+    }
+  }
+  await Promise.all(updates);
+
+  const sp = n(prev.sconto_piede_perc);
+  if (sp > 0) {
+    await applicaScontoPiedeARighe(preventivo_id, sp);
+  } else {
+    const { data: blocchi } = await supabase
+      .from("blocchi_preventivo")
+      .select("id, righe:righe_preventivo(*)")
+      .eq("preventivo_id", preventivo_id);
+    await Promise.all(((blocchi ?? []) as unknown as { id: string; righe: Riga[] }[]).map((b) => {
+      let totale = 0;
+      for (const r of b.righe ?? []) {
+        if (r.tipo_riga === "nota" || r.tipo_riga === "separatore" || r.tipo_riga === "sotto_totale") continue;
+        totale += n(r.importo);
+      }
+      return supabase.from("blocchi_preventivo").update({ importo: round2(totale) }).eq("id", b.id).then();
+    }));
+  }
+
+  const { data: blocchi2 } = await supabase
+    .from("blocchi_preventivo")
+    .select("importo")
+    .eq("preventivo_id", preventivo_id);
+  const tot = (blocchi2 ?? []).reduce((s, b) => s + n((b as { importo: number | null }).importo), 0);
+  const iva = n(prev.iva_perc);
+  await supabase.from("preventivi").update({
+    totale_imponibile: round2(tot),
+    iva_importo: round2(tot * iva / 100),
+    totale: round2(tot * (1 + iva / 100)),
+  }).eq("id", preventivo_id);
+
+  return { aggiornate, saltate_manuali, senza_listino };
 }
 
 /** Crea un blocco vuoto in fondo al preventivo. */

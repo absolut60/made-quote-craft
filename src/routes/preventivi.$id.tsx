@@ -24,12 +24,13 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  ArrowLeft, Check, Copy, FileDown, GripVertical, Pencil, Plus, ShoppingCart, Trash2,
+  ArrowLeft, Check, Copy, FileDown, GripVertical, Pencil, Plus, RefreshCw, ShoppingCart, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   addBloccoVuoto,
   applicaScontoPiedeARighe,
+  aggiornaListiniPreventivo,
   calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, duplicaPreventivo, fetchAgenti, fetchCliente, fetchOrdiniCollegati, fetchPreventivo, fetchPreventivoOrigine,
   fractionalOrder,
   reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
@@ -135,6 +136,19 @@ function PreventivoEditorPage() {
     },
     onError: (e: unknown) => toast.error((e as Error).message),
   });
+
+  const aggiornaListini = useMutation({
+    mutationFn: () => aggiornaListiniPreventivo(id),
+    onSuccess: (res) => {
+      const parts = [`${res.aggiornate} righe aggiornate`];
+      if (res.saltate_manuali > 0) parts.push(`${res.saltate_manuali} manuali ignorate`);
+      if (res.senza_listino > 0) parts.push(`${res.senza_listino} senza listino`);
+      toast.success(`Listini aggiornati: ${parts.join(", ")}`);
+      invalidate();
+    },
+    onError: (e: unknown) => toast.error((e as Error).message),
+  });
+
 
   const applicaSconto = useMutation({
     mutationFn: async (perc: number) => {
@@ -308,6 +322,28 @@ function PreventivoEditorPage() {
                 <><Pencil className="mr-1 h-4 w-4" /> Modifica</>
               )}
             </Button>
+            {editMode && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="outline" disabled={aggiornaListini.isPending}>
+                    <RefreshCw className={cn("mr-1 h-4 w-4", aggiornaListini.isPending && "animate-spin")} />
+                    {aggiornaListini.isPending ? "Aggiornamento…" : "Aggiorna listini"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Aggiornare prezzi e costi dai listini attuali?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Le righe collegate ad articoli verranno aggiornate con prezzo di vendita (fascia {prev.fascia_listino ?? "—"}) e costo netto correnti. Eventuali prezzi e sconti modificati manualmente saranno SOVRASCRITTI. Lo sconto a piede, se presente, verrà riapplicato sui nuovi prezzi. Le righe manuali, note e separatori restano intatti. L'operazione non è reversibile.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annulla</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => aggiornaListini.mutate()}>Aggiorna</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             <Button size="sm" variant="outline" onClick={() => setOutputOpen(true)}>
               <FileDown className="mr-1 h-4 w-4" /> Genera documento
             </Button>
