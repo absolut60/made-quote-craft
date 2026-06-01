@@ -264,7 +264,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
         2: { cellWidth: 32 },
         3: { cellWidth: 36 },
       },
-      margin: { left: 14, right: 14 },
+      margin: { left: 14, right: 14, bottom: 30, top: 20 },
     });
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
 
@@ -418,7 +418,7 @@ export async function exportPreventivoPdf(prev: PreventivoConDettagli, opzioni: 
         bodyStyles: { fontSize: 7, textColor: [30, 35, 45] as [number, number, number], cellPadding: 1.4 },
         alternateRowStyles: { fillColor: GRIGIO_LT },
         columnStyles,
-        margin: { left: 14, right: 14 },
+        margin: { left: 14, right: 14, bottom: 30, top: 20 },
       });
       y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
     }
@@ -527,7 +527,7 @@ export async function exportPropostaRapidaPdf(prev: PreventivoConDettagli) {
       3: { cellWidth: 32, halign: "right", font: "courier" },
       4: { cellWidth: 32, halign: "right", font: "courier", fontStyle: "bold" },
     },
-    margin: { left: 14, right: 14 },
+    margin: { left: 14, right: 14, bottom: 30, top: 20 },
   });
   let y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
 
@@ -619,7 +619,7 @@ export async function exportListaMaterialiPdf(prev: PreventivoConDettagli) {
       4: { cellWidth: 22, halign: "right", font: "courier" },
       5: { cellWidth: 36 },
     },
-    margin: { left: 14, right: 14 },
+    margin: { left: 14, right: 14, bottom: 30, top: 20 },
   });
 
   drawFooter(doc);
@@ -673,7 +673,7 @@ export async function exportListaFornitorePdf(prev: PreventivoConDettagli) {
         5: { cellWidth: 12, halign: "right", font: "courier" },
         6: { cellWidth: 24, halign: "right", font: "courier", fontStyle: "bold" },
       },
-      margin: { left: 14, right: 14 },
+      margin: { left: 14, right: 14, bottom: 30, top: 20 },
     });
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
     if (y > doc.internal.pageSize.getHeight() - 30) {
