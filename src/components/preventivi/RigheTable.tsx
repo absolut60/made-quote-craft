@@ -208,7 +208,7 @@ export function RigheTable({
                     readOnly={readOnly}
                     autoOpenPicker={r.id === pendingPickerId}
                     onOpenArticolo={(aid) => setOpenArticoloId(aid)}
-
+                    prezziSpecialiMap={prezziSpecialiMap ?? null}
                     calc={calcMap.get(r.id)!}
                     onPatch={(patch) => upd.mutate({ id: r.id, patch })}
                     onDelete={() => del.mutate(r.id)}
