@@ -30,7 +30,7 @@ export function AggiungiBloccoDialog({
   const [tab, setTab] = useState<"kit" | "vuoto">("kit");
   const [famiglia, setFamiglia] = useState<string>("ALL");
   const [kitId, setKitId] = useState<string | null>(null);
-  const [quantita, setQuantita] = useState("0");
+  const [quantita, setQuantita] = useState("1");
 
   const { data: kits = [] } = useQuery({
     queryKey: ["kits-with-comp"],
