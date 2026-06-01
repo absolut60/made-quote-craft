@@ -125,17 +125,26 @@ function PreventivoEditorPage() {
     onError: (e: unknown) => toast.error((e as Error).message),
   });
 
+  const [duplicaOpen, setDuplicaOpen] = useState(false);
+  const [duplicaStep, setDuplicaStep] = useState<"scelta" | "seleziona-cliente">("scelta");
+  const [duplicaClienteId, setDuplicaClienteId] = useState<string | null>(null);
+
   const duplica = useMutation({
-    mutationFn: (mode: "stesso_cliente" | "nuovo_cliente") => duplicaPreventivo(id, { mode }),
+    mutationFn: (args: { mode: "stesso_cliente" | "nuovo_cliente"; nuovoClienteId?: string | null }) =>
+      duplicaPreventivo(id, { mode: args.mode, nuovoClienteId: args.nuovoClienteId ?? null }),
     onSuccess: (res) => {
       toast.success(`Preventivo duplicato: ${res.numero}`);
       if (res.allegatiFalliti.length > 0) {
         toast.warning(`Allegati non copiati: ${res.allegatiFalliti.join(", ")}`);
       }
+      setDuplicaOpen(false);
+      setDuplicaStep("scelta");
+      setDuplicaClienteId(null);
       navigate({ to: "/preventivi/$id", params: { id: res.id } });
     },
     onError: (e: unknown) => toast.error((e as Error).message),
   });
+
 
 
   const aggiornaListini = useMutation({
