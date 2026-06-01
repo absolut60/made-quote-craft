@@ -371,35 +371,38 @@ export async function duplicaPreventivo(
   }
 
   const allegatiFalliti: string[] = [];
-  const { data: allegati } = await supabase
-    .from("allegati_preventivo")
-    .select("*")
-    .eq("preventivo_id", sourceId);
-  const BUCKET = "allegati-preventivi";
-  for (const a of allegati ?? []) {
-    const safeName = (a.nome_file ?? "file").replace(/[^\w.\-]+/g, "_");
-    const newPath = `${nuovo.id}/${Date.now()}_${safeName}`;
-    const { error: copyErr } = await supabase.storage
-      .from(BUCKET)
-      .copy(a.storage_path, newPath);
-    if (copyErr) {
-      console.error("[duplicaPreventivo] copy storage fallita", a.storage_path, copyErr);
-      allegatiFalliti.push(a.nome_file);
-      continue;
-    }
-    const { error: insErr } = await supabase.from("allegati_preventivo").insert({
-      preventivo_id: nuovo.id,
-      categoria: a.categoria,
-      nome_file: a.nome_file,
-      storage_path: newPath,
-      mime_type: a.mime_type,
-      dimensione_bytes: a.dimensione_bytes,
-    });
-    if (insErr) {
-      await supabase.storage.from(BUCKET).remove([newPath]);
-      allegatiFalliti.push(a.nome_file);
+  if (!nuovoCliente) {
+    const { data: allegati } = await supabase
+      .from("allegati_preventivo")
+      .select("*")
+      .eq("preventivo_id", sourceId);
+    const BUCKET = "allegati-preventivi";
+    for (const a of allegati ?? []) {
+      const safeName = (a.nome_file ?? "file").replace(/[^\w.\-]+/g, "_");
+      const newPath = `${nuovo.id}/${Date.now()}_${safeName}`;
+      const { error: copyErr } = await supabase.storage
+        .from(BUCKET)
+        .copy(a.storage_path, newPath);
+      if (copyErr) {
+        console.error("[duplicaPreventivo] copy storage fallita", a.storage_path, copyErr);
+        allegatiFalliti.push(a.nome_file);
+        continue;
+      }
+      const { error: insErr } = await supabase.from("allegati_preventivo").insert({
+        preventivo_id: nuovo.id,
+        categoria: a.categoria,
+        nome_file: a.nome_file,
+        storage_path: newPath,
+        mime_type: a.mime_type,
+        dimensione_bytes: a.dimensione_bytes,
+      });
+      if (insErr) {
+        await supabase.storage.from(BUCKET).remove([newPath]);
+        allegatiFalliti.push(a.nome_file);
+      }
     }
   }
+
 
   return { id: nuovo.id, numero: nuovo.numero ?? "", allegatiFalliti };
 }
