@@ -163,6 +163,15 @@ function PreventivoEditorPage() {
     onError: (e: unknown) => toast.error((e as Error).message),
   });
 
+  const riapplicaSpeciali = useMutation({
+    mutationFn: () => riapplicaPrezziSpecialiCantiere(id),
+    onSuccess: (res) => {
+      if (res.aggiornate > 0) toast.success(`${res.aggiornate} righe aggiornate con prezzi speciali del cantiere`);
+      invalidate();
+    },
+    onError: (e: unknown) => toast.error((e as Error).message),
+  });
+
 
   const applicaSconto = useMutation({
     mutationFn: async (perc: number) => {
