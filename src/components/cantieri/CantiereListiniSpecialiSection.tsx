@@ -229,6 +229,43 @@ export function CantiereListiniSpecialiSection({
   );
 }
 
+function EditableNumberCell({
+  value,
+  highlight,
+  onCommit,
+}: {
+  value: number | null;
+  highlight: boolean;
+  onCommit: (v: number | null) => void;
+}) {
+  const [local, setLocal] = useState<number | null>(value);
+  const [dirty, setDirty] = useState(false);
+  // Sync from props when not dirty
+  if (!dirty && local !== value) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setLocal(value);
+  }
+  return (
+    <NumberInputIt
+      value={local ?? ""}
+      onChange={(v) => {
+        setDirty(true);
+        setLocal(v);
+      }}
+      onBlur={() => {
+        if (dirty) {
+          onCommit(local);
+          setDirty(false);
+        }
+      }}
+      className={cn(
+        "h-7 w-28 px-2 text-right font-mono text-xs",
+        highlight && "border-navy ring-1 ring-navy/30",
+      )}
+    />
+  );
+}
+
 function AddArticoloDialog({
   open,
   onOpenChange,
