@@ -587,10 +587,6 @@ export async function aggiornaListiniPreventivo(preventivo_id: string): Promise<
 
   return { aggiornate, saltate_manuali, senza_listino };
 }
-      return supabase.from("blocchi_preventivo").update({ importo: round2(totale) }).eq("id", b.id).then();
-    }),
-  );
-}
 
 /** Crea un blocco vuoto in fondo al preventivo. */
 export async function addBloccoVuoto(preventivo_id: string, ordineNext: number): Promise<Blocco> {
