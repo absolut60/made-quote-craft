@@ -590,8 +590,15 @@ export function calcolaRiga(r: Partial<Riga>): RigaCalc {
   const importo = round2(q * p * (1 - sc / 100) * segno);
   const costo = round2(n(r.costo) || 0);
   const venditaSnapshot = r.vendita == null ? round2(q * p * segno) : round2(n(r.vendita));
-  // Margine sulla vendita REALE (scontata), non sul prezzo pieno.
-  const margine = importo !== 0 ? ((importo - costo) / importo) * 100 : 0;
+  // Margine % calcolato sui valori UNITARI: indipendente dalla quantità,
+  // così la riga mostra il margine corretto anche con qta=0 (purché ci sia
+  // un costo unitario derivabile). costo memorizzato = costo_unit * quantita.
+  const prezzoScontatoUnit = p * (1 - sc / 100) * segno;
+  const costoUnit = q > 0 ? n(r.costo) / q : 0;
+  const margine =
+    prezzoScontatoUnit !== 0
+      ? ((prezzoScontatoUnit - costoUnit) / prezzoScontatoUnit) * 100
+      : 0;
   return {
     importo,
     costo,
