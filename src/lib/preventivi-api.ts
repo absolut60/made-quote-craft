@@ -294,7 +294,10 @@ export async function deletePreventivo(id: string) {
  */
 export async function duplicaPreventivo(
   sourceId: string,
+  options: { mode?: "stesso_cliente" | "nuovo_cliente" } = {},
 ): Promise<{ id: string; numero: string; allegatiFalliti: string[] }> {
+  const mode = options.mode ?? "stesso_cliente";
+  const nuovoCliente = mode === "nuovo_cliente";
   const src = await fetchPreventivo(sourceId);
   if (src.tipo !== "preventivo") {
     throw new Error("Solo i preventivi possono essere duplicati");
@@ -304,8 +307,8 @@ export async function duplicaPreventivo(
   const { preventivo: nuovo } = await createPreventivo({
     data: oggi,
     validita: src.validita,
-    cliente_id: src.cliente_id,
-    cantiere_id: src.cantiere_id,
+    cliente_id: nuovoCliente ? null : src.cliente_id,
+    cantiere_id: nuovoCliente ? null : src.cantiere_id,
     agente_id: src.agente_id,
     filiale: src.filiale,
     fascia_listino: src.fascia_listino,
