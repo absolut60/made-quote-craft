@@ -294,7 +294,7 @@ export async function deletePreventivo(id: string) {
  */
 export async function duplicaPreventivo(
   sourceId: string,
-  options: { mode?: "stesso_cliente" | "nuovo_cliente" } = {},
+  options: { mode?: "stesso_cliente" | "nuovo_cliente"; nuovoClienteId?: string | null } = {},
 ): Promise<{ id: string; numero: string; allegatiFalliti: string[] }> {
   const mode = options.mode ?? "stesso_cliente";
   const nuovoCliente = mode === "nuovo_cliente";
@@ -303,15 +303,30 @@ export async function duplicaPreventivo(
     throw new Error("Solo i preventivi possono essere duplicati");
   }
 
+  // Se "nuovo cliente": leggi anagrafica del cliente scelto per derivare agente/filiale/fascia
+  let nuovoClienteRow: { id: string; agente_id: string | null; filiale: string | null; fascia_listino_default: FasciaListino | null } | null = null;
+  if (nuovoCliente) {
+    if (!options.nuovoClienteId) {
+      throw new Error("Seleziona un cliente per il duplicato");
+    }
+    const { data, error } = await supabase
+      .from("clienti")
+      .select("id, agente_id, filiale, fascia_listino_default")
+      .eq("id", options.nuovoClienteId)
+      .single();
+    if (error) throw error;
+    nuovoClienteRow = data as unknown as typeof nuovoClienteRow;
+  }
+
   const oggi = new Date().toISOString().slice(0, 10);
   const { preventivo: nuovo } = await createPreventivo({
     data: oggi,
     validita: src.validita,
-    cliente_id: nuovoCliente ? null : src.cliente_id,
+    cliente_id: nuovoCliente ? nuovoClienteRow!.id : src.cliente_id,
     cantiere_id: nuovoCliente ? null : src.cantiere_id,
-    agente_id: src.agente_id,
-    filiale: src.filiale,
-    fascia_listino: src.fascia_listino,
+    agente_id: nuovoCliente ? nuovoClienteRow!.agente_id : src.agente_id,
+    filiale: nuovoCliente ? nuovoClienteRow!.filiale : src.filiale,
+    fascia_listino: nuovoCliente ? (nuovoClienteRow!.fascia_listino_default ?? src.fascia_listino) : src.fascia_listino,
     tipo_doc: src.tipo_doc,
     stato: "bozza",
     iva_perc: src.iva_perc,
@@ -323,6 +338,7 @@ export async function duplicaPreventivo(
     iva_importo: src.iva_importo,
     totale: src.totale,
   });
+
 
   for (const b of src.blocchi) {
     const { data: nb, error: bErr } = await supabase
