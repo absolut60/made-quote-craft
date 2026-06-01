@@ -684,14 +684,14 @@ export async function exportListaMaterialiPdf(prev: PreventivoConDettagli) {
 
 export async function exportListaFornitorePdf(prev: PreventivoConDettagli) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  drawHeader(doc, "Lista mat. fornitore", prev);
+  const headerEnd = drawHeader(doc, "Lista mat. fornitore", prev);
 
   const base = aggregaMateriali(prev.blocchi);
   const info = await fetchArticoliPerOrdine(base.map((m) => m.articolo_id));
   const mats = arricchisciMateriali(base, info);
   const gruppi = arrotondaPerFornitore(mats);
 
-  let y = 48;
+  let y = Math.max(62, headerEnd + 4);
   for (const g of gruppi) {
     doc.setFillColor(...BLOCK_BG);
     doc.rect(14, y, doc.internal.pageSize.getWidth() - 28, 7, "F");
