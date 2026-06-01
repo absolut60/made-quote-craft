@@ -525,10 +525,15 @@ export async function aggiornaListiniPreventivo(preventivo_id: string): Promise<
   let aggiornate = 0;
   let saltate_manuali = 0;
   let senza_listino = 0;
-  const updates: PromiseLike<unknown>[] = [];
 
+  // Itera TUTTI i blocchi e TUTTE le righe — esecuzione sequenziale per riga
+  // per evitare race/limiti di concorrenza che potevano far fallire silenziosamente
+  // gli update dei blocchi successivi al primo.
   for (const b of prev.blocchi) {
     for (const r of b.righe) {
+      if (r.tipo_riga === "nota" || r.tipo_riga === "separatore" || r.tipo_riga === "sotto_totale") {
+        continue;
+      }
       if (r.tipo_riga === "manuale") { saltate_manuali++; continue; }
       if (r.tipo_riga !== "articolo_singolo" && r.tipo_riga !== "da_kit") continue;
       if (!r.articolo_id) { saltate_manuali++; continue; }
@@ -540,43 +545,53 @@ export async function aggiornaListiniPreventivo(preventivo_id: string): Promise<
       const q = n(r.quantita);
       const segno = (r.segno ?? 1) === -1 ? -1 : 1;
       const importo = round2(q * vendita_unit * segno);
-      updates.push(
-        supabase.from("righe_preventivo").update({
+      const { error: upErr } = await supabase
+        .from("righe_preventivo")
+        .update({
           prezzo_unit: round2(vendita_unit),
           sconto_perc: 0,
           costo: round2(costo_unit * q),
           vendita: round2(vendita_unit * q),
           peso: round2(Number(art.peso_unit ?? 0) * q),
           importo,
-        }).eq("id", r.id).then(),
-      );
+        })
+        .eq("id", r.id);
+      if (upErr) throw upErr;
       aggiornate++;
     }
   }
-  await Promise.all(updates);
 
+  // Se c'è uno sconto a piede lo riapplichiamo (ricalcola anche i subtotali blocchi).
+  // Altrimenti ricalcoliamo i subtotali di TUTTI i blocchi qui.
   const sp = n(prev.sconto_piede_perc);
   if (sp > 0) {
     await applicaScontoPiedeARighe(preventivo_id, sp);
   } else {
-    const { data: blocchi } = await supabase
+    const { data: blocchi, error: bErr } = await supabase
       .from("blocchi_preventivo")
       .select("id, righe:righe_preventivo(*)")
       .eq("preventivo_id", preventivo_id);
-    await Promise.all(((blocchi ?? []) as unknown as { id: string; righe: Riga[] }[]).map((b) => {
+    if (bErr) throw bErr;
+    for (const bl of ((blocchi ?? []) as unknown as { id: string; righe: Riga[] }[])) {
       let totale = 0;
-      for (const r of b.righe ?? []) {
+      for (const r of bl.righe ?? []) {
         if (r.tipo_riga === "nota" || r.tipo_riga === "separatore" || r.tipo_riga === "sotto_totale") continue;
         totale += n(r.importo);
       }
-      return supabase.from("blocchi_preventivo").update({ importo: round2(totale) }).eq("id", b.id).then();
-    }));
+      const { error: ubErr } = await supabase
+        .from("blocchi_preventivo")
+        .update({ importo: round2(totale) })
+        .eq("id", bl.id);
+      if (ubErr) throw ubErr;
+    }
   }
 
-  const { data: blocchi2 } = await supabase
+  // Ricalcolo totali documento (sempre, leggendo i subtotali blocchi appena scritti)
+  const { data: blocchi2, error: b2Err } = await supabase
     .from("blocchi_preventivo")
     .select("importo")
     .eq("preventivo_id", preventivo_id);
+  if (b2Err) throw b2Err;
   const tot = (blocchi2 ?? []).reduce((s, b) => s + n((b as { importo: number | null }).importo), 0);
   const iva = n(prev.iva_perc);
   await supabase.from("preventivi").update({
