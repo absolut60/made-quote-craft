@@ -575,6 +575,7 @@ export async function aggiornaListiniPreventivo(preventivo_id: string): Promise<
   aggiornate: number;
   saltate_manuali: number;
   senza_listino: number;
+  speciali_applicati: number;
 }> {
   const prev = await fetchPreventivo(preventivo_id);
   const fascia = prev.fascia_listino;
