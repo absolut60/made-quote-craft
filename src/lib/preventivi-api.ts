@@ -626,8 +626,14 @@ export async function aggiornaListiniPreventivo(preventivo_id: string): Promise<
       if (!r.articolo_id) { saltate_manuali++; continue; }
       const art = articoliMap.get(r.articolo_id);
       if (!art) { senza_listino++; continue; }
-      const vendita_unit = getPrezzoVendita(art, fascia);
-      const costo_unit = getCostoNettoCorrente(art);
+      let vendita_unit = getPrezzoVendita(art, fascia);
+      let costo_unit = getCostoNettoCorrente(art);
+      const sp_cant = art.cod_gamma ? prezziSpecialiMap.get(art.cod_gamma) : undefined;
+      if (sp_cant) {
+        if (sp_cant.costo != null) costo_unit = sp_cant.costo;
+        if (sp_cant.prezzo != null) vendita_unit = sp_cant.prezzo;
+        speciali_applicati++;
+      }
       if (!vendita_unit) senza_listino++;
       const q = n(r.quantita);
       const segno = (r.segno ?? 1) === -1 ? -1 : 1;
