@@ -53,7 +53,7 @@ const fmtData = (s: string | null | undefined) => {
 // Header / Footer
 // =========================================================================
 
-function drawHeader(doc: jsPDF, titolo: string, prev: PreventivoConDettagli) {
+function drawHeader(doc: jsPDF, titolo: string, prev: PreventivoConDettagli): number {
   const w = doc.internal.pageSize.getWidth();
 
   // ZONA BIANCA: logo sx + titolo dx
@@ -103,34 +103,8 @@ function drawHeader(doc: jsPDF, titolo: string, prev: PreventivoConDettagli) {
     doc.text(addrLine.slice(0, 70), 14, yL);
     yL += 4;
   }
-  if (prev.cantiere) {
-    const cant = prev.cantiere as typeof prev.cantiere & { indirizzo?: string | null };
-    // Badge CANTIERE in evidenza — sfondo tono-su-tono coerente con la palette MADE
-    const badgeY = by + bh - 11.5; // ancorato in basso nella banda
-    const badgeH = 9;
-    const badgeW = 130;
-    const badgeX = 14;
-    const CANTIERE_BG: [number, number, number] = [220, 230, 245];
-    const CANTIERE_BORDER: [number, number, number] = [180, 200, 225];
-    doc.setFillColor(...CANTIERE_BG);
-    doc.setDrawColor(...CANTIERE_BORDER);
-    doc.setLineWidth(0.2);
-    doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 1.2, 1.2, "FD");
 
-    doc.setFont("helvetica", "bold"); doc.setFontSize(6);
-    doc.setTextColor(...LABEL_COL);
-    doc.text("CANTIERE", badgeX + 3, badgeY + 3.6);
-
-    doc.setFont("helvetica", "bold"); doc.setFontSize(10);
-    doc.setTextColor(...NAVY);
-    const ctName = cant.nome ?? "—";
-    const ctAddr = cant.indirizzo ? "  ·  " + cant.indirizzo : "";
-    const ctFull = (ctName + ctAddr).slice(0, 78);
-    doc.text(ctFull, badgeX + 3, badgeY + 7.6);
-    doc.setFont("helvetica", "normal");
-  }
-
-  // Metadata dx
+  // Metadata dx (dentro la banda, colonna destra)
   const colDoc  = w - 78;
   const colData = w - 42;
   const colVal  = w - 14;
@@ -155,6 +129,83 @@ function drawHeader(doc: jsPDF, titolo: string, prev: PreventivoConDettagli) {
     doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(...NAVY);
     doc.text(c.val, c.x, by + 25, { align: "right" });
   }
+
+  // Cursore "fine header" — di default fine banda. Se c'è cantiere, disegna una
+  // striscia dedicata FULL-WIDTH sotto la banda con altezza dinamica.
+  let headerEnd = by + bh; // = 60
+
+  if (prev.cantiere) {
+    const cant = prev.cantiere as Cantiere & { comune?: { nome: string } | null };
+    // Costruisce le righe indirizzo del cantiere (indirizzo, CAP città (PROV))
+    const ctAddrParts: string[] = [];
+    if (cant.indirizzo) ctAddrParts.push(cant.indirizzo);
+    const ctLoc: string[] = [];
+    if (cant.cap) ctLoc.push(cant.cap);
+    if (cant.comune?.nome) ctLoc.push(cant.comune.nome);
+    if (cant.prov) ctLoc.push(`(${cant.prov})`);
+    const ctLocStr = ctLoc.join(" ");
+
+    const stripX = 0;
+    const stripW = w;
+    const padX = 14;
+    const innerW = stripW - padX * 2;
+
+    // Wrap dinamico delle righe indirizzo
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+    const addrLines: string[] = [];
+    if (ctAddrParts.length) {
+      const wrapped = doc.splitTextToSize(ctAddrParts.join(", "), innerW) as string[];
+      addrLines.push(...wrapped);
+    }
+    if (ctLocStr) {
+      const wrapped = doc.splitTextToSize(ctLocStr, innerW) as string[];
+      addrLines.push(...wrapped);
+    }
+
+    // Altezza: label (3.5) + nome (5) + addrLines * 3.5 + padding (4)
+    const labelH = 3.5;
+    const nameH = 5;
+    const lineH = 3.6;
+    const padTop = 2.6;
+    const padBot = 2.8;
+    const stripH = padTop + labelH + nameH + addrLines.length * lineH + padBot;
+    const stripY = headerEnd + 1; // gap minimo dalla banda
+
+    const CANTIERE_BG: [number, number, number] = [220, 230, 245];
+    const CANTIERE_BORDER: [number, number, number] = [180, 200, 225];
+    doc.setFillColor(...CANTIERE_BG);
+    doc.setDrawColor(...CANTIERE_BORDER);
+    doc.setLineWidth(0.2);
+    doc.rect(stripX, stripY, stripW, stripH, "F");
+    // bordo solo sopra/sotto per restare full-bleed coerente con la banda
+    doc.line(0, stripY, w, stripY);
+    doc.line(0, stripY + stripH, w, stripY + stripH);
+
+    // Etichetta
+    doc.setFont("helvetica", "bold"); doc.setFontSize(6);
+    doc.setTextColor(...LABEL_COL);
+    doc.text("CANTIERE", padX, stripY + padTop + labelH - 0.6);
+
+    // Nome cantiere — in evidenza
+    doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+    doc.setTextColor(...NAVY);
+    doc.text(cant.nome ?? "—", padX, stripY + padTop + labelH + nameH - 0.2);
+
+    // Indirizzo / CAP / città su righe sotto il nome
+    if (addrLines.length) {
+      doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+      doc.setTextColor(...NAVY);
+      let yA = stripY + padTop + labelH + nameH + lineH - 0.5;
+      for (const ln of addrLines) {
+        doc.text(ln, padX, yA);
+        yA += lineH;
+      }
+    }
+
+    headerEnd = stripY + stripH;
+  }
+
+  return headerEnd;
 }
 
 function drawFooter(doc: jsPDF) {
