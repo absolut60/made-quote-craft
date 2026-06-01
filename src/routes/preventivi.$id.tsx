@@ -30,7 +30,7 @@ import { toast } from "sonner";
 import {
   addBloccoVuoto,
   applicaScontoPiedeARighe,
-  calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, fetchAgenti, fetchCliente, fetchOrdiniCollegati, fetchPreventivo, fetchPreventivoOrigine,
+  calcolaBlocco, calcolaTotaliPreventivo, deleteBlocco, deletePreventivo, duplicaPreventivo, fetchAgenti, fetchCliente, fetchOrdiniCollegati, fetchPreventivo, fetchPreventivoOrigine,
   fractionalOrder,
   reorderBlocchi, ricalcolaBloccoSuNuovaQuantita, STATI, STATI_LABEL, TIPI_DOC, TIPI_DOC_LABEL,
   updateBlocco, updatePreventivo,
