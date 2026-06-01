@@ -864,8 +864,8 @@ function AllegatiCountBadge({ preventivoId }: { preventivoId: string }) {
 }
 
 function BloccoCard({
-  blocco, index, preventivoId, fascia, readOnly = false,
-}: { blocco: BloccoConRighe; index: number; preventivoId: string; fascia: FasciaListino; readOnly?: boolean }) {
+  blocco, index, preventivoId, fascia, readOnly = false, prezziSpecialiMap,
+}: { blocco: BloccoConRighe; index: number; preventivoId: string; fascia: FasciaListino; readOnly?: boolean; prezziSpecialiMap?: PrezziSpecialiMap | null }) {
   const qc = useQueryClient();
   const sortable = useSortable({ id: blocco.id });
   const style = {
